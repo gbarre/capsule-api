@@ -1,0 +1,80 @@
+put:
+  tags: [user]
+  description: |
+    Only updates an addon for a capsule.\
+    A **NotFound** error will be returned
+    if the addon does not exist.
+  summary: Update an addon for a capsule
+  operationId: updateCapsuleAddOn
+  parameters:
+    - $ref: "../../components/parameters.yaml#/capsuleId"
+    - $ref: "../../components/parameters.yaml#/addonId"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../components/schemas.yaml#/AddOn"
+  responses:
+    "400":
+      $ref: "../../components/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../../components/responses.yaml#/Unauthorized"
+    "403":
+      $ref: "../../components/responses.yaml#/Forbidden"
+    "404":
+      $ref: "../../components/responses.yaml#/NotFound"
+    "200":
+      description: Addon updated for the capsule
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas.yaml#/AddOn"
+      headers:
+        Location:
+          description: Created addon URI
+          schema:
+            type: string
+            format: uri
+
+get:
+  tags: [user]
+  description: |
+    Gets details about an addon for a capsule.
+  summary: Get an addon for a capsule
+  operationId: getCapsuleAddOn
+  parameters:
+    - $ref: "../../components/parameters.yaml#/capsuleId"
+    - $ref: "../../components/parameters.yaml#/addonId"
+  responses:
+    "404":
+      $ref: "../../components/responses.yaml#/NotFound"
+    "401":
+      $ref: "../../components/responses.yaml#/Unauthorized"
+    "403":
+      $ref: "../../components/responses.yaml#/Forbidden"
+    "200":
+      description: AddOn added to the capsule
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas.yaml#/AddOn"
+
+delete:
+  tags: [user]
+  description: |
+    Deletes an addon for a capsule.
+  summary: Delete an addon for a capsule
+  operationId: deleteCapsuleAddOn
+  parameters:
+    - $ref: "../../components/parameters.yaml#/capsuleId"
+    - $ref: "../../components/parameters.yaml#/addonId"
+  responses:
+    "404":
+      $ref: "../../components/responses.yaml#/NotFound"
+    "401":
+      $ref: "../../components/responses.yaml#/Unauthorized"
+    "403":
+      $ref: "../../components/responses.yaml#/Forbidden"
+    "204":
+      description: Successful deletion

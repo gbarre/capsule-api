@@ -1,0 +1,70 @@
+get:
+  tags: [user]
+  description: |
+    Gets details about a runtime.
+  summary: Get details about a runtime
+  operationId: getRuntimeById
+  parameters:
+    - $ref: "../components/parameters.yaml#/runtimeId"
+  responses:
+    "200":
+      description: The requested runtime
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas.yaml#/Runtime"
+    "401":
+      $ref: "../components/responses.yaml#/Unauthorized"
+    "404":
+      $ref: "../components/responses.yaml#/NotFound"
+
+put:
+  tags: [superadmin]
+  description: |
+    Creates or updates a runtime.
+  summary: Update a runtime
+  operationId: updateRuntimeById
+  parameters:
+    - $ref: "../components/parameters.yaml#/runtimeId"
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "../components/schemas.yaml#/Runtime"
+  responses:
+    "200":
+      description: The updated runtime
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas.yaml#/Runtime"
+    "201":
+      description: The added runtime
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas.yaml#/Runtime"
+    "400":
+      $ref: "../components/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../components/responses.yaml#/Unauthorized"
+    "403":
+      $ref: "../components/responses.yaml#/Forbidden"
+
+delete:
+  tags: [superadmin]
+  description: |
+    Deletes a runtime.
+  summary: Delete a runtime
+  operationId: deleteRuntimeById
+  parameters:
+    - $ref: "../components/parameters.yaml#/runtimeId"
+  responses:
+    "204":
+      description: Successful deletion
+    "400":
+      $ref: "../components/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../components/responses.yaml#/Unauthorized"
+    "403":
+      $ref: "../components/responses.yaml#/Forbidden"

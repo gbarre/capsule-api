@@ -1,0 +1,4 @@
+# TODO: Write securitySchemes (PoC Auth)
+openId:
+  type: openIdConnect
+  openIdConnectUrl: https://example.com/.well-known/openid-configuration

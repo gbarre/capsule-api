@@ -1,0 +1,343 @@
+Error:
+  type: object
+  properties:
+    code:
+      type: integer
+      format: int32
+      example: 42
+    message:
+      type: string
+      example: error_description
+  required:
+    - code
+    - message
+
+User: # TODO: PoC Auth (?)
+  type: object
+  properties:
+    id:
+      type: string
+      readOnly: true
+      example: 02d3e2a0-a925-4438-8199-2cd726d7b42d
+    ldapUuid:
+      type: string
+      readOnly: true
+      example: ebac7db7-aac7-4822-8d8e-8521ec009c8c
+    publicKeys:
+      type: array
+      items:
+        type: string
+      default: []
+      example:
+        - >-
+          ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCt+vNHscC4LbZY/YQP0hcV4QrwRlhqrcuhAvZZERmp
+          NLLOWK4Neaa7ywikVGOOVcY+q3XRHPNZTVkEZhwm0F+/87LJpNhxhZu4BdJ2mfIwx0JS5gRflfeUxxLJ
+          AwLXQZpcO7GRdz/w12EgBohHNbxJyKwL7DSFAnaZ08/tlsjoNRlo1k4NHFf5Xf8K3M1ZlXeSxNV9nlpX
+          tD6tbVVJn18tDCZgSqH64m1+iVb05sB2htifgkBB+fCElRV/v7Eylc5Zu1EMTlrHmeHB3Yf8DpRMkwYH
+          e4j+yDutLvhhZzGmrnNGcD8zZkE1pwKivjwBKee4Bee8NzVR7vMary2GkqY1 john@doe
+        - >-
+          ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqDWN5ay+bKoNg/+DbugWvLjY6q+ODdelRkZTakj7U
+          Nq+a40Vm+HHRT2tuoB1NxeR87UieJt9IxWiiTasb/Ss+OgcAn5l8kvQvRQe+dp10qbeQHzkrgjpsFj49
+          YDOVKRTrqm5X721TnpqAo2RjqGBeEU+y9REfXPNPMUsni3w/h/BQqJi/e2CRBRdgbi/3bO0Xf0Pt0bc/
+          9jjF6vulqzttdbxowbee8bJlPyz/LnNcTGDdmw2PNQFwe0ZuhHsFzSLX4acM3je0+xcdlq0+Gq8nU5jz
+          /x0SXuXFz9zFHPO3Ivko1VFdBXaqeb8wOluUjmOxJdDcg3Uqswc5Z08KU+9r jane@doe
+    role:
+      type: string
+      enum: [user, admin, superadmin]
+      default: user
+      description: |
+        user:
+        - can only sign in and administer owned capsules
+
+        admin:
+        - can perform base user actions
+        - can create capsules and grant ownership to users on them
+        - can also administer all capsules
+
+        superadmin:
+        - can perform admin actions
+        - can assign admin and superadmin role to users
+        - can create runtime models
+  readOnly: true
+
+Runtime:
+  type: object
+  properties:
+    id:
+      type: string
+      readOnly: true
+      example: a972e936-0840-4278-b5d2-8ec7af8836bc
+    name:
+      type: string
+      example: apache-2.4 php-7.2.x
+    description:
+      type: string
+      example: >-
+        Stack web classique Apache 2.4 + PHP 7.2.x
+    runtimeType:
+      type: string
+      enum: [webapp, addon]
+    availableOpts:
+      type: array
+      items:
+        type: object
+        properties:
+          accessLevel:
+            type: string
+            enum: [user, admin, superadmin]
+          tag:
+            type: string
+            example: Apache
+          fieldName:
+            type: string
+            example: vhost.conf
+          fieldDescription:
+            type: string
+            default: ""
+            example: >-
+              Fichier de configuration du VirtualHost Apache2
+          valueType:
+            type: string
+            enum: [string, integer, boolean, file] # not definitive
+            example: file
+          defaultValue:
+            type: string # type corresponding to valueType
+            description: type must match valueType
+            example: "{base64-encoded vhost.conf file content}"
+          validationRules:
+            type: object
+            default: {}
+        example:
+          - accessLevel: user
+            tag: Apache
+            fieldName: vhost.conf
+            fieldDescription: >-
+              Fichier de configuration du VirtualHost Apache2
+            valueType: file
+            defaultValue: "{base64-encoded vhost.conf file content}"
+          - accessLevel: user
+            tag: PHP
+            fieldName: worker
+            fieldDescription: >-
+              Nombre de workers pour PHP
+            valueType: integer
+            defaultValue: 6
+            validationRules:
+              min: 1
+              max: 42
+        required:
+          - tag
+          - fieldName
+          - valueType
+          - accessLevel
+  required:
+    - name
+    - runtimeType
+
+WebApp:
+  type: object
+  properties:
+    id:
+      type: string
+      readOnly: true
+      example: d41ea210-742a-410c-a971-3978143eab80
+    insecure:
+      type: boolean
+      default: false
+      nullable: true
+      description: mutually exclusive with tls
+    tls: # TODO: TLS alerte (consensus ?)
+      type: object
+      properties:
+        redirectHttps:
+          type: boolean
+          default: true
+        crt:
+          type: string
+          writeOnly: true
+        key:
+          type: string
+          format: password
+          writeOnly: true
+      nullable: true
+      required:
+        - crt
+        - key
+      description: mutually exclusive with insecure
+    fqdns:
+      type: array
+      items:
+        type: string
+        format: hostname
+        pattern: /^(?!:\/\/)([a-zA-Z0-9]+\.)?[a-zA-Z0-9][a-zA-Z0-9-]+\.[a-zA-Z]{2,6}?$/i
+      example:
+        - main.fqdn.ac-versailles.fr
+        - secondary.fqdn.ac-versailles.fr
+      description: first FQDN is the main one
+    runtimeId:
+      type: string
+      example: e48e31e2-e271-4a2c-aee4-e73caa8aa615
+    opts:
+      type: array
+      items:
+        type: object
+        properties:
+          tag:
+            type: string
+            example: PHP
+          fieldName:
+            type: string
+            example: worker
+          value:
+            type: string # can be any value
+            example: 42
+      default: []
+    quota:
+      description: quota obtained from the capsule declaration
+      type: object
+      properties:
+        volumeSize:
+          type: integer
+          format: GB
+          readOnly: true
+          example: 20
+        memoryMax:
+          type: integer
+          format: GB
+          readOnly: true
+          example: 4
+        cpuMax:
+          type: number
+          readOnly: true
+          example: 2.5
+      readOnly: true
+  required:
+    - fqdns
+    - runtimeId
+
+AddOn:
+  type: object
+  properties:
+    id:
+      type: string
+      readOnly: true
+      example: e461015b-7820-4693-87d3-3e05cc490006
+    name:
+      type: string
+      example: MySQL-1
+    description:
+      type: string
+      default: ""
+      example: >-
+        Service de base de données pour ma capsule
+    uri:
+      type: string
+      format: uri
+      readOnly: true
+      example: "mysql://username:password@host/database"
+    runtimeId:
+      type: string
+      example: d4541bee-eb0d-472a-9956-6bbfd63442c0
+    opts:
+      type: array
+      items:
+        type: object
+        properties:
+          tag:
+            type: string
+          fieldName:
+            type: string
+          value:
+            type: string # can be any value
+      default: []
+      example: []
+    quota:
+      description: quota obtained from the capsule declaration
+      type: object
+      properties:
+        volumeSize:
+          type: integer
+          format: GB
+          readOnly: true
+          example: 20
+        memoryMax:
+          type: integer
+          format: GB
+          readOnly: true
+          example: 4
+        cpuMax:
+          type: number
+          readOnly: true
+          example: 2.5
+      readOnly: true
+  required:
+    - name
+    - runtimeId
+
+Capsule:
+  type: object
+  properties:
+    id:
+      type: string
+      example: 695d0f1a-beb2-4145-828d-0f7f0fcc6696
+    name:
+      type: string
+      example: lyc-vernes-osny
+    owners:
+      type: array
+      items:
+        type: string
+      example:
+        - e53b412c-e99e-4995-8c02-7097340832d0
+        - 784c555b-c179-4a78-856b-cc7ea9314654
+      uniqueItems: true
+      minItems: 1
+    webapp:
+      type: string
+      nullable: true
+      example: 1ba583fb-9731-48f1-afd8-93f8d514faff
+    addons:
+      type: array
+      items:
+        type: string
+      example:
+        - 24236e31-9a9a-42b5-a6fb-2e32f36e054f
+        - bee09122-5b09-4f9c-bc20-9e639f1510bb
+      uniqueItems: true
+      default: []
+    authorizedKeys:
+      type: array
+      items:
+        type: string
+      uniqueItems: true
+      example:
+        - >-
+          ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCt+vNHscC4LbZY/YQP0hcV4QrwRlhqrcuhAvZZERmp
+          NLLOWK4Neaa7ywikVGOOVcY+q3XRHPNZTVkEZhwm0F+/87LJpNhxhZu4BdJ2mfIwx0JS5gRflfeUxxLJ
+          AwLXQZpcO7GRdz/w12EgBohHNbxJyKwL7DSFAnaZ08/tlsjoNRlo1k4NHFf5Xf8K3M1ZlXeSxNV9nlpX
+          tD6tbVVJn18tDCZgSqH64m1+iVb05sB2htifgkBB+fCElRV/v7Eylc5Zu1EMTlrHmeHB3Yf8DpRMkwYH
+          e4j+yDutLvhhZzGmrnNGcD8zZkE1pwKivjwBKee4Bee8NzVR7vMary2GkqY1 john@doe
+        - >-
+          ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqDWN5ay+bKoNg/+DbugWvLjY6q+ODdelRkZTakj7U
+          Nq+a40Vm+HHRT2tuoB1NxeR87UieJt9IxWiiTasb/Ss+OgcAn5l8kvQvRQe+dp10qbeQHzkrgjpsFj49
+          YDOVKRTrqm5X721TnpqAo2RjqGBeEU+y9REfXPNPMUsni3w/h/BQqJi/e2CRBRdgbi/3bO0Xf0Pt0bc/
+          9jjF6vulqzttdbxowbee8bJlPyz/LnNcTGDdmw2PNQFwe0ZuhHsFzSLX4acM3je0+xcdlq0+Gq8nU5jz
+          /x0SXuXFz9zFHPO3Ivko1VFdBXaqeb8wOluUjmOxJdDcg3Uqswc5Z08KU+9r jane@doe
+    quota:
+      type: object
+      properties:
+        volumeSize:
+          type: integer
+          format: GB
+          example: 20
+        memoryMax:
+          type: integer
+          format: GB
+          example: 8
+        cpuMax:
+          type: number
+          example: 2.5
+      default: {}
+  required:
+    - name
+    - owners

@@ -1,0 +1,39 @@
+# TODO: Users endpoint ?
+# TODO: Personalized endpoints ? ex: /me /profile ; /capsules/{cId}/leave ?
+
+# TODO: Fill metadata correctly (info key, servers, etc.)
+openapi: "3.0.2"
+info:
+  title: Capsule API
+  version: "0.1"
+components:
+  securitySchemes: # TODO: Write securitySchemes (PoC Auth)
+    $ref: ./components/securitySchemes.yaml
+  parameters:
+    $ref: ./components/parameters.yaml
+  requestBodies: {}
+  responses:
+    $ref: ./components/responses.yaml
+  schemas:
+    $ref: ./components/schemas.yaml
+paths:
+  /sshkeys:
+    $ref: ./paths/sshkeys.yaml
+  /runtimes:
+    $ref: ./paths/runtimes.yaml
+  /runtimes/{runtimeId}:
+    $ref: ./paths/runtime-by-id.yaml
+  /capsules:
+    $ref: ./paths/capsules.yaml
+  /capsules/{capsuleId}:
+    $ref: ./paths/capsule/id.yaml
+  /capsules/{capsuleId}/owners:
+    $ref: ./paths/capsule/owners.yaml
+  /capsules/{capsuleId}/owners/{ownerId}:
+    $ref: ./paths/capsule/owner-by-id.yaml
+  /capsules/{capsuleId}/webapp:
+    $ref: ./paths/capsule/webapp.yaml
+  /capsules/{capsuleId}/addons:
+    $ref: ./paths/capsule/addons.yaml
+  /capsules/{capsuleId}/addons/{addonId}:
+    $ref: ./paths/capsule/addon-by-id.yaml

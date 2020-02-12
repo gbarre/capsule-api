@@ -1,0 +1,54 @@
+post:
+  tags: [admin]
+  description: Creates a capsule
+  summary: Add a new capsule
+  operationId: addCapsule
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../components/schemas.yaml#/Capsule"
+  responses:
+    "400":
+      $ref: "../components/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../components/responses.yaml#/Unauthorized"
+    "403":
+      $ref: "../components/responses.yaml#/Forbidden"
+    "201":
+      description: Capsule created
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas.yaml#/Capsule"
+      headers:
+        Location:
+          description: Created capsule URI
+          schema:
+            type: string
+            format: uri
+get:
+  tags: [user]
+  description: |
+    Gets the capsules.
+  summary: Get capsules.
+  operationId: getCapsules
+  parameters:
+    - $ref: "../components/parameters.yaml#/offset"
+    - $ref: "../components/parameters.yaml#/limit"
+    - $ref: "../components/parameters.yaml#/filters"
+    - $ref: "../components/parameters.yaml#/verbose"
+  responses:
+    "404":
+      $ref: "../components/responses.yaml#/NotFound"
+    "403":
+      $ref: "../components/responses.yaml#/Forbidden"
+    "200":
+      description: The requested capsules
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "../components/schemas.yaml#/Capsule"

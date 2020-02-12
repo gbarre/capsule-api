@@ -1,0 +1,61 @@
+# TODO: Validate endpoints
+      
+get:
+  tags: [admin]
+  description: |
+    Gets all owners of a capsule.
+  summary: Gets owners of a capsule
+  operationId: getCapsuleOwners
+  parameters:
+    - $ref: "../../components/parameters.yaml#/capsuleId"
+    - $ref: "../../components/parameters.yaml#/offset"
+    - $ref: "../../components/parameters.yaml#/limit"
+    - $ref: "../../components/parameters.yaml#/filters"
+  responses:
+    "401":
+      $ref: "../../components/responses.yaml#/Unauthorized"
+    "403":
+      $ref: "../../components/responses.yaml#/Forbidden"
+    "200":
+      description: List of the owners of the capsule
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas.yaml#/User"
+
+post:
+  tags: [admin]
+  description: |
+    Add a new owner to a capsule.
+  summary: Add an owner to a capsule
+  operationId: addCapsuleOwner
+  parameters:
+    - $ref: "../../components/parameters.yaml#/capsuleId"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: string
+          example: 04b41ffb-2144-4f28-acb2-b3f3741ca7dc
+  responses:
+    "400":
+      $ref: "../../components/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../../components/responses.yaml#/Unauthorized"
+    "403":
+      $ref: "../../components/responses.yaml#/Forbidden"
+    "404":
+      $ref: "../../components/responses.yaml#/NotFound"
+    "409":
+      description: Requested user is already owner of this capsule
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas.yaml#/Error"
+    "200":
+      description: Owner added to the capsule
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas.yaml#/User"

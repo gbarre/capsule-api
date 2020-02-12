@@ -1,0 +1,66 @@
+offset:
+  in: query
+  name: offset
+  description: The number of items to skip before collecting the result set
+  required: false
+  schema:
+    type: integer
+    minimum: 0
+    default: 0
+limit:
+  in: query
+  name: limit
+  description: The number of items to return
+  required: false
+  schema:
+    type: integer
+    minimum: 1
+    maximum: 100
+    default: 20
+verbose:
+  in: query
+  name: verbose
+  description: Whether the response much display additional information about the requested resource
+  required: false
+  schema:
+    type: boolean
+    default: false
+filters:
+  in: query
+  name: filters
+  description: The fields of the response to filter by
+  required: false
+  schema:
+    type: object
+    default: {}
+  style: form
+  explode: true
+
+capsuleId:
+  in: path
+  name: capsuleId
+  required: true
+  description: Capsule GUID
+  schema:
+    type: string
+addonId:
+  in: path
+  name: addonId
+  required: true
+  description: AddOn GUID
+  schema:
+    type: string
+runtimeId:
+  in: path
+  name: runtimeId
+  required: true
+  description: Runtime GUID
+  schema:
+    type: string
+ownerId:
+  in: path
+  name: ownerId
+  required: true
+  description: User GUID
+  schema:
+    type: string
