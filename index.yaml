@@ -19,10 +19,6 @@ components:
 paths:
   /sshkeys:
     $ref: ./paths/sshkeys.yaml
-  /runtimes:
-    $ref: ./paths/runtimes.yaml
-  /runtimes/{runtimeId}:
-    $ref: ./paths/runtime-by-id.yaml
   /capsules:
     $ref: ./paths/capsules.yaml
   /capsules/{capsuleId}:
@@ -37,3 +33,7 @@ paths:
     $ref: ./paths/capsule/addons.yaml
   /capsules/{capsuleId}/addons/{addonId}:
     $ref: ./paths/capsule/addon-by-id.yaml
+  /runtimes:
+    $ref: ./paths/runtimes.yaml
+  /runtimes/{runtimeId}:
+    $ref: ./paths/runtime-by-id.yaml
