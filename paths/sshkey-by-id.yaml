@@ -1,5 +1,5 @@
 delete:
-  tags: [admin]
+  tags: [user]
   description: |
     Deletes a public key.
   summary: Delete a public key
