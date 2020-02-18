@@ -1,0 +1,17 @@
+delete:
+  tags: [admin]
+  description: |
+    Deletes a public key.
+  summary: Delete a public key
+  operationId: deleteSshkById
+  parameters:
+    - $ref: "../components/parameters.yaml#/sshkeyId"
+  responses:
+    "204":
+      description: Successful deletion
+    "400":
+      $ref: "../components/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../components/responses.yaml#/Unauthorized"
+    "403":
+      $ref: "../components/responses.yaml#/Forbidden"

@@ -64,3 +64,10 @@ ownerId:
   description: User GUID
   schema:
     type: string
+sshkeyId:
+  in: path
+  name: sshkeyId
+  required: true
+  description: SSH Key GUID
+  schema:
+    type: string

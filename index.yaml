@@ -5,7 +5,7 @@
 openapi: "3.0.2"
 info:
   title: Capsule API
-  version: "0.1"
+  version: "0.2"
 components:
   securitySchemes: # TODO: Write securitySchemes (PoC Auth)
     $ref: ./components/securitySchemes.yaml
@@ -19,6 +19,8 @@ components:
 paths:
   /sshkeys:
     $ref: ./paths/sshkeys.yaml
+  /sshkeys/{sshkeyId}:
+    $ref: ./paths/sshkey-by-id.yaml
   /capsules:
     $ref: ./paths/capsules.yaml
   /capsules/{capsuleId}:
