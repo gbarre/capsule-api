@@ -3,7 +3,7 @@ delete:
   description: |
     Deletes a public key.
   summary: Delete a public key
-  operationId: deleteSshkById
+  operationId: deleteSshkeyById
   parameters:
     - $ref: "../components/parameters.yaml#/sshkeyId"
   responses:
