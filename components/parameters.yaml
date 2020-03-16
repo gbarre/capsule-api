@@ -57,11 +57,11 @@ runtimeId:
   description: Runtime GUID
   schema:
     type: string
-ownerId:
+userId:
   in: path
-  name: ownerId
+  name: userId
   required: true
-  description: User GUID
+  description: User LDAP nsUniqueId
   schema:
     type: string
 sshkeyId:

@@ -12,17 +12,13 @@ Error:
     - code
     - message
 
-User: # TODO: PoC Auth (?)
+User:
   type: object
   properties:
-    id:
+    id: # correspond à LDAP nsUniqueId
       type: string
       readOnly: true
       example: 02d3e2a0-a925-4438-8199-2cd726d7b42d
-    ldapUuid:
-      type: string
-      readOnly: true
-      example: ebac7db7-aac7-4822-8d8e-8521ec009c8c
     publicKeys:
       type: array
       items:
@@ -48,6 +44,8 @@ User: # TODO: PoC Auth (?)
       description: |
         user:
         - can only sign in and administer owned capsules
+        - can grant ownership to users on owned capsules
+        - may create capsules depending on platform configuration
 
         admin:
         - can perform base user actions
@@ -74,6 +72,9 @@ Runtime:
       type: string
       example: >-
         Stack web classique Apache 2.4 + PHP 7.2.x
+    family:
+      type: string
+      example: Apache PHP
     runtimeType:
       type: string
       enum: [webapp, addon]
@@ -146,7 +147,7 @@ WebApp:
       default: false
       nullable: true
       description: mutually exclusive with tls
-    tls: # TODO: TLS alerte (consensus ?)
+    tls:
       type: object
       properties:
         redirectHttps:
@@ -177,6 +178,12 @@ WebApp:
     runtimeId:
       type: string
       example: e48e31e2-e271-4a2c-aee4-e73caa8aa615
+    env:
+      type: object
+      description: Dict of environment variables
+      example:
+        HTTP_PROXY: http://proxy:3128/
+        HTTPS_PROXY: https://proxy:3128/ 
     opts:
       type: array
       items:
@@ -238,6 +245,12 @@ AddOn:
     runtimeId:
       type: string
       example: d4541bee-eb0d-472a-9956-6bbfd63442c0
+    env:
+      type: object
+      description: Dict of environment variables
+      example:
+        HTTP_PROXY: http://proxy:3128/
+        HTTPS_PROXY: https://proxy:3128/ 
     opts:
       type: array
       items:
