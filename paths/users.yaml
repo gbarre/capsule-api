@@ -1,0 +1,25 @@
+get:
+  tags: [admin]
+  description: |
+    Gets the users.
+  summary: Get users
+  operationId: getUsers
+  parameters:
+    - $ref: "../components/parameters.yaml#/offset"
+    - $ref: "../components/parameters.yaml#/limit"
+    - $ref: "../components/parameters.yaml#/filters"
+  responses:
+    "404":
+      $ref: "../components/responses.yaml#/NotFound"
+    "403":
+      $ref: "../components/responses.yaml#/Forbidden"
+    "401":
+      $ref: "../components/responses.yaml#/Unauthorized"
+    "200":
+      description: The requested users
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "../components/schemas.yaml#/User"

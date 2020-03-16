@@ -1,0 +1,21 @@
+get:
+  tags: [admin]
+  description: |
+    Gets a user.
+  summary: Get a user
+  operationId: getUser
+  parameters:
+    - $ref: "../components/parameters.yaml#/userId"
+  responses:
+    "404":
+      $ref: "../components/responses.yaml#/NotFound"
+    "403":
+      $ref: "../components/responses.yaml#/Forbidden"
+    "401":
+      $ref: "../components/responses.yaml#/Unauthorized"
+    "200":
+      description: The requested user
+      content:
+        application/json:
+          schema:
+              $ref: "../components/schemas.yaml#/User"

@@ -1,7 +1,6 @@
-# TODO: Validate endpoints
-      
+# TODO: CRUD ?
 get:
-  tags: [admin]
+  tags: [user]
   description: |
     Gets all owners of a capsule.
   summary: Gets owners of a capsule
@@ -21,12 +20,14 @@ get:
       content:
         application/json:
           schema:
-            $ref: "../../components/schemas.yaml#/User"
+            type: array
+            items:
+              $ref: "../../components/schemas.yaml#/User"
 
-post:
-  tags: [admin]
+patch:
+  tags: [user]
   description: |
-    Add a new owner to a capsule.
+    Adds a new owner to a capsule.
   summary: Add an owner to a capsule
   operationId: addCapsuleOwner
   parameters:
@@ -35,6 +36,13 @@ post:
     required: true
     content:
       application/json:
+        schema:
+          type: object
+          properties:
+            newOwner:
+              type: string
+              example: 04b41ffb-2144-4f28-acb2-b3f3741ca7dc
+      text/plain:
         schema:
           type: string
           example: 04b41ffb-2144-4f28-acb2-b3f3741ca7dc
@@ -58,4 +66,4 @@ post:
       content:
         application/json:
           schema:
-            $ref: "../../components/schemas.yaml#/User"
+            $ref: "../../components/schemas.yaml#/Capsule"

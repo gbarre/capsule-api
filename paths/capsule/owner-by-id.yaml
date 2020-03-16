@@ -1,13 +1,12 @@
-# TODO: Real CRUD delete ?
 delete:
-  tags: [admin]
+  tags: [user]
   description: |
     Removes an owner from a capsule.
   summary: Remove an owner from a capsule
   operationId: deleteCapsuleOwner
   parameters:
     - $ref: "../../components/parameters.yaml#/capsuleId"
-    - $ref: "../../components/parameters.yaml#/ownerId"
+    - $ref: "../../components/parameters.yaml#/userId"
   responses:
     "401":
       $ref: "../../components/responses.yaml#/Unauthorized"
