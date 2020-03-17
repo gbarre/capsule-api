@@ -205,12 +205,12 @@ WebApp:
       properties:
         volumeSize:
           type: integer
-          format: GB
+          #format: GB
           readOnly: true
           example: 20
         memoryMax:
           type: integer
-          format: GB
+          #format: GB
           readOnly: true
           example: 4
         cpuMax:
@@ -270,12 +270,12 @@ AddOn:
       properties:
         volumeSize:
           type: integer
-          format: GB
+          #format: GB
           readOnly: true
           example: 20
         memoryMax:
           type: integer
-          format: GB
+          #format: GB
           readOnly: true
           example: 4
         cpuMax:
@@ -341,11 +341,11 @@ Capsule:
       properties:
         volumeSize:
           type: integer
-          format: GB
+          #format: GB
           example: 20
         memoryMax:
           type: integer
-          format: GB
+          #format: GB
           example: 8
         cpuMax:
           type: number
