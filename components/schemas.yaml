@@ -134,12 +134,12 @@ Runtime:
     created_at:
       type: string
       format: date-time
-      read-only: true
+      readOnly: true
       example : "2017-07-21T17:32:28Z"
     updated_at:
       type: string
       format: date-time
-      read-only: true
+      readOnly: true
       example : "2020-03-17T15:32:28Z"
   required:
     - name
@@ -231,12 +231,12 @@ WebApp:
     created_at:
       type: string
       format: date-time
-      read-only: true
+      readOnly: true
       example : "2017-07-21T17:32:28Z"
     updated_at:
       type: string
       format: date-time
-      read-only: true
+      readOnly: true
       example : "2020-03-17T15:32:28Z"
   required:
     - fqdns
@@ -306,12 +306,12 @@ AddOn:
     created_at:
       type: string
       format: date-time
-      read-only: true
+      readOnly: true
       example : "2017-07-21T17:32:28Z"
     updated_at:
       type: string
       format: date-time
-      read-only: true
+      readOnly: true
       example : "2020-03-17T15:32:28Z"
   required:
     - name
@@ -384,12 +384,12 @@ Capsule:
     created_at:
       type: string
       format: date-time
-      read-only: true
+      readOnly: true
       example : "2017-07-21T17:32:28Z"
     updated_at:
       type: string
       format: date-time
-      read-only: true
+      readOnly: true
       example : "2020-03-17T15:32:28Z"
   required:
     - name
