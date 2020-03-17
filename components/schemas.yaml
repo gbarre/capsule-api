@@ -131,6 +131,16 @@ Runtime:
           - fieldName
           - valueType
           - accessLevel
+    created_at:
+      type: string
+      format: date-time
+      read-only: true
+      example : "2017-07-21T17:32:28Z"
+    updated_at:
+      type: string
+      format: date-time
+      read-only: true
+      example : "2020-03-17T15:32:28Z"
   required:
     - name
     - runtimeType
@@ -218,6 +228,16 @@ WebApp:
           readOnly: true
           example: 2.5
       readOnly: true
+    created_at:
+      type: string
+      format: date-time
+      read-only: true
+      example : "2017-07-21T17:32:28Z"
+    updated_at:
+      type: string
+      format: date-time
+      read-only: true
+      example : "2020-03-17T15:32:28Z"
   required:
     - fqdns
     - runtimeId
@@ -283,6 +303,16 @@ AddOn:
           readOnly: true
           example: 2.5
       readOnly: true
+    created_at:
+      type: string
+      format: date-time
+      read-only: true
+      example : "2017-07-21T17:32:28Z"
+    updated_at:
+      type: string
+      format: date-time
+      read-only: true
+      example : "2020-03-17T15:32:28Z"
   required:
     - name
     - runtimeId
@@ -351,6 +381,16 @@ Capsule:
           type: number
           example: 2.5
       default: {}
+    created_at:
+      type: string
+      format: date-time
+      read-only: true
+      example : "2017-07-21T17:32:28Z"
+    updated_at:
+      type: string
+      format: date-time
+      read-only: true
+      example : "2020-03-17T15:32:28Z"
   required:
     - name
     - owners
