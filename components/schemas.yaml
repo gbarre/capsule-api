@@ -65,10 +65,10 @@ Runtime:
       type: string
       readOnly: true
       example: a972e936-0840-4278-b5d2-8ec7af8836bc
-    name:
+    version:
       type: string
       example: apache-2.4 php-7.2.x
-    description:
+    infos:
       type: string
       example: >-
         Stack web classique Apache 2.4 + PHP 7.2.x
@@ -142,7 +142,7 @@ Runtime:
       readOnly: true
       example : "2020-03-17T15:32:28Z"
   required:
-    - name
+    - version
     - runtimeType
 
 WebApp:
