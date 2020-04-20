@@ -300,6 +300,12 @@ class Capsule(db.Model):
         secondary=capsules_users_table,
         backref="capsules",
     )
+    created_at = db.Column(
+        db.DateTime, default=datetime.utcnow
+    )
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
 
 # FIXME: Check cross references
 # TODO: Check required property
