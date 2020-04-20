@@ -10,10 +10,6 @@ from sqlalchemy.orm import backref
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.types import TypeDecorator, CHAR
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.ext.declarative import declarative_base
-
-
-Base = declarative_base()
 
 
 class GUID(TypeDecorator):
@@ -249,13 +245,20 @@ class FQDN(db.Model):
     alias = db.Column(db.Boolean, nullable=False, default=False)
 
 
-capsules_users_table = db.Table('capsules_users', Base.metadata,
+capsules_users_table = db.Table('capsules_users', db.Model.metadata,
                                 db.Column('capsule_guid', GUID,
                                           db.ForeignKey('capsules.capsule_guid')),
                                 db.Column('user_guid', GUID,
                                           db.ForeignKey('users.user_guid')),
                                 )
 
+
+capsules_sshkeys_table = db.Table('capsules_sshkeys', db.Model.metadata,
+                                  db.Column('capsule_guid', GUID,
+                                            db.ForeignKey('capsules.capsule_guid')),
+                                  db.Column('sshkey_guid', GUID,
+                                            db.ForeignKey('sshkeys.sshkey_guid')),
+                                  )
 
 # TODO: Discuss SSHKey Management as tables entry and not string ?
 class SSHKey(db.Model):
@@ -265,13 +268,6 @@ class SSHKey(db.Model):
     public_key = db.Column(db.String, nullable=False, unique=True)
     user_guid = db.Column(db.String, db.ForeignKey(
         'users.user_guid'), nullable=True)
-
-capsules_sshkeys_table = db.Table('capsules_sshkeys', Base.metadata,
-                                  db.Column('capsule_guid', GUID,
-                                            db.ForeignKey('capsules.capsule_guid')),
-                                  db.Column('sshkey_guid', GUID,
-                                            db.ForeignKey('sshkeys.sshkey_guid')),
-                                  )
 
 
 class Capsule(db.Model):
