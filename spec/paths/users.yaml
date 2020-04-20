@@ -3,7 +3,7 @@ get:
   description: |
     Gets the users.
   summary: Get users
-  operationId: getUsers
+  operationId: api.users.search
   parameters:
     - $ref: "../components/parameters.yaml#/offset"
     - $ref: "../components/parameters.yaml#/limit"

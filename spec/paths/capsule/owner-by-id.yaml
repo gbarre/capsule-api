@@ -3,7 +3,7 @@ delete:
   description: |
     Removes an owner from a capsule.
   summary: Remove an owner from a capsule
-  operationId: deleteCapsuleOwner
+  operationId: api.capsules.owners.delete
   parameters:
     - $ref: "../../components/parameters.yaml#/capsuleId"
     - $ref: "../../components/parameters.yaml#/userId"

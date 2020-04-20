@@ -3,17 +3,17 @@ get:
   description: |
     Gets details about a capsule.
   summary: Get details about a capsule
-  operationId: getCapsule
+  operationId: api.capsules.get
   parameters:
-    - $ref: "../../components/parameters.yaml#/capsuleId"
+    - $ref: "../components/parameters.yaml#/capsuleId"
   responses:
     "404":
-      $ref: "../../components/responses.yaml#/NotFound"
+      $ref: "../components/responses.yaml#/NotFound"
     "403":
-      $ref: "../../components/responses.yaml#/Forbidden"
+      $ref: "../components/responses.yaml#/Forbidden"
     "200":
       description: The requested capsule
       content:
         application/json:
           schema:
-            $ref: "../../components/schemas.yaml#/Capsule"
+            $ref: "../components/schemas.yaml#/Capsule"

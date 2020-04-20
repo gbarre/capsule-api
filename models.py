@@ -2,11 +2,54 @@
 # User table ?
 
 import enum
+import uuid
 from datetime import datetime
 from config import db, ma
+from marshmallow import fields
 from sqlalchemy.orm import backref
 from sqlalchemy.ext.hybrid import hybrid_property
-from marshmallow import fields
+from sqlalchemy.types import TypeDecorator, CHAR
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.ext.declarative import declarative_base
+
+
+Base = declarative_base()
+
+
+class GUID(TypeDecorator):
+    """Platform-independent GUID type.
+
+    Uses PostgreSQL's UUID type, otherwise uses
+    CHAR(32), storing as stringified hex values.
+
+    """
+    impl = CHAR
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == 'postgresql':
+            return dialect.type_descriptor(UUID())
+        else:
+            return dialect.type_descriptor(CHAR(32))
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        elif dialect.name == 'postgresql':
+            return str(value)
+        else:
+            if not isinstance(value, uuid.UUID):
+                return "%.32x" % uuid.UUID(value).int
+            else:
+                # hexstring
+                return "%.32x" % value.int
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+        else:
+            if not isinstance(value, uuid.UUID):
+                value = uuid.UUID(value)
+            return value
 
 
 class RuntimeTypeEnum(enum.Enum):
@@ -56,7 +99,7 @@ class User(db.Model):
 class Runtime(db.Model):
     __tablename__ = "runtimes"
     runtime_id = db.Column(db.Integer, primary_key=True)
-    runtime_guid = db.Column(db.GUID, unique=True)
+    runtime_guid = db.Column(GUID, unique=True)
     name = db.Column(db.String, nullable=False)
     description = db.Column(db.String)
     family = db.Column(db.String)
@@ -92,8 +135,8 @@ class Runtime(db.Model):
 class AvailableOption(db.Model):
     __tablename__ = "available_options"
     available_option_id = db.Column(db.Integer, primary_key=True)
-    available_option_guid = db.Column(db.GUID, unique=True)
-    runtime_id = db.Column(db.GUID, db.ForeignKey('runtimes.runtime_guid'))
+    available_option_guid = db.Column(GUID, unique=True)
+    runtime_id = db.Column(GUID, db.ForeignKey('runtimes.runtime_guid'))
     access_level = db.Column(
         db.Enum(RoleEnum), default=RoleEnum.superadmin, nullable=False)
     tag = db.Column(db.String, nullable=False)
@@ -112,8 +155,8 @@ class AvailableOption(db.Model):
 class AvailableOptionValidationRule(db.Model):
     __tablename__ = "available_option_validation_rules"
     validation_rule_id = db.Column(db.Integer, primary_key=True)
-    validation_rule_guid = db.Column(db.GUID, unique=True)
-    available_option_guid = db.Column(db.GUID, db.ForeignKey(
+    validation_rule_guid = db.Column(GUID, unique=True)
+    available_option_guid = db.Column(GUID, db.ForeignKey(
         'available_options.available_option_guid'))
     type = db.Column(db.Enum(ValidationRuleEnum), nullable=False)
     arg = db.Column(db.String, nullable=False)
@@ -122,9 +165,9 @@ class AvailableOptionValidationRule(db.Model):
 class AddOn(db.Model):
     __tablename__ = "addons"
     addon_id = db.Column(db.Integer, primary_key=True)
-    addon_guid = db.Column(db.GUID, unique=True)
-    runtime_guid = db.Column(db.GUID, db.ForeignKey('runtimes.runtime_guid'))
-    capsule_guid = db.Column(db.GUID, db.ForeignKey('capsules.capsule_guid'))
+    addon_guid = db.Column(GUID, unique=True)
+    runtime_guid = db.Column(GUID, db.ForeignKey('runtimes.runtime_guid'))
+    capsule_guid = db.Column(GUID, db.ForeignKey('capsules.capsule_guid'))
     name = db.Column(db.String, nullable=False)
     description = db.Column(db.String)
     uri = db.Column(db.String, nullable=False)
@@ -149,8 +192,8 @@ class AddOn(db.Model):
 class WebApp(db.Model):
     __tablename__ = "webapps"
     webapp_id = db.Column(db.Integer, primary_key=True)
-    webapp_guid = db.Column(db.GUID, unique=True)
-    runtime_guid = db.Column(db.GUID, db.ForeignKey('runtimes.runtime_guid'))
+    webapp_guid = db.Column(GUID, unique=True)
+    runtime_guid = db.Column(GUID, db.ForeignKey('runtimes.runtime_guid'))
     tls_redirect_https = db.Column(db.Boolean, default=True)
     tls_crt = db.Column(db.String)
     tls_key = db.Column(db.String)
@@ -183,10 +226,10 @@ class Option(db.Model):
     # TODO: Check that there is not two foreign ref active / @listens_for
     __tablename__ = "options"
     option_id = db.Column(db.Integer, primary_key=True)
-    option_guid = db.Column(db.GUID, unique=True)
-    webapp_guid = db.Column(db.GUID, db.ForeignKey(
+    option_guid = db.Column(GUID, unique=True)
+    webapp_guid = db.Column(GUID, db.ForeignKey(
         'webapps.webapp_guid'), nullable=True)
-    addon_guid = db.Column(db.GUID, db.ForeignKey(
+    addon_guid = db.Column(GUID, db.ForeignKey(
         'addons.addon_guid'), nullable=True)
     tag = db.Column(db.String)
     field_name = db.Column(db.String)
@@ -200,44 +243,44 @@ class Option(db.Model):
 class FQDN(db.Model):
     __tablename__ = "fqdns"
     fqdn_id = db.Column(db.Integer, primary_key=True)
-    fqdn_guid = db.Column(db.GUID, unique=True)
-    webapp_guid = db.Column(db.GUID, db.ForeignKey('webapps.webapp_guid'))
+    fqdn_guid = db.Column(GUID, unique=True)
+    webapp_guid = db.Column(GUID, db.ForeignKey('webapps.webapp_guid'))
     name = db.Column(db.String, nullable=False, unique=True)
     alias = db.Column(db.Boolean, nullable=False, default=False)
 
 
-capsules_users_table = db.Table('capsules_users', db.Base.metadata,
-                                db.Column('capsule_guid', db.GUID,
+capsules_users_table = db.Table('capsules_users', Base.metadata,
+                                db.Column('capsule_guid', GUID,
                                           db.ForeignKey('capsules.capsule_guid')),
-                                db.Column('user_guid', db.GUID,
+                                db.Column('user_guid', GUID,
                                           db.ForeignKey('users.user_guid')),
                                 )
-
-capsules_sshkeys_table = db.Table('capsules_sshkeys', db.Base.metadata,
-                                  db.Column('capsule_guid', db.GUID,
-                                            db.ForeignKey('capsules.capsule_guid')),
-                                  db.Column('sshkey_guid', db.GUID,
-                                            db.ForeignKey('sshkeys.sshkey_guid')),
-                                  )
 
 
 # TODO: Discuss SSHKey Management as tables entry and not string ?
 class SSHKey(db.Model):
     __tablename__ = "sshkeys"
     sshkey_id = db.Column(db.Integer, primary_key=True)
-    sshkey_guid = db.Column(db.GUID, unique=True)
+    sshkey_guid = db.Column(GUID, unique=True)
     public_key = db.Column(db.String, nullable=False, unique=True)
     user_guid = db.Column(db.String, db.ForeignKey(
         'users.user_guid'), nullable=True)
+
+capsules_sshkeys_table = db.Table('capsules_sshkeys', Base.metadata,
+                                  db.Column('capsule_guid', GUID,
+                                            db.ForeignKey('capsules.capsule_guid')),
+                                  db.Column('sshkey_guid', GUID,
+                                            db.ForeignKey('sshkeys.sshkey_guid')),
+                                  )
 
 
 class Capsule(db.Model):
     # TODO quota?
     __tablename__ = "capsules"
     capsule_id = db.Column(db.Integer, primary_key=True)
-    capsule_guid = db.Column(db.GUID, unique=True)
+    capsule_guid = db.Column(GUID, unique=True)
     name = db.Column(db.String, nullable=False)
-    webapp_guid = db.Column(db.GUID, db.ForeignKey(
+    webapp_guid = db.Column(GUID, db.ForeignKey(
         'webapps.webapp_guid'), nullable=True)
     webapp = db.relationship(
         "WebApp",
@@ -266,7 +309,7 @@ class Capsule(db.Model):
 # TODO: Check required property
 
 
-class RuntimeSchema(ma.ModelSchema):
+class RuntimeSchema(ma.SQLAlchemyAutoSchema):
     def __init__(self, **kwargs):
         super().__init__(strict=True, **kwargs)
 
@@ -284,7 +327,7 @@ class RuntimeSchema(ma.ModelSchema):
     updated_at = ma.auto_field(dump_only=True)
 
 
-class AvailableOptionSchema(ma.ModelSchema):
+class AvailableOptionSchema(ma.SQLAlchemyAutoSchema):
     def __init__(self, **kwargs):
         super().__init__(strict=True, **kwargs)
 
@@ -296,7 +339,7 @@ class AvailableOptionSchema(ma.ModelSchema):
         'AvailableOptionValidationRuleSchema', default=[], many=True, exclude=('validation_rule_id',))
 
 
-class AvailableOptionValidationRuleSchema(ma.ModelSchema):
+class AvailableOptionValidationRuleSchema(ma.SQLAlchemyAutoSchema):
     def __init__(self, **kwargs):
         super().__init__(strict=True, **kwargs)
 
@@ -305,7 +348,7 @@ class AvailableOptionValidationRuleSchema(ma.ModelSchema):
         sqla_session = db.session
 
 
-class WebAppSchema(ma.ModelSchema):
+class WebAppSchema(ma.SQLAlchemyAutoSchema):
     def __init__(self, **kwargs):
         super().__init__(strict=True, **kwargs)
 
@@ -329,7 +372,7 @@ class WebAppSchema(ma.ModelSchema):
     updated_at = ma.auto_field(dump_only=True)
 
 
-class AddOnSchema(ma.ModelSchema):
+class AddOnSchema(ma.SQLAlchemyAutoSchema):
     def __init__(self, **kwargs):
         super().__init__(strict=True, **kwargs)
 
@@ -350,7 +393,7 @@ class AddOnSchema(ma.ModelSchema):
     updated_at = ma.auto_field(dump_only=True)
 
 
-class OptionSchema(ma.ModelSchema):
+class OptionSchema(ma.SQLAlchemyAutoSchema):
     def __init__(self, **kwargs):
         super().__init__(strict=True, **kwargs)
 
@@ -359,7 +402,7 @@ class OptionSchema(ma.ModelSchema):
         sqla_session = db.session
 
 
-class FQDNSchema(ma.ModelSchema):
+class FQDNSchema(ma.SQLAlchemyAutoSchema):
     def __init__(self, **kwargs):
         super().__init__(strict=True, **kwargs)
 
@@ -368,7 +411,7 @@ class FQDNSchema(ma.ModelSchema):
         sqla_session = db.session
 
 
-class SSHKeySchema(ma.ModelSchema):
+class SSHKeySchema(ma.SQLAlchemyAutoSchema):
     def __init__(self, **kwargs):
         super().__init__(strict=True, **kwargs)
 
@@ -377,7 +420,7 @@ class SSHKeySchema(ma.ModelSchema):
         sqla_session = db.session
 
 
-class CapsuleSchema(ma.ModelSchema):
+class CapsuleSchema(ma.SQLAlchemyAutoSchema):
     def __init__(self, **kwargs):
         super().__init__(strict=True, **kwargs)
 

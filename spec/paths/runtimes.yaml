@@ -3,7 +3,7 @@ get:
   description: |
     Gets the runtimes.
   summary: Get the runtimes
-  operationId: getRuntimes
+  operationId: api.runtimes.search
   parameters:
     - $ref: "../components/parameters.yaml#/offset"
     - $ref: "../components/parameters.yaml#/limit"
@@ -29,7 +29,7 @@ post:
   description: |
     Creates a new runtime.
   summary: Add a runtime
-  operationId: addRuntime
+  operationId: api.runtimes.post
   requestBody:
     content:
       application/json:

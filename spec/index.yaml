@@ -43,7 +43,7 @@ paths:
   /capsules:
     $ref: ./paths/capsules.yaml
   /capsules/{capsuleId}:
-    $ref: ./paths/capsule/id.yaml
+    $ref: ./paths/capsule-by-id.yaml
   /capsules/{capsuleId}/owners:
     $ref: ./paths/capsule/owners.yaml
   /capsules/{capsuleId}/owners/{userId}:

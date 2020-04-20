@@ -2,7 +2,7 @@ post:
   tags: [admin]
   description: Creates a capsule
   summary: Add a new capsule
-  operationId: addCapsule
+  operationId: api.capsules.post
   requestBody:
     required: true
     content:
@@ -33,7 +33,7 @@ get:
   description: |
     Gets the capsules.
   summary: Get capsules.
-  operationId: getCapsules
+  operationId: api.capsules.search
   parameters:
     - $ref: "../components/parameters.yaml#/offset"
     - $ref: "../components/parameters.yaml#/limit"

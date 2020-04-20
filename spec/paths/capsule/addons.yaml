@@ -3,7 +3,7 @@ post:
   description: |
     Add a new addon to a capsule.
   summary: Add an addon to a capsule
-  operationId: addCapsuleAddOn
+  operationId: api.capsules.addons.post
   parameters:
     - $ref: "../../components/parameters.yaml#/capsuleId"
   requestBody:
@@ -35,7 +35,7 @@ get:
   description: |
     Gets the addons of a capsule.
   summary: Get the addons of a capsule
-  operationId: getCapsuleAddOns
+  operationId: api.capsules.addons.search
   parameters:
     - $ref: "../../components/parameters.yaml#/capsuleId"
     - $ref: "../../components/parameters.yaml#/offset"

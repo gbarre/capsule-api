@@ -3,7 +3,7 @@ get:
   description: |
     Gets details about a runtime.
   summary: Get details about a runtime
-  operationId: getRuntimeById
+  operationId: api.runtimes.get
   parameters:
     - $ref: "../components/parameters.yaml#/runtimeId"
   responses:
@@ -23,7 +23,7 @@ put:
   description: |
     Creates or updates a runtime.
   summary: Update a runtime
-  operationId: updateRuntimeById
+  operationId: api.runtimes.put
   parameters:
     - $ref: "../components/parameters.yaml#/runtimeId"
   requestBody:
@@ -56,7 +56,7 @@ delete:
   description: |
     Deletes a runtime.
   summary: Delete a runtime
-  operationId: deleteRuntimeById
+  operationId: api.runtimes.delete
   parameters:
     - $ref: "../components/parameters.yaml#/runtimeId"
   responses:

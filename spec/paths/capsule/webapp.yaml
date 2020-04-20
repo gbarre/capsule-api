@@ -5,7 +5,7 @@ post:
     First element of `fqdns` will be the main fully qualified domain name,
     the other elements will be understood as aliases.
   summary: Add a new webapp to a capsule
-  operationId: addCapsuleWebApp
+  operationId: api.capsules.webapp.post
   parameters:
     - $ref: "../../components/parameters.yaml#/capsuleId"
   requestBody:
@@ -39,7 +39,7 @@ get:
   description: |
     Gets the web application for a capsule.\
   summary: Get a webapp for a capsule
-  operationId: getCapsuleWebApp
+  operationId: api.capsules.webapp.get
   parameters:
     - $ref: "../../components/parameters.yaml#/capsuleId"
   responses:
@@ -63,7 +63,7 @@ put:
     First element of `fqdns` will be the main FQDN,
     the other elements will be understood as aliases.
   summary: Updates or creates a webapp for a capsule
-  operationId: updateCapsuleWebApp
+  operationId: api.capsules.webapp.put
   parameters:
     - $ref: "../../components/parameters.yaml#/capsuleId"
   requestBody:
@@ -103,7 +103,7 @@ delete:
   description: |
     Deletes the web application for a capsule
   summary: Delete a webapp for a capsule
-  operationId: deleteCapsuleWebApp
+  operationId: api.capsules.webapp.delete
   parameters:
     - $ref: "../../components/parameters.yaml#/capsuleId"
   responses:

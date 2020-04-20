@@ -2,7 +2,7 @@ get:
   tags: [user]
   description: Gets my public SSH keys
   summary: Get my public SSH keys
-  operationId: getSshkeys
+  operationId: api.sshkeys.search
   parameters:
     - $ref: "../components/parameters.yaml#/offset"
     - $ref: "../components/parameters.yaml#/limit"
@@ -39,7 +39,7 @@ post:
   tags: [user]
   description: Adds a public SSH key to my account.
   summary: Add a public SSH key
-  operationId: addSshkey
+  operationId: api.sshkeys.post
   requestBody:
     required: true
     content:

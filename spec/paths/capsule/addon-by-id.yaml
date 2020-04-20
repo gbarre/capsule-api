@@ -5,7 +5,7 @@ put:
     A **NotFound** error will be returned
     if the addon does not exist.
   summary: Update an addon for a capsule
-  operationId: updateCapsuleAddOn
+  operationId: api.capsules.addons.put
   parameters:
     - $ref: "../../components/parameters.yaml#/capsuleId"
     - $ref: "../../components/parameters.yaml#/addonId"
@@ -42,7 +42,7 @@ get:
   description: |
     Gets details about an addon for a capsule.
   summary: Get an addon for a capsule
-  operationId: getCapsuleAddOn
+  operationId: api.capsules.addons.get
   parameters:
     - $ref: "../../components/parameters.yaml#/capsuleId"
     - $ref: "../../components/parameters.yaml#/addonId"
@@ -65,7 +65,7 @@ delete:
   description: |
     Deletes an addon for a capsule.
   summary: Delete an addon for a capsule
-  operationId: deleteCapsuleAddOn
+  operationId: api.capsules.addons.delete
   parameters:
     - $ref: "../../components/parameters.yaml#/capsuleId"
     - $ref: "../../components/parameters.yaml#/addonId"
