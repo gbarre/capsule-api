@@ -17,3 +17,21 @@ get:
         application/json:
           schema:
             $ref: "../components/schemas.yaml#/Capsule"
+
+delete:
+  tags: [superadmin]
+  description: |
+    Deletes a capsule.
+  summary: Delete a capsule
+  operationId: api.capsules.delete
+  parameters:
+    - $ref: "../components/parameters.yaml#/capsule_id"
+  responses:
+    "204":
+      description: Successful deletion
+    "400":
+      $ref: "../components/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../components/responses.yaml#/Unauthorized"
+    "403":
+      $ref: "../components/responses.yaml#/Forbidden"

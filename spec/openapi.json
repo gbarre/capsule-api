@@ -575,11 +575,7 @@
           "owners": {
             "type": "array",
             "items": {
-              "oneOf": [
-                {"type": "object"},
-                {"type": "integer"},
-                {"type": "string"}
-              ]
+              "type": "string"
             },
             "example": [
               "e53b412c-e99e-4995-8c02-7097340832d0",
@@ -858,6 +854,33 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "superadmin"
+        ],
+        "description": "Deletes a capsule.\n",
+        "summary": "Delete a capsule",
+        "operationId": "api.capsules.delete",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/capsule_id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful deletion"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
           }
         }
       }

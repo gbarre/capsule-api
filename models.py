@@ -1,5 +1,4 @@
-# TODO: Review
-# User table ?
+# TODO: Quid de savoir la fin de pagination ?
 
 import enum
 import uuid
@@ -81,10 +80,8 @@ class ValidationRuleEnum(enum.Enum):
 
 class User(db.Model):
     __tablename__ = "users"
-    id = db.Column(GUID, nullable=False, unique=True,
-                   default=uuid.uuid4, primary_key=True)
-    ldap_id = db.Column(db.String, nullable=False,
-                        unique=True)  # LDAP nsUniqueId
+    id = db.Column(db.String, nullable=False,
+                   unique=True, primary_key=True)  # LDAP nsUniqueId
     public_keys = db.relationship(
         "SSHKey",
         backref="owner",
@@ -92,6 +89,12 @@ class User(db.Model):
         single_parent=True,
     )
     role = db.Column(db.Enum(RoleEnum), default=RoleEnum.user, nullable=False)
+    created_at = db.Column(
+        db.DateTime, default=datetime.utcnow
+    )
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
 
 
 class Runtime(db.Model):
@@ -250,7 +253,7 @@ class FQDN(db.Model):
 capsules_users_table = db.Table('capsules_users', db.Model.metadata,
                                 db.Column('capsule_id', GUID,
                                           db.ForeignKey('capsules.id')),
-                                db.Column('user_id', GUID,
+                                db.Column('user_id', db.String,
                                           db.ForeignKey('users.id')),
                                 )
 
@@ -285,7 +288,7 @@ class Capsule(db.Model):
     __tablename__ = "capsules"
     id = db.Column(GUID, nullable=False, unique=True,
                    default=uuid.uuid4, primary_key=True)
-    name = db.Column(db.String, nullable=False)
+    name = db.Column(db.String, nullable=False) # FIXME: Unique ?
     webapp_id = db.Column(GUID, db.ForeignKey(
         'webapps.id'), nullable=True)
     webapp = db.relationship(
@@ -440,6 +443,7 @@ class CapsuleSchema(ma.SQLAlchemyAutoSchema):
         model = Capsule
         include_relationships = True
         include_fk = True
+        exclude = ('webapp_id',)
         sqla_session = db.session
 
     id = ma.auto_field(dump_only=True)
