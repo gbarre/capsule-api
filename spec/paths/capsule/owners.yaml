@@ -6,7 +6,7 @@ get:
   summary: Gets owners of a capsule
   operationId: api.capsules.owners.search
   parameters:
-    - $ref: "../../components/parameters.yaml#/capsuleId"
+    - $ref: "../../components/parameters.yaml#/capsule_id"
     - $ref: "../../components/parameters.yaml#/offset"
     - $ref: "../../components/parameters.yaml#/limit"
     - $ref: "../../components/parameters.yaml#/filters"
@@ -31,7 +31,7 @@ patch:
   summary: Add an owner to a capsule
   operationId: api.capsules.owners.patch
   parameters:
-    - $ref: "../../components/parameters.yaml#/capsuleId"
+    - $ref: "../../components/parameters.yaml#/capsule_id"
   requestBody:
     required: true
     content:

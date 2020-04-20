@@ -5,7 +5,7 @@ delete:
   summary: Remove an owner from a capsule
   operationId: api.capsules.owners.delete
   parameters:
-    - $ref: "../../components/parameters.yaml#/capsuleId"
+    - $ref: "../../components/parameters.yaml#/capsule_id"
     - $ref: "../../components/parameters.yaml#/userId"
   responses:
     "401":

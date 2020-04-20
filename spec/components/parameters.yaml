@@ -36,9 +36,9 @@ filters:
   style: form
   explode: true
 
-capsuleId:
+capsule_id:
   in: path
-  name: capsuleId
+  name: capsule_id
   required: true
   description: Capsule GUID
   schema:

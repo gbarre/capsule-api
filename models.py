@@ -81,8 +81,10 @@ class ValidationRuleEnum(enum.Enum):
 
 class User(db.Model):
     __tablename__ = "users"
-    user_id = db.Column(db.Integer, primary_key=True)
-    user_guid = db.Column(db.String, unique=True)  # LDAP nsUniqueId
+    id = db.Column(GUID, nullable=False, unique=True,
+                   default=uuid.uuid4, primary_key=True)
+    ldap_id = db.Column(db.String, nullable=False,
+                        unique=True)  # LDAP nsUniqueId
     public_keys = db.relationship(
         "SSHKey",
         backref="owner",
@@ -94,8 +96,8 @@ class User(db.Model):
 
 class Runtime(db.Model):
     __tablename__ = "runtimes"
-    runtime_id = db.Column(db.Integer, primary_key=True)
-    runtime_guid = db.Column(GUID, unique=True)
+    id = db.Column(GUID, nullable=False, unique=True,
+                   default=uuid.uuid4, primary_key=True)
     name = db.Column(db.String, nullable=False)
     description = db.Column(db.String)
     family = db.Column(db.String)
@@ -130,9 +132,9 @@ class Runtime(db.Model):
 
 class AvailableOption(db.Model):
     __tablename__ = "available_options"
-    available_option_id = db.Column(db.Integer, primary_key=True)
-    available_option_guid = db.Column(GUID, unique=True)
-    runtime_id = db.Column(GUID, db.ForeignKey('runtimes.runtime_guid'))
+    id = db.Column(GUID, nullable=False, unique=True,
+                   default=uuid.uuid4, primary_key=True)
+    runtime_id = db.Column(GUID, db.ForeignKey('runtimes.id'))
     access_level = db.Column(
         db.Enum(RoleEnum), default=RoleEnum.superadmin, nullable=False)
     tag = db.Column(db.String, nullable=False)
@@ -150,20 +152,20 @@ class AvailableOption(db.Model):
 
 class AvailableOptionValidationRule(db.Model):
     __tablename__ = "available_option_validation_rules"
-    validation_rule_id = db.Column(db.Integer, primary_key=True)
-    validation_rule_guid = db.Column(GUID, unique=True)
-    available_option_guid = db.Column(GUID, db.ForeignKey(
-        'available_options.available_option_guid'))
+    id = db.Column(GUID, nullable=False, unique=True,
+                   default=uuid.uuid4, primary_key=True)
+    available_option_id = db.Column(GUID, db.ForeignKey(
+        'available_options.id'))
     type = db.Column(db.Enum(ValidationRuleEnum), nullable=False)
     arg = db.Column(db.String, nullable=False)
 
 
 class AddOn(db.Model):
     __tablename__ = "addons"
-    addon_id = db.Column(db.Integer, primary_key=True)
-    addon_guid = db.Column(GUID, unique=True)
-    runtime_guid = db.Column(GUID, db.ForeignKey('runtimes.runtime_guid'))
-    capsule_guid = db.Column(GUID, db.ForeignKey('capsules.capsule_guid'))
+    id = db.Column(GUID, nullable=False, unique=True,
+                   default=uuid.uuid4, primary_key=True)
+    runtime_id = db.Column(GUID, db.ForeignKey('runtimes.id'))
+    capsule_id = db.Column(GUID, db.ForeignKey('capsules.id'))
     name = db.Column(db.String, nullable=False)
     description = db.Column(db.String)
     uri = db.Column(db.String, nullable=False)
@@ -187,9 +189,9 @@ class AddOn(db.Model):
 
 class WebApp(db.Model):
     __tablename__ = "webapps"
-    webapp_id = db.Column(db.Integer, primary_key=True)
-    webapp_guid = db.Column(GUID, unique=True)
-    runtime_guid = db.Column(GUID, db.ForeignKey('runtimes.runtime_guid'))
+    id = db.Column(GUID, nullable=False, unique=True,
+                   default=uuid.uuid4, primary_key=True)
+    runtime_id = db.Column(GUID, db.ForeignKey('runtimes.id'))
     tls_redirect_https = db.Column(db.Boolean, default=True)
     tls_crt = db.Column(db.String)
     tls_key = db.Column(db.String)
@@ -221,12 +223,12 @@ class WebApp(db.Model):
 class Option(db.Model):
     # TODO: Check that there is not two foreign ref active / @listens_for
     __tablename__ = "options"
-    option_id = db.Column(db.Integer, primary_key=True)
-    option_guid = db.Column(GUID, unique=True)
-    webapp_guid = db.Column(GUID, db.ForeignKey(
-        'webapps.webapp_guid'), nullable=True)
-    addon_guid = db.Column(GUID, db.ForeignKey(
-        'addons.addon_guid'), nullable=True)
+    id = db.Column(GUID, nullable=False, unique=True,
+                   default=uuid.uuid4, primary_key=True)
+    webapp_id = db.Column(GUID, db.ForeignKey(
+        'webapps.id'), nullable=True)
+    addon_id = db.Column(GUID, db.ForeignKey(
+        'addons.id'), nullable=True)
     tag = db.Column(db.String)
     field_name = db.Column(db.String)
     value = db.Column(db.String)
@@ -238,46 +240,54 @@ class Option(db.Model):
 
 class FQDN(db.Model):
     __tablename__ = "fqdns"
-    fqdn_id = db.Column(db.Integer, primary_key=True)
-    fqdn_guid = db.Column(GUID, unique=True)
-    webapp_guid = db.Column(GUID, db.ForeignKey('webapps.webapp_guid'))
+    id = db.Column(GUID, nullable=False, unique=True,
+                   default=uuid.uuid4, primary_key=True)
+    webapp_id = db.Column(GUID, db.ForeignKey('webapps.id'))
     name = db.Column(db.String, nullable=False, unique=True)
     alias = db.Column(db.Boolean, nullable=False, default=False)
 
 
 capsules_users_table = db.Table('capsules_users', db.Model.metadata,
-                                db.Column('capsule_guid', GUID,
-                                          db.ForeignKey('capsules.capsule_guid')),
-                                db.Column('user_guid', GUID,
-                                          db.ForeignKey('users.user_guid')),
+                                db.Column('capsule_id', GUID,
+                                          db.ForeignKey('capsules.id')),
+                                db.Column('user_id', GUID,
+                                          db.ForeignKey('users.id')),
                                 )
 
 
 capsules_sshkeys_table = db.Table('capsules_sshkeys', db.Model.metadata,
-                                  db.Column('capsule_guid', GUID,
-                                            db.ForeignKey('capsules.capsule_guid')),
-                                  db.Column('sshkey_guid', GUID,
-                                            db.ForeignKey('sshkeys.sshkey_guid')),
+                                  db.Column('capsule_id', GUID,
+                                            db.ForeignKey('capsules.id')),
+                                  db.Column('sshkey_id', GUID,
+                                            db.ForeignKey('sshkeys.id')),
                                   )
 
 # TODO: Discuss SSHKey Management as tables entry and not string ?
+
+
 class SSHKey(db.Model):
     __tablename__ = "sshkeys"
-    sshkey_id = db.Column(db.Integer, primary_key=True)
-    sshkey_guid = db.Column(GUID, unique=True)
+    id = db.Column(GUID, nullable=False, unique=True,
+                   default=uuid.uuid4, primary_key=True)
     public_key = db.Column(db.String, nullable=False, unique=True)
-    user_guid = db.Column(db.String, db.ForeignKey(
-        'users.user_guid'), nullable=True)
+    user_id = db.Column(db.String, db.ForeignKey(
+        'users.id'), nullable=True)
+    created_at = db.Column(
+        db.DateTime, default=datetime.utcnow
+    )
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
 
 
 class Capsule(db.Model):
     # TODO quota?
     __tablename__ = "capsules"
-    capsule_id = db.Column(db.Integer, primary_key=True)
-    capsule_guid = db.Column(GUID, unique=True)
+    id = db.Column(GUID, nullable=False, unique=True,
+                   default=uuid.uuid4, primary_key=True)
     name = db.Column(db.String, nullable=False)
-    webapp_guid = db.Column(GUID, db.ForeignKey(
-        'webapps.webapp_guid'), nullable=True)
+    webapp_id = db.Column(GUID, db.ForeignKey(
+        'webapps.id'), nullable=True)
     webapp = db.relationship(
         "WebApp",
         backref=backref("capsule", uselist=False),
@@ -317,10 +327,9 @@ class RuntimeSchema(ma.SQLAlchemyAutoSchema):
 
     class Meta:
         model = Runtime
-        exclude = ('runtime_id', 'runtime_guid')
         sqla_session = db.session
 
-    id = ma.auto_field('runtime_guid', dump_only=True)
+    id = ma.auto_field(dump_only=True)
     webapp = fields.Nested('WebAppSchema', default=[], many=True)
     addons = fields.Nested('AddOnSchema', default=[], many=True)
     available_opts = fields.Nested(
@@ -356,10 +365,9 @@ class WebAppSchema(ma.SQLAlchemyAutoSchema):
 
     class Meta:
         model = WebApp
-        exclude = ('webapp_id', 'webapp_guid')
         sqla_session = db.session
 
-    id = ma.auto_field('webapp_guid', dump_only=True)
+    id = ma.auto_field(dump_only=True)
     insecure = fields.Boolean(default=False)
     fqdns = fields.Nested("FQDNSchema", default=[], many=True, only=('name',))
     opts = fields.Nested(
@@ -380,10 +388,9 @@ class AddOnSchema(ma.SQLAlchemyAutoSchema):
 
     class Meta:
         model = AddOn
-        exclude = ('addon_id', 'addon_guid')
         sqla_session = db.session
 
-    id = ma.auto_field('addon_guid', dump_only=True)
+    id = ma.auto_field(dump_only=True)
     uri = ma.auto_field(dump_only=True)
     opts = fields.Nested(
         "OptionSchema",
@@ -421,6 +428,9 @@ class SSHKeySchema(ma.SQLAlchemyAutoSchema):
         model = SSHKey
         sqla_session = db.session
 
+    created_at = ma.auto_field(dump_only=True)
+    updated_at = ma.auto_field(dump_only=True)
+
 
 class CapsuleSchema(ma.SQLAlchemyAutoSchema):
     def __init__(self, **kwargs):
@@ -428,11 +438,16 @@ class CapsuleSchema(ma.SQLAlchemyAutoSchema):
 
     class Meta:
         model = Capsule
-        exclude = ('capsule_id', 'capsule_guid')
+        include_relationships = True
+        include_fk = True
         sqla_session = db.session
 
-    id = ma.auto_field('capsule_guid', dump_only=True)
+    id = ma.auto_field(dump_only=True)
     authorized_keys = fields.Nested(
-        "SSHKeySchema", default=[], many=True, only=('public_key'))
+        "SSHKeySchema", default=[], many=True, only=('public_key',))
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
+
+
+capsule_schema = CapsuleSchema()
+capsules_schema = CapsuleSchema(many=True)

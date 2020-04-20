@@ -82,9 +82,9 @@
         "style": "form",
         "explode": true
       },
-      "capsuleId": {
+      "capsule_id": {
         "in": "path",
-        "name": "capsuleId",
+        "name": "capsule_id",
         "required": true,
         "description": "Capsule GUID",
         "schema": {
@@ -575,7 +575,11 @@
           "owners": {
             "type": "array",
             "items": {
-              "type": "string"
+              "oneOf": [
+                {"type": "object"},
+                {"type": "integer"},
+                {"type": "string"}
+              ]
             },
             "example": [
               "e53b412c-e99e-4995-8c02-7097340832d0",
@@ -825,7 +829,7 @@
         }
       }
     },
-    "/capsules/{capsuleId}": {
+    "/capsules/{capsule_id}": {
       "get": {
         "tags": [
           "user"
@@ -835,7 +839,7 @@
         "operationId": "api.capsules.get",
         "parameters": [
           {
-            "$ref": "#/components/parameters/capsuleId"
+            "$ref": "#/components/parameters/capsule_id"
           }
         ],
         "responses": {
@@ -858,7 +862,7 @@
         }
       }
     },
-    "/capsules/{capsuleId}/owners": {
+    "/capsules/{capsule_id}/owners": {
       "get": {
         "tags": [
           "user"
@@ -868,7 +872,7 @@
         "operationId": "api.capsules.owners.search",
         "parameters": [
           {
-            "$ref": "#/components/parameters/capsuleId"
+            "$ref": "#/components/parameters/capsule_id"
           },
           {
             "$ref": "#/components/parameters/offset"
@@ -911,7 +915,7 @@
         "operationId": "api.capsules.owners.patch",
         "parameters": [
           {
-            "$ref": "#/components/parameters/capsuleId"
+            "$ref": "#/components/parameters/capsule_id"
           }
         ],
         "requestBody": {
@@ -972,7 +976,7 @@
         }
       }
     },
-    "/capsules/{capsuleId}/owners/{userId}": {
+    "/capsules/{capsule_id}/owners/{userId}": {
       "delete": {
         "tags": [
           "user"
@@ -982,7 +986,7 @@
         "operationId": "api.capsules.owners.delete",
         "parameters": [
           {
-            "$ref": "#/components/parameters/capsuleId"
+            "$ref": "#/components/parameters/capsule_id"
           },
           {
             "$ref": "#/components/parameters/userId"
@@ -1014,7 +1018,7 @@
         }
       }
     },
-    "/capsules/{capsuleId}/webapp": {
+    "/capsules/{capsule_id}/webapp": {
       "post": {
         "tags": [
           "user"
@@ -1024,7 +1028,7 @@
         "operationId": "api.capsules.webapp.post",
         "parameters": [
           {
-            "$ref": "#/components/parameters/capsuleId"
+            "$ref": "#/components/parameters/capsule_id"
           }
         ],
         "requestBody": {
@@ -1078,7 +1082,7 @@
         "operationId": "api.capsules.webapp.get",
         "parameters": [
           {
-            "$ref": "#/components/parameters/capsuleId"
+            "$ref": "#/components/parameters/capsule_id"
           }
         ],
         "responses": {
@@ -1112,7 +1116,7 @@
         "operationId": "api.capsules.webapp.put",
         "parameters": [
           {
-            "$ref": "#/components/parameters/capsuleId"
+            "$ref": "#/components/parameters/capsule_id"
           }
         ],
         "requestBody": {
@@ -1175,7 +1179,7 @@
         "operationId": "api.capsules.webapp.delete",
         "parameters": [
           {
-            "$ref": "#/components/parameters/capsuleId"
+            "$ref": "#/components/parameters/capsule_id"
           }
         ],
         "responses": {
@@ -1194,7 +1198,7 @@
         }
       }
     },
-    "/capsules/{capsuleId}/addons": {
+    "/capsules/{capsule_id}/addons": {
       "post": {
         "tags": [
           "user"
@@ -1204,7 +1208,7 @@
         "operationId": "api.capsules.addons.post",
         "parameters": [
           {
-            "$ref": "#/components/parameters/capsuleId"
+            "$ref": "#/components/parameters/capsule_id"
           }
         ],
         "requestBody": {
@@ -1254,7 +1258,7 @@
         "operationId": "api.capsules.addons.search",
         "parameters": [
           {
-            "$ref": "#/components/parameters/capsuleId"
+            "$ref": "#/components/parameters/capsule_id"
           },
           {
             "$ref": "#/components/parameters/offset"
@@ -1292,7 +1296,7 @@
         }
       }
     },
-    "/capsules/{capsuleId}/addons/{addonId}": {
+    "/capsules/{capsule_id}/addons/{addonId}": {
       "put": {
         "tags": [
           "user"
@@ -1302,7 +1306,7 @@
         "operationId": "api.capsules.addons.put",
         "parameters": [
           {
-            "$ref": "#/components/parameters/capsuleId"
+            "$ref": "#/components/parameters/capsule_id"
           },
           {
             "$ref": "#/components/parameters/addonId"
@@ -1361,7 +1365,7 @@
         "operationId": "api.capsules.addons.get",
         "parameters": [
           {
-            "$ref": "#/components/parameters/capsuleId"
+            "$ref": "#/components/parameters/capsule_id"
           },
           {
             "$ref": "#/components/parameters/addonId"
@@ -1398,7 +1402,7 @@
         "operationId": "api.capsules.addons.delete",
         "parameters": [
           {
-            "$ref": "#/components/parameters/capsuleId"
+            "$ref": "#/components/parameters/capsule_id"
           },
           {
             "$ref": "#/components/parameters/addonId"

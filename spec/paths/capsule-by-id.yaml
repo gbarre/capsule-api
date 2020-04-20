@@ -5,7 +5,7 @@ get:
   summary: Get details about a capsule
   operationId: api.capsules.get
   parameters:
-    - $ref: "../components/parameters.yaml#/capsuleId"
+    - $ref: "../components/parameters.yaml#/capsule_id"
   responses:
     "404":
       $ref: "../components/responses.yaml#/NotFound"

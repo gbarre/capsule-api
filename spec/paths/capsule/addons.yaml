@@ -5,7 +5,7 @@ post:
   summary: Add an addon to a capsule
   operationId: api.capsules.addons.post
   parameters:
-    - $ref: "../../components/parameters.yaml#/capsuleId"
+    - $ref: "../../components/parameters.yaml#/capsule_id"
   requestBody:
     required: true
     content:
@@ -37,7 +37,7 @@ get:
   summary: Get the addons of a capsule
   operationId: api.capsules.addons.search
   parameters:
-    - $ref: "../../components/parameters.yaml#/capsuleId"
+    - $ref: "../../components/parameters.yaml#/capsule_id"
     - $ref: "../../components/parameters.yaml#/offset"
     - $ref: "../../components/parameters.yaml#/limit"
     - $ref: "../../components/parameters.yaml#/filters"

@@ -42,17 +42,17 @@ paths:
 
   /capsules:
     $ref: ./paths/capsules.yaml
-  /capsules/{capsuleId}:
+  /capsules/{capsule_id}:
     $ref: ./paths/capsule-by-id.yaml
-  /capsules/{capsuleId}/owners:
+  /capsules/{capsule_id}/owners:
     $ref: ./paths/capsule/owners.yaml
-  /capsules/{capsuleId}/owners/{userId}:
+  /capsules/{capsule_id}/owners/{userId}:
     $ref: ./paths/capsule/owner-by-id.yaml
-  /capsules/{capsuleId}/webapp:
+  /capsules/{capsule_id}/webapp:
     $ref: ./paths/capsule/webapp.yaml
-  /capsules/{capsuleId}/addons:
+  /capsules/{capsule_id}/addons:
     $ref: ./paths/capsule/addons.yaml
-  /capsules/{capsuleId}/addons/{addonId}:
+  /capsules/{capsule_id}/addons/{addonId}:
     $ref: ./paths/capsule/addon-by-id.yaml
 
   /runtimes:

@@ -7,7 +7,7 @@ post:
   summary: Add a new webapp to a capsule
   operationId: api.capsules.webapp.post
   parameters:
-    - $ref: "../../components/parameters.yaml#/capsuleId"
+    - $ref: "../../components/parameters.yaml#/capsule_id"
   requestBody:
     required: true
     content:
@@ -41,7 +41,7 @@ get:
   summary: Get a webapp for a capsule
   operationId: api.capsules.webapp.get
   parameters:
-    - $ref: "../../components/parameters.yaml#/capsuleId"
+    - $ref: "../../components/parameters.yaml#/capsule_id"
   responses:
     "401":
       $ref: "../../components/responses.yaml#/Unauthorized"
@@ -65,7 +65,7 @@ put:
   summary: Updates or creates a webapp for a capsule
   operationId: api.capsules.webapp.put
   parameters:
-    - $ref: "../../components/parameters.yaml#/capsuleId"
+    - $ref: "../../components/parameters.yaml#/capsule_id"
   requestBody:
     required: true
     content:
@@ -105,7 +105,7 @@ delete:
   summary: Delete a webapp for a capsule
   operationId: api.capsules.webapp.delete
   parameters:
-    - $ref: "../../components/parameters.yaml#/capsuleId"
+    - $ref: "../../components/parameters.yaml#/capsule_id"
   responses:
     "204":
       description: Successful deletion

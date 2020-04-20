@@ -7,7 +7,7 @@ put:
   summary: Update an addon for a capsule
   operationId: api.capsules.addons.put
   parameters:
-    - $ref: "../../components/parameters.yaml#/capsuleId"
+    - $ref: "../../components/parameters.yaml#/capsule_id"
     - $ref: "../../components/parameters.yaml#/addonId"
   requestBody:
     required: true
@@ -44,7 +44,7 @@ get:
   summary: Get an addon for a capsule
   operationId: api.capsules.addons.get
   parameters:
-    - $ref: "../../components/parameters.yaml#/capsuleId"
+    - $ref: "../../components/parameters.yaml#/capsule_id"
     - $ref: "../../components/parameters.yaml#/addonId"
   responses:
     "404":
@@ -67,7 +67,7 @@ delete:
   summary: Delete an addon for a capsule
   operationId: api.capsules.addons.delete
   parameters:
-    - $ref: "../../components/parameters.yaml#/capsuleId"
+    - $ref: "../../components/parameters.yaml#/capsule_id"
     - $ref: "../../components/parameters.yaml#/addonId"
   responses:
     "404":
