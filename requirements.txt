@@ -5,6 +5,7 @@ clickclick==1.2.2
 connexion==2.6.0
 flask-marshmallow==0.11.0
 Flask==1.0.2
+Flask-Migrate==2.5.3
 Flask-SQLAlchemy==2.3.2
 idna==2.8
 inflection==0.3.1
@@ -16,6 +17,8 @@ marshmallow==2.18.0
 marshmallow-sqlalchemy==0.22.0
 openapi-spec-validator==0.2.4
 pathlib==1.0.1
+pymysql==0.9.3
+python-dotenv==0.13.0
 PyYAML==4.2b4
 requests==2.21.0
 six==1.12.0

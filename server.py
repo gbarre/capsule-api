@@ -2,19 +2,15 @@
 Main module of the server file
 """
 
-# 3rd party moudles
-from flask import render_template
-
 # Local modules
-import config
-import db
+import app
 
-db.init_db()
 # Get the application instance
-connex_app = config.connex_app
+connex_app = app.connex_app
 
 # Read the swagger.yml file to configure the endpoints
 # TODO: Voir comment on peut utiliser une spec découpée
+# TODO: Activer la validation des réponses avec `validate_responses=true`
 connex_app.add_api('openapi.json', strict_validation=True)
 
 if __name__ == "__main__":

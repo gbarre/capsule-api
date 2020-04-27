@@ -1,27 +1,31 @@
 import os
-import connexion
-import logging
-from flask_sqlalchemy import SQLAlchemy
-from flask_marshmallow import Marshmallow
-basedir = os.path.abspath(os.path.dirname(__file__))
+from dotenv import load_dotenv
 
-# Create the connexion application instance
-connex_app = connexion.App(
-    __name__, specification_dir=os.path.join(basedir, 'spec'))
+load_dotenv()
 
-# Get the underlying Flask app instance
-app = connex_app.app
+# TODO: Decide the way that we want to configure the application (INI, ENV, YAML, etc.)
 
-# Build the Sqlite ULR for SqlAlchemy
-sqlite_url = "sqlite:////" + os.path.join(basedir, "capsule.db")
+class Config(object):
+    """Global cofnguration object."""
+    DEBUG = False
+    SQLALCHEMY_ECHO = False
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-# Configure the SqlAlchemy part of the app instance
-app.config["SQLALCHEMY_ECHO"] = False
-app.config["SQLALCHEMY_DATABASE_URI"] = sqlite_url
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+class ProdConfig(Config):
+    ENV = 'production'
 
-# Create the SqlAlchemy db instance
-db = SQLAlchemy(app)
+class TestConfig(Config):
+    ENV = 'test'
 
-# Initialize Marshmallow
-ma = Marshmallow(app)
+class LocalConfig(Config):
+    ENV = 'development'
+    DEBUG = True
+    SQLALCHEMY_ECHO = True
+    SQLALCHEMY_TRACK_MODIFICATIONS = True
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://{user}:{passw}@{host}:{port}/{db}'.format(
+        user='root',
+        passw=os.environ.get('MYSQL_ROOT_PASSWORD'),
+        host='localhost',
+        port=30306,
+        db=os.environ.get('MYSQL_DATABASE'),
+    )

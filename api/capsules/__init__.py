@@ -1,6 +1,6 @@
 from flask import request
 from models import Capsule, capsule_schema, capsules_schema
-from config import db
+from app import db
 from werkzeug.exceptions import NotFound, BadRequest
 from sqlalchemy import inspect
 
@@ -40,6 +40,7 @@ def post():
 
     result = Capsule.query.get(capsule.id)
     return capsule_schema.dump(result).data, 201
+
 
 # GET /capsules/{cID}
 # TODO: Adapt the spec exception schema

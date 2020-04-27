@@ -3,7 +3,7 @@
 import enum
 import uuid
 from datetime import datetime
-from config import db, ma
+from app import db, ma
 from marshmallow import fields
 from sqlalchemy.orm import backref
 from sqlalchemy.ext.hybrid import hybrid_property
