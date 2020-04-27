@@ -80,7 +80,7 @@ class ValidationRuleEnum(enum.Enum):
 
 class User(db.Model):
     __tablename__ = "users"
-    id = db.Column(db.String, nullable=False,
+    id = db.Column(db.String(32), nullable=False,
                    unique=True, primary_key=True)  # LDAP nsUniqueId
     public_keys = db.relationship(
         "SSHKey",
@@ -101,9 +101,9 @@ class Runtime(db.Model):
     __tablename__ = "runtimes"
     id = db.Column(GUID, nullable=False, unique=True,
                    default=uuid.uuid4, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    description = db.Column(db.String)
-    family = db.Column(db.String)
+    name = db.Column(db.String(256), nullable=False)
+    description = db.Column(db.String(256))
+    family = db.Column(db.String(256))
     type = db.Column(db.Enum(RuntimeTypeEnum), nullable=False)
     webapps = db.relationship(
         "WebApp",
@@ -140,11 +140,11 @@ class AvailableOption(db.Model):
     runtime_id = db.Column(GUID, db.ForeignKey('runtimes.id'))
     access_level = db.Column(
         db.Enum(RoleEnum), default=RoleEnum.superadmin, nullable=False)
-    tag = db.Column(db.String, nullable=False)
-    name = db.Column(db.String, nullable=False)
-    description = db.Column(db.String)
+    tag = db.Column(db.String(256), nullable=False)
+    name = db.Column(db.String(256), nullable=False)
+    description = db.Column(db.String(256))
     value_type = db.Column(db.Enum(OptionValueTypeEnum), nullable=False)
-    default_value = db.Column(db.String)
+    default_value = db.Column(db.String(256))
     validation_rules = db.relationship(
         "AvailableOptionValidationRule",
         backref="available_option",
@@ -160,7 +160,7 @@ class AvailableOptionValidationRule(db.Model):
     available_option_id = db.Column(GUID, db.ForeignKey(
         'available_options.id'))
     type = db.Column(db.Enum(ValidationRuleEnum), nullable=False)
-    arg = db.Column(db.String, nullable=False)
+    arg = db.Column(db.String(256), nullable=False)
 
 
 class AddOn(db.Model):
@@ -169,19 +169,19 @@ class AddOn(db.Model):
                    default=uuid.uuid4, primary_key=True)
     runtime_id = db.Column(GUID, db.ForeignKey('runtimes.id'))
     capsule_id = db.Column(GUID, db.ForeignKey('capsules.id'))
-    name = db.Column(db.String, nullable=False)
-    description = db.Column(db.String)
-    uri = db.Column(db.String, nullable=False)
-    env = db.Column(db.String)
+    name = db.Column(db.String(256), nullable=False)
+    description = db.Column(db.String(256))
+    uri = db.Column(db.String(256), nullable=False)
+    env = db.Column(db.String(256))
     opts = db.relationship(
         "Option",
         backref="addon",
         cascade="all, delete, delete-orphan",
         single_parent=True,
     )
-    quota_volume_size = db.Column(db.String, nullable=False)
-    quota_memory_max = db.Column(db.String, nullable=False)
-    quota_cpu_max = db.Column(db.String, nullable=False)
+    quota_volume_size = db.Column(db.String(256), nullable=False)
+    quota_memory_max = db.Column(db.String(256), nullable=False)
+    quota_cpu_max = db.Column(db.String(256), nullable=False)
     created_at = db.Column(
         db.DateTime, default=datetime.utcnow
     )
@@ -196,8 +196,8 @@ class WebApp(db.Model):
                    default=uuid.uuid4, primary_key=True)
     runtime_id = db.Column(GUID, db.ForeignKey('runtimes.id'))
     tls_redirect_https = db.Column(db.Boolean, default=True)
-    tls_crt = db.Column(db.String)
-    tls_key = db.Column(db.String)
+    tls_crt = db.Column(db.String(256))
+    tls_key = db.Column(db.String(256))
     fqns = db.relationship(
         "FQDN",
         backref="webapp",
@@ -205,16 +205,16 @@ class WebApp(db.Model):
         single_parent=True,
         order_by="asc(FQDN.alias)",
     )
-    env = db.Column(db.String)
+    env = db.Column(db.String(256))
     opts = db.relationship(
         "Option",
         backref="webapp",
         cascade="all, delete, delete-orphan",
         single_parent=True,
     )
-    quota_volume_size = db.Column(db.String, nullable=False)
-    quota_memory_max = db.Column(db.String, nullable=False)
-    quota_cpu_max = db.Column(db.String, nullable=False)
+    quota_volume_size = db.Column(db.String(256), nullable=False)
+    quota_memory_max = db.Column(db.String(256), nullable=False)
+    quota_cpu_max = db.Column(db.String(256), nullable=False)
     created_at = db.Column(
         db.DateTime, default=datetime.utcnow
     )
@@ -232,9 +232,9 @@ class Option(db.Model):
         'webapps.id'), nullable=True)
     addon_id = db.Column(GUID, db.ForeignKey(
         'addons.id'), nullable=True)
-    tag = db.Column(db.String)
-    field_name = db.Column(db.String)
-    value = db.Column(db.String)
+    tag = db.Column(db.String(256))
+    field_name = db.Column(db.String(256))
+    value = db.Column(db.String(256))
 
     @hybrid_property  # @property compliant with SQLAlchemy
     def instance_id(self):
@@ -246,14 +246,14 @@ class FQDN(db.Model):
     id = db.Column(GUID, nullable=False, unique=True,
                    default=uuid.uuid4, primary_key=True)
     webapp_id = db.Column(GUID, db.ForeignKey('webapps.id'))
-    name = db.Column(db.String, nullable=False, unique=True)
+    name = db.Column(db.String(256), nullable=False, unique=True)
     alias = db.Column(db.Boolean, nullable=False, default=False)
 
 
 capsules_users_table = db.Table('capsules_users', db.Model.metadata,
                                 db.Column('capsule_id', GUID,
                                           db.ForeignKey('capsules.id')),
-                                db.Column('user_id', db.String,
+                                db.Column('user_id', db.String(32),
                                           db.ForeignKey('users.id')),
                                 )
 
@@ -272,8 +272,8 @@ class SSHKey(db.Model):
     __tablename__ = "sshkeys"
     id = db.Column(GUID, nullable=False, unique=True,
                    default=uuid.uuid4, primary_key=True)
-    public_key = db.Column(db.String, nullable=False, unique=True)
-    user_id = db.Column(db.String, db.ForeignKey(
+    public_key = db.Column(db.String(4096), nullable=False, unique=True)
+    user_id = db.Column(db.String(32), db.ForeignKey(
         'users.id'), nullable=True)
     created_at = db.Column(
         db.DateTime, default=datetime.utcnow
@@ -288,7 +288,7 @@ class Capsule(db.Model):
     __tablename__ = "capsules"
     id = db.Column(GUID, nullable=False, unique=True,
                    default=uuid.uuid4, primary_key=True)
-    name = db.Column(db.String, nullable=False) # FIXME: Unique ?
+    name = db.Column(db.String(256), nullable=False) # FIXME: Unique ?
     webapp_id = db.Column(GUID, db.ForeignKey(
         'webapps.id'), nullable=True)
     webapp = db.relationship(
