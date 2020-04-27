@@ -3,10 +3,7 @@ Main module of the server file
 """
 
 # Local modules
-import app
-
-# Get the application instance
-connex_app = app.connex_app
+from app import connex_app, app
 
 # Read the swagger.yml file to configure the endpoints
 # TODO: Voir comment on peut utiliser une spec découpée

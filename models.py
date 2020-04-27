@@ -272,7 +272,7 @@ class SSHKey(db.Model):
     __tablename__ = "sshkeys"
     id = db.Column(GUID, nullable=False, unique=True,
                    default=uuid.uuid4, primary_key=True)
-    public_key = db.Column(db.String(4096), nullable=False, unique=True)
+    public_key = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.String(32), db.ForeignKey(
         'users.id'), nullable=True)
     created_at = db.Column(
