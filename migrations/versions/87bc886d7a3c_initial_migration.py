@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: 2b40521c57b9
+Revision ID: 87bc886d7a3c
 Revises: 
-Create Date: 2020-04-27 14:23:46.387604
+Create Date: 2020-04-27 16:45:25.250403
 
 """
 from alembic import op
@@ -11,7 +11,7 @@ import models
 
 
 # revision identifiers, used by Alembic.
-revision = '2b40521c57b9'
+revision = '87bc886d7a3c'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -31,12 +31,14 @@ def upgrade():
     sa.UniqueConstraint('id')
     )
     op.create_table('users',
-    sa.Column('id', sa.String(length=32), nullable=False),
+    sa.Column('id', models.GUID(), nullable=False),
+    sa.Column('name', sa.String(length=32), nullable=False),
     sa.Column('role', sa.Enum('user', 'admin', 'superadmin', name='roleenum'), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('id')
+    sa.UniqueConstraint('id'),
+    sa.UniqueConstraint('name')
     )
     op.create_table('available_options',
     sa.Column('id', models.GUID(), nullable=False),
@@ -54,7 +56,7 @@ def upgrade():
     op.create_table('sshkeys',
     sa.Column('id', models.GUID(), nullable=False),
     sa.Column('public_key', sa.Text(), nullable=False),
-    sa.Column('user_id', sa.String(length=32), nullable=True),
+    sa.Column('user_id', models.GUID(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
@@ -132,7 +134,7 @@ def upgrade():
     )
     op.create_table('capsules_users',
     sa.Column('capsule_id', models.GUID(), nullable=True),
-    sa.Column('user_id', sa.String(length=32), nullable=True),
+    sa.Column('user_id', models.GUID(), nullable=True),
     sa.ForeignKeyConstraint(['capsule_id'], ['capsules.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], )
     )

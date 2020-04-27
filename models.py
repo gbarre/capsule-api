@@ -80,8 +80,9 @@ class ValidationRuleEnum(enum.Enum):
 
 class User(db.Model):
     __tablename__ = "users"
-    id = db.Column(db.String(32), nullable=False,
-                   unique=True, primary_key=True)  # LDAP nsUniqueId
+    id = db.Column(GUID, nullable=False,
+                   unique=True, primary_key=True, default=uuid.uuid4)
+    name = db.Column(db.String(32), nullable=False, unique=True) # LDAP UID
     public_keys = db.relationship(
         "SSHKey",
         backref="owner",
@@ -95,6 +96,9 @@ class User(db.Model):
     updated_at = db.Column(
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
+
+    def __str__(self):
+        return self.name
 
 
 class Runtime(db.Model):
@@ -253,7 +257,7 @@ class FQDN(db.Model):
 capsules_users_table = db.Table('capsules_users', db.Model.metadata,
                                 db.Column('capsule_id', GUID,
                                           db.ForeignKey('capsules.id')),
-                                db.Column('user_id', db.String(32),
+                                db.Column('user_id', GUID,
                                           db.ForeignKey('users.id')),
                                 )
 
@@ -273,7 +277,7 @@ class SSHKey(db.Model):
     id = db.Column(GUID, nullable=False, unique=True,
                    default=uuid.uuid4, primary_key=True)
     public_key = db.Column(db.Text, nullable=False)
-    user_id = db.Column(db.String(32), db.ForeignKey(
+    user_id = db.Column(GUID, db.ForeignKey(
         'users.id'), nullable=True)
     created_at = db.Column(
         db.DateTime, default=datetime.utcnow
@@ -447,6 +451,7 @@ class CapsuleSchema(ma.SQLAlchemyAutoSchema):
         sqla_session = db.session
 
     id = ma.auto_field(dump_only=True)
+    owners = fields.List(fields.String())
     authorized_keys = fields.Nested(
         "SSHKeySchema", default=[], many=True, only=('public_key',))
     created_at = ma.auto_field(dump_only=True)

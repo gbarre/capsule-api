@@ -28,5 +28,5 @@ migrate = Migrate(app, db)
 # Initialize Marshmallow
 ma = Marshmallow(app)
 
-# Initializie OpenIDConnect
+# Initialize OpenIDConnect
 oidc = OpenIDConnect(app)
