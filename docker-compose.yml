@@ -4,7 +4,7 @@ services:
   db:
     image: mariadb:10.1
     env_file:
-      - .env.local
+      - .env
     ports:
       - '127.0.0.1:30306:3306'
     volumes:
