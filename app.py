@@ -4,6 +4,7 @@ import logging
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_marshmallow import Marshmallow
+from flask_oidc import OpenIDConnect
 from config import LocalConfig
 
 # TODO: variabiliser la création d'application avec un objet config
@@ -26,3 +27,6 @@ migrate = Migrate(app, db)
 
 # Initialize Marshmallow
 ma = Marshmallow(app)
+
+# Initializie OpenIDConnect
+oidc = OpenIDConnect(app)
