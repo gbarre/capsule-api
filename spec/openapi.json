@@ -145,7 +145,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/Error"
+              "$ref": "#/components/schemas/AuthError"
             }
           }
         }
@@ -175,20 +175,30 @@
       "Error": {
         "type": "object",
         "properties": {
-          "code": {
-            "type": "integer",
-            "format": "int32",
-            "example": 42
+          "detail": {
+            "type": "string"
           },
-          "message": {
-            "type": "string",
-            "example": "error_description"
+          "status": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
           }
-        },
-        "required": [
-          "code",
-          "message"
-        ]
+        }
+      },
+      "AuthError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "error_description": {
+            "type": "string"
+          }
+        }
       },
       "User": {
         "type": "object",

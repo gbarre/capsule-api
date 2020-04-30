@@ -1,16 +1,22 @@
 Error:
   type: object
   properties:
-    code:
-      type: integer
-      format: int32
-      example: 42
-    message:
+    detail:
       type: string
-      example: error_description
-  required:
-    - code
-    - message
+    status:
+      type: integer
+    title:
+      type: string
+    type:
+      type: string
+
+AuthError:
+  type: object
+  properties:
+    error:
+      type: string
+    error_description:
+      type: string
 
 User:
   type: object

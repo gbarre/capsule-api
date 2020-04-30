@@ -29,13 +29,15 @@ class ProdConfig(Config):
 class TestConfig(Config):
     # FIXME: Fix test configuration
     ENV = 'test'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///test_capsule.db'
 
 class LocalConfig(Config):
     ENV = 'development'
     DEBUG = True
     SQLALCHEMY_ECHO = True
     SQLALCHEMY_TRACK_MODIFICATIONS = True
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://{user}:{passw}@{host}:{port}/{db}'.format(
+    SQLALCHEMY_DATABASE_URI = '{driver}://{user}:{passw}@{host}:{port}/{db}'.format(
+        driver='mysql+pymysql',
         user='root',
         passw=os.environ.get('MYSQL_ROOT_PASSWORD'),
         host='localhost',

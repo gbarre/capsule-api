@@ -7,7 +7,7 @@ from utils import check_owners_on_keycloak
 from exceptions import KeycloakUserNotFound
 
 # GET /capsules
-@oidc.accept_token(require_token=True)
+@oidc.accept_token(require_token=True, render_errors=False)
 def search(offset, limit, filters):
     # TODO: test filters with relationships
     try:
@@ -22,7 +22,7 @@ def search(offset, limit, filters):
 
 
 # POST /capsules
-@oidc.accept_token(require_token=True)
+@oidc.accept_token(require_token=True, render_errors=False)
 def post():
     capsule_data = request.get_json()
     data = capsule_schema.load(capsule_data).data
@@ -50,7 +50,7 @@ def post():
 
 # GET /capsules/{cID}
 # TODO: Adapt the spec exception schema
-@oidc.accept_token(require_token=True)
+@oidc.accept_token(require_token=True, render_errors=False)
 def get(capsule_id):
     try:
         capsule = Capsule.query.get(capsule_id)
@@ -63,7 +63,7 @@ def get(capsule_id):
     return capsule_schema.dump(capsule).data
 
 
-# @oidc.accept_token(require_token=True)
+# @oidc.accept_token(require_token=True, render_errors=False)
 # def put(capsule_id, capsule):
 #     capsule_data = request.get_json()
 #     data = capsule_schema.load(capsule_data).data
@@ -94,7 +94,7 @@ def get(capsule_id):
 #     return capsule_schema.dump(result).data
 
 
-@oidc.accept_token(require_token=True)
+@oidc.accept_token(require_token=True, render_errors=False)
 def delete(capsule_id):
     try:
         capsule = Capsule.query.get(capsule_id)

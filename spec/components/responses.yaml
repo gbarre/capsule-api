@@ -10,7 +10,7 @@ Unauthorized:
   content:
     application/json:
       schema:
-        $ref: "./schemas.yaml#/Error"
+        $ref: "./schemas.yaml#/AuthError"
 
 Forbidden:
   description: Insufficient rights

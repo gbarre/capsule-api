@@ -1,15 +1,19 @@
 import json
 import requests
-from app import app
+from flask import current_app
 from exceptions import KeycloakUserNotFound
 
 
 OIDC_CONFIG = None
-with open(app.config['OIDC_CLIENT_SECRETS']) as json_file:
-    OIDC_CONFIG = json.load(json_file)
+
 
 def check_owners_on_keycloak(usernames):
-    # FIXME: Get role from Keycloak
+    global OIDC_CONFIG
+
+    if OIDC_CONFIG is None:
+        with open(current_app.config['OIDC_CLIENT_SECRETS']) as json_file:
+            OIDC_CONFIG = json.load(json_file)
+
     issuer = OIDC_CONFIG['web']['issuer']
     token_uri = OIDC_CONFIG['web']['token_uri']
     admin_uri = OIDC_CONFIG['web']['admin_uri']
@@ -25,10 +29,9 @@ def check_owners_on_keycloak(usernames):
 
     for username in usernames:
         res = requests.get(f'{admin_uri}/users?username={username}',
-                    headers={
-                        'Accept': 'application/json',
-                        'Authorization': f'Bearer {access_token}'
-                    }).json()
-        print(res)
+                           headers={
+                               'Accept': 'application/json',
+                               'Authorization': f'Bearer {access_token}',
+                           }).json()
         if not res:
             raise KeycloakUserNotFound(username)
