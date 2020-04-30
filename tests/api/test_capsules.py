@@ -1,5 +1,8 @@
 from app import oidc
+from exceptions import KeycloakUserNotFound
 from tests.utils import dict_contains
+from unittest.mock import patch
+
 
 class TestCapsules:
     _capsule_input = {
@@ -16,17 +19,22 @@ class TestCapsules:
             +W9KtofeG8xbCGWHUaQPxxhralgJjkhAWxoCq7Gj92Kbb5/bvOBHpEeMdD6iDJ2zfW
             /xyRI8btllTDGzKmYVZlSHwbNje3jX4yiR2V20SlewSn07K7xykmTPsUPgpx+uysYR
             VwWUb2sWJVARfjZUzeSLrDATpxQIWYU9iY0l4cPOztnTMZN3LIBkD john@doe''',
-        ] 
+        ]
     }
 
     def test_create_with_no_token(self, testapp):
-        res = testapp.post_json('/v1/capsules', self._capsule_input, status=401)
+        testapp.post_json('/v1/capsules', self._capsule_input, status=401)
+
+    def test_create_raises_on_invalid_owner(self, testapp):
+        with patch.object(oidc, 'validate_token', return_value=True), \
+            patch('api.capsules.check_owners_on_keycloak', side_effect=KeycloakUserNotFound('barfoo')):
+
+            res = testapp.post_json('/v1/capsules', self._capsule_input, status=400).json
+            assert 'barfoo' in res['detail']
 
     def test_create(self, testapp, db, monkeypatch):
-        monkeypatch.setattr(oidc, 'validate_token',
-                            lambda *args, **kwargs: True)
-        monkeypatch.setattr(
-            'api.capsules.check_owners_on_keycloak', lambda *args, **kwargs: None)
+        with patch.object(oidc, 'validate_token', return_value=True), \
+            patch('api.capsules.check_owners_on_keycloak'):
 
-        res = testapp.post_json('/v1/capsules', self._capsule_input, status=201).json
-        assert dict_contains(res, self._capsule_input)
+            res = testapp.post_json('/v1/capsules', self._capsule_input, status=201).json
+            assert dict_contains(res, self._capsule_input)
