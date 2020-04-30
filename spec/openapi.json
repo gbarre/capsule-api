@@ -576,7 +576,8 @@
         "properties": {
           "id": {
             "type": "string",
-            "example": "695d0f1a-beb2-4145-828d-0f7f0fcc6696"
+            "example": "695d0f1a-beb2-4145-828d-0f7f0fcc6696",
+            "readOnly": true
           },
           "name": {
             "type": "string",
@@ -588,8 +589,8 @@
               "type": "string"
             },
             "example": [
-              "e53b412c-e99e-4995-8c02-7097340832d0",
-              "784c555b-c179-4a78-856b-cc7ea9314654"
+              "jdoe",
+              "jdoe1"
             ],
             "uniqueItems": true,
             "minItems": 1

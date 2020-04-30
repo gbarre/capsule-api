@@ -1,5 +1,7 @@
 from flask import request
-from models import User, Capsule, capsule_schema, capsules_schema
+from models import RoleEnum
+from models import SSHKey, User
+from models import Capsule, capsule_schema, capsules_schema
 from app import db, oidc
 from werkzeug.exceptions import NotFound, BadRequest
 from sqlalchemy import inspect
@@ -36,16 +38,27 @@ def post():
     for i, owner in enumerate(data['owners']):
         user = User.query.filter_by(name=owner).one_or_none()
         if user is None:  # User does not exist in DB
-            data['owners'][i] = User(name=owner, role='user')
+            data['owners'][i] = User(name=owner, role=RoleEnum.user)
         else:
             data['owners'][i] = user
-    
+
+    # Get existent ssh keys, create the others
+    if 'authorized_keys' in data:
+        for i, public_key in enumerate(data['authorized_keys']):
+            sshkey = SSHKey.query.filter_by(public_key=public_key).one_or_none()
+            if sshkey is None:
+                data['authorized_keys'][i] = SSHKey(public_key=public_key)
+            else:
+                data['authorized_keys'][i] = sshkey
+
     capsule = Capsule(**data)
     db.session.add(capsule)
     db.session.commit()
 
     result = Capsule.query.get(capsule.id)
-    return capsule_schema.dump(result).data, 201
+    return capsule_schema.dump(result).data, 201, {
+        'Location': f'{request.base_url}/{capsule.id}',
+    }
 
 
 # GET /capsules/{cID}

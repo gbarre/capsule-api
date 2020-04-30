@@ -202,7 +202,7 @@ class WebApp(db.Model):
     tls_redirect_https = db.Column(db.Boolean, default=True)
     tls_crt = db.Column(db.String(256))
     tls_key = db.Column(db.String(256))
-    fqns = db.relationship(
+    fqdns = db.relationship(
         "FQDN",
         backref="webapp",
         cascade="all, delete, delete-orphan",
@@ -269,14 +269,12 @@ capsules_sshkeys_table = db.Table('capsules_sshkeys', db.Model.metadata,
                                             db.ForeignKey('sshkeys.id')),
                                   )
 
-# TODO: Discuss SSHKey Management as tables entry and not string ?
-
 
 class SSHKey(db.Model):
     __tablename__ = "sshkeys"
     id = db.Column(GUID, nullable=False, unique=True,
                    default=uuid.uuid4, primary_key=True)
-    public_key = db.Column(db.Text, nullable=False)
+    public_key = db.Column(db.String(256), nullable=False, unique=True)
     user_id = db.Column(GUID, db.ForeignKey(
         'users.id'), nullable=True)
     created_at = db.Column(
@@ -285,6 +283,9 @@ class SSHKey(db.Model):
     updated_at = db.Column(
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
+
+    def __str__(self):
+        return self.public_key
 
 
 class Capsule(db.Model):
@@ -452,8 +453,7 @@ class CapsuleSchema(ma.SQLAlchemyAutoSchema):
 
     id = ma.auto_field(dump_only=True)
     owners = fields.List(fields.String())
-    authorized_keys = fields.Nested(
-        "SSHKeySchema", default=[], many=True, only=('public_key',))
+    authorized_keys = fields.List(fields.String())
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
 
