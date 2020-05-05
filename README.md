@@ -1,5 +1,12 @@
 # Capsule API
 
+Before any command, don't forget to activate your Python virtual environment
+with something like that:
+
+```sh
+. venv/bin/activate
+```
+
 ## Local Environment
 
 ```sh
@@ -25,4 +32,10 @@ $ python -m flask db migrate -m "My new migration"
 
 # To apply a migration.
 $ python -m flask db upgrade
+```
+
+## Run unit tests
+
+```sh
+pytest
 ```
