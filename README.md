@@ -20,6 +20,9 @@ $ docker-compose down -v
 
 # To open a mysql client in the docker.
 $ docker-compose exec db mysql -u root -p'password' capsule_local
+
+# To run the server.
+$ python server.py
 ```
 
 ## Database migration
