@@ -26,6 +26,7 @@ def search(offset, limit, filters):
 # POST /capsules
 @oidc.accept_token(require_token=True, render_errors=False)
 def post():
+# TODO: check if the token is matching an admin user
     capsule_data = request.get_json()
     data = capsule_schema.load(capsule_data).data
 

@@ -3,17 +3,8 @@ import webtest
 from app import create_app
 from app import db as _db
 from config import TestConfig
-from models import WebApp
-from models import AddOn
-from models import Runtime
-from models import AvailableOption
-from models import RoleEnum
-from models import OptionValueTypeEnum
-from models import AvailableOptionValidationRule
-from models import ValidationRuleEnum
-from models import RuntimeTypeEnum
-from models import FQDN
-from models import Option
+from models import *
+import tests.foodata as foodata
 
 
 @pytest.fixture(scope='function')
@@ -32,7 +23,7 @@ def db(app):
     # HACK: app parameter is here to trigger db object configuration
     with app.app_context():
         _db.create_all()
-    
+
         setup_initial_data(_db)
         yield _db
 
@@ -41,78 +32,84 @@ def db(app):
 
 
 def setup_initial_data(db):
-    available_opt = AvailableOption(
-        access_level=RoleEnum.user,
-        tag='Apache',
-        name='vhost.conf',
-        value_type=OptionValueTypeEnum.file,
-        description='Apache2 vhost configuration file.',
+
+    d = dict(foodata.available_opt1)
+    d["access_level"] = getattr(RoleEnum, foodata.available_opt1["access_level"])
+    d["value_type"] = getattr(OptionValueTypeEnum, foodata.available_opt1["value_type"])
+    available_opt1 = AvailableOption(**d)
+
+    d = dict(foodata.validation_rule1)
+    d["type"] = getattr(ValidationRuleEnum, foodata.validation_rule1["type"])
+    validation_rule1 = AvailableOptionValidationRule(**d)
+
+    d = dict(foodata.validation_rule2)
+    d["type"] = getattr(ValidationRuleEnum, foodata.validation_rule2["type"])
+    validation_rule2 = AvailableOptionValidationRule(**d)
+
+    d = dict(foodata.available_opt2)
+    d["access_level"] = getattr(RoleEnum, foodata.available_opt2["access_level"])
+    d["value_type"] = getattr(OptionValueTypeEnum, foodata.available_opt2["value_type"])
+    d.pop("validation_rules")
+    available_opt2 = AvailableOption(**d,
+        validation_rules=[
+            validation_rule1,
+            validation_rule2]
     )
 
-    validation_rule = AvailableOptionValidationRule(
-        type=ValidationRuleEnum.gte,
-        arg='1',
-    )
-    validation_rule2 = AvailableOptionValidationRule(
-        type=ValidationRuleEnum.lte,
-        arg='42',
-    )
-    available_opt2 = AvailableOption(
-        access_level=RoleEnum.user,
-        tag='PHP',
-        name='worker',
-        value_type=OptionValueTypeEnum.integer,
-        description='PHP worker count.',
-        default_value='6',
-        validation_rules = [
-            validation_rule,
-            validation_rule2,
-        ]
-    )
-
-    runtime = Runtime(
-        description='Stack web classique Apache 2.4 + PHP 7.2.x',
-        family='Apache PHP',
-        name='apache-2.4 php-7.2.x',
-        type=RuntimeTypeEnum.webapp,
+    d = dict(foodata.runtime1)
+    d["type"] = getattr(RuntimeTypeEnum, foodata.runtime1["type"])
+    d.pop("available_opts")
+    runtime1 = Runtime(**d,
         available_opts=[
-            available_opt,
-            available_opt2,
+            available_opt1,
+            available_opt2
         ]
     )
 
-    fqdn = FQDN(name="main.fqdn.ac-versailles.fr", alias=False)
-    fqdn2 = FQDN(name="secondary.fqdn.ac-versailles.fr", alias=True)
+    d = dict(foodata.fqdn1)
+    fqdn1 = FQDN(**d)
 
-    option = Option(field_name='worker', tag='PHP', value='42')
-    webapp = WebApp(
-        env="""
-        HTTPS_PROXY=https://proxy:3128/
-        HTTP_PROXY=http://proxy:3128/
-        """,
+    d = dict(foodata.fqdn2)
+    fqdn2 = FQDN(**d)
+
+    d = dict(foodata.option)
+    option = Option(**d)
+
+    d = dict(foodata.webapp)
+    d.pop("fqdns")
+    d.pop("opts")
+    webapp1 = WebApp(**d,
         fqdns=[
-            fqdn,
+            fqdn1,
             fqdn2,
         ],
         opts=[
             option,
         ],
-        quota_cpu_max='2.5',
-        quota_memory_max='4',
-        quota_volume_size='20',
-        runtime=runtime,
-        tls_redirect_https=True,
+        runtime=runtime1,
     )
 
-    db.session.add_all([
-        validation_rule,
+    users = [User(name=x) for x in foodata.capsule1["owners"]]
+
+    d = dict(foodata.capsule1)
+    d.pop("owners")
+    capsule1 = Capsule(**d, owners=users)
+
+    array_obj = [
+        validation_rule1,
         validation_rule2,
-        available_opt,
+        available_opt1,
         available_opt2,
-        runtime,
+        runtime1,
         option,
-        fqdn,
+        fqdn1,
         fqdn2,
-        webapp,
-    ])
+        webapp1,
+        capsule1,
+    ]
+
+    for u in users:
+        array_obj.append(u)
+
+    db.session.add_all(array_obj)
     db.session.commit()
