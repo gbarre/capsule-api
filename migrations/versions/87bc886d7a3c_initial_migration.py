@@ -82,7 +82,7 @@ def upgrade():
     op.create_table('available_option_validation_rules',
     sa.Column('id', models.GUID(), nullable=False),
     sa.Column('available_option_id', models.GUID(), nullable=True),
-    sa.Column('type', sa.Enum('regex', 'gt', 'lt', 'gte', 'lte', 'eq', 'neq', 'format', name='validationruleenum'), nullable=False),
+    sa.Column('type', sa.Enum('regex', 'min', 'max', 'eq', 'neq', 'format', name='validationruleenum'), nullable=False),
     sa.Column('arg', sa.String(length=256), nullable=False),
     sa.ForeignKeyConstraint(['available_option_id'], ['available_options.id'], ),
     sa.PrimaryKeyConstraint('id'),

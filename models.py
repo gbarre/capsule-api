@@ -69,13 +69,11 @@ class OptionValueTypeEnum(enum.Enum):
 
 class ValidationRuleEnum(enum.Enum):
     regex = 0
-    gt = 3
-    lt = 4
-    gte = 5
-    lte = 6
-    eq = 7
-    neq = 8
-    format = 9  # check file format
+    min = 1
+    max = 2
+    eq = 3
+    neq = 4
+    format = 5  # check file format
 
 
 class User(db.Model):
