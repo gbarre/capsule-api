@@ -25,6 +25,10 @@ $ docker-compose exec db mysql -u root -p'password' capsule_local
 $ python server.py
 ```
 
+**Remark:** if the server is running, you can view the API specification
+at the address http://localhost:5000/v1/ui/.
+
+
 ## Database migration
 
 ```sh
