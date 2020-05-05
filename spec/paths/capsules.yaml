@@ -42,7 +42,7 @@ get:
   responses:
     "404":
       $ref: "../components/responses.yaml#/NotFound"
-    "403":
+    "403": # TODO : explain why ?
       $ref: "../components/responses.yaml#/Forbidden"
     "200":
       description: The requested capsules

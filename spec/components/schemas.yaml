@@ -81,7 +81,7 @@ Runtime:
     family:
       type: string
       example: Apache PHP
-    runtimeType:
+    type:
       type: string
       enum: [webapp, addon]
     availableOpts:
@@ -149,7 +149,7 @@ Runtime:
       example : "2020-03-17T15:32:28Z"
   required:
     - name
-    - runtimeType
+    - type
 
 WebApp:
   type: object
@@ -199,7 +199,7 @@ WebApp:
       description: Dict of environment variables
       example:
         HTTP_PROXY: http://proxy:3128/
-        HTTPS_PROXY: https://proxy:3128/ 
+        HTTPS_PROXY: https://proxy:3128/
     opts:
       type: array
       items:
@@ -276,7 +276,7 @@ AddOn:
       description: Dict of environment variables
       example:
         HTTP_PROXY: http://proxy:3128/
-        HTTPS_PROXY: https://proxy:3128/ 
+        HTTPS_PROXY: https://proxy:3128/
     opts:
       type: array
       items:
