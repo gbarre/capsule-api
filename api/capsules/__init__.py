@@ -5,8 +5,9 @@ from models import Capsule, capsule_schema, capsules_schema
 from app import db, oidc
 from werkzeug.exceptions import NotFound, BadRequest
 from sqlalchemy import inspect
-from utils import check_owners_on_keycloak
+from utils import check_owners_on_keycloak, check_user_role
 from exceptions import KeycloakUserNotFound
+
 
 # GET /capsules
 @oidc.accept_token(require_token=True, render_errors=False)
@@ -26,7 +27,8 @@ def search(offset, limit, filters):
 # POST /capsules
 @oidc.accept_token(require_token=True, render_errors=False)
 def post():
-# TODO: check if the token is matching an admin user
+    check_user_role(RoleEnum.admin)
+
     capsule_data = request.get_json()
     data = capsule_schema.load(capsule_data).data
 
