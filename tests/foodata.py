@@ -1,30 +1,30 @@
 available_opt1 = {
     "access_level": "user", # models.RoleEnum.user
-    "tag": 'Apache',
-    "name": 'vhost.conf',
+    "tag": "Apache",
+    "name": "vhost.conf",
     "value_type": "file", # models.OptionValueTypeEnum.file
-    "description": 'Apache2 vhost configuration file.',
+    "description": "Apache2 vhost configuration file.",
 }
 
 validation_rule1 = {
-    "type": 'min', # models.ValidationRuleEnum.min
-    "arg": '1',
+    "type": "min", # models.ValidationRuleEnum.min
+    "arg": "1",
 }
 validation_rule2 = {
     "type": "max", # models.ValidationRuleEnum.max
-    "arg": '42',
+    "arg": "42",
 }
 
 available_opt2 = {
     "access_level": "user", # models.RoleEnum.user
-    "tag": 'PHP',
-    "name": 'worker',
+    "tag": "PHP",
+    "name": "worker",
     "value_type": "integer", # models.OptionValueTypeEnum.integer
-    "description": 'PHP worker count.',
-    "default_value": '6',
+    "description": "PHP worker count.",
+    "default_value": "6",
     "validation_rules" : {
-        validation_rule1['type']: validation_rule1['arg'],
-        validation_rule2['type']: validation_rule2['arg'],
+        validation_rule1["type"]: validation_rule1["arg"],
+        validation_rule2["type"]: validation_rule2["arg"],
     }
 }
 
@@ -49,9 +49,9 @@ fqdn2 = {
 }
 
 option = {
-    "field_name": 'worker',
-    "tag": 'PHP',
-    "value": '42'
+    "field_name": "worker",
+    "tag": "PHP",
+    "value": "42"
 }
 
 webapp = {
@@ -66,9 +66,9 @@ HTTPS_PROXY=https://proxy:3128/
   "opts" : [
         option,
     ],
-    "quota_cpu_max": '2.5',
-    "quota_memory_max": '4',
-    "quota_volume_size": '20',
+    "quota_cpu_max": "2.5",
+    "quota_memory_max": "4",
+    "quota_volume_size": "20",
     "tls_redirect_https": True,
 }
 
