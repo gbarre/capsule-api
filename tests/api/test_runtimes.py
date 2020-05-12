@@ -16,10 +16,11 @@ class TestRuntimes:
     #### Testing GET /runtimes
     #################################
     # Response 200:
-    def test_get(self, testapp, db, monkeypatch):
+    def test_get(self, testapp, db):
         with patch.object(oidc, 'validate_token', return_value=True):
-            res = testapp.get('v1/runtimes', status=200).json
-            assert dict_contains(res[0], self._runtime_ouput)
+            res = testapp.get('/v1/runtimes', status=200).json
+
+            assert dict_contains(res[0], self._runtime_output)
 
     # Response 401:
     def test_get_with_no_token(self, testapp):
@@ -30,7 +31,7 @@ class TestRuntimes:
     #### Testing POST /runtimes
     #################################
     # Response 201:
-    # def test_create(self, testapp, db, monkeypatch):
+    # def test_create(self, testapp, db):
     #     with patch.object(oidc, 'validate_token', return_value=True):
     #         res = testapp.post_json('/v1/runtimes', self._runtime_input, status=201).json
     #         assert dict_contains(res, self._runtime_input)

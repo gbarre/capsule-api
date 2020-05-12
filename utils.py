@@ -5,7 +5,8 @@ from models import User
 from flask import current_app, g
 from exceptions import KeycloakUserNotFound, KeycloakIdNotFound
 from werkzeug.exceptions import BadRequest, Forbidden
-
+from functools import wraps
+from app import oidc
 
 OIDC_CONFIG = None
 
@@ -39,7 +40,23 @@ def check_owners_on_keycloak(usernames):
         if not res:
             raise KeycloakUserNotFound(username)
 
-def check_user_role(min_role):
+
+def oidc_require_role(min_role):
+
+    def decorator(view_func):
+
+        @wraps(view_func)
+        @oidc.accept_token(require_token=True, render_errors=False)
+        def wrapper(*args, **kwargs):
+            check_user_role(min_role)
+            return view_func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+def check_user_role(min_role=RoleEnum.admin):
     # Get user uid in keycloak from token
     kc_user_id = g.oidc_token_info['sub']
     try:
@@ -50,8 +67,7 @@ def check_user_role(min_role):
     # Look for user role
     user = User.query.filter_by(name=name).one_or_none()
 
-    # TODO: check does not always work (ie admin could match but not superadmin)
-    if user.role != min_role:
+    if (user is None) or (user.role < min_role) :
         raise Forbidden
 
 def get_user_from_keycloak(id):

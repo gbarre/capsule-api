@@ -1,5 +1,6 @@
 # TODO: Quid de savoir la fin de pagination ?
 
+import json
 import enum
 import uuid
 from datetime import datetime
@@ -47,33 +48,50 @@ class GUID(TypeDecorator):
             return value
 
 
-class RuntimeTypeEnum(enum.Enum):
-    webapp = 0
-    addon = 1
+class RuntimeTypeEnum(str, enum.Enum):
+    webapp = "webapp"
+    addon = "addon"
 
 
-class RoleEnum(enum.Enum):
-    user = 10
-    admin = 20
-    superadmin = 30
+class RoleEnum(str, enum.Enum):
+    user = "user"
+    admin = "admin"
+    superadmin = "superadmin"
+
+    def __ge__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value >= other.value
+        return NotImplemented
+    def __gt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value > other.value
+        return NotImplemented
+    def __le__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value <= other.value
+        return NotImplemented
+    def __lt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value < other.value
+        return NotImplemented
 
 
-class OptionValueTypeEnum(enum.Enum):
+class OptionValueTypeEnum(str, enum.Enum):
     # FIXME: Decide the types
-    integer = 0
-    float = 1
-    boolean = 2
-    string = 3
-    file = 4
+    integer = "integer"
+    float = "float"
+    boolean = "bloolean"
+    string = "string"
+    file = "file"
 
 
-class ValidationRuleEnum(enum.Enum):
-    regex = 0
-    min = 1
-    max = 2
-    eq = 3
-    neq = 4
-    format = 5  # check file format
+class ValidationRuleEnum(str, enum.Enum):
+    regex = "regex"
+    min = "min"
+    max = "max"
+    eq = "eq"
+    neq = "neq"
+    format = "format"  # check file format
 
 
 class User(db.Model):
@@ -458,3 +476,5 @@ class CapsuleSchema(ma.SQLAlchemyAutoSchema):
 
 capsule_schema = CapsuleSchema()
 capsules_schema = CapsuleSchema(many=True)
+runtime_schema = RuntimeSchema()
+runtimes_schema = RuntimeSchema(many=True)

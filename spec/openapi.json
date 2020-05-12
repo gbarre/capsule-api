@@ -252,7 +252,7 @@
             "type": "string",
             "example": "Apache PHP"
           },
-          "runtimeType": {
+          "type": {
             "type": "string",
             "enum": [
               "webapp",
@@ -350,7 +350,7 @@
         },
         "required": [
           "name",
-          "runtimeType"
+          "type"
         ]
       },
       "WebApp": {

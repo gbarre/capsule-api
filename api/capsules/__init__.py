@@ -5,7 +5,7 @@ from models import Capsule, capsule_schema, capsules_schema
 from app import db, oidc
 from werkzeug.exceptions import NotFound, BadRequest
 from sqlalchemy import inspect
-from utils import check_owners_on_keycloak, check_user_role
+from utils import check_owners_on_keycloak, check_user_role, oidc_require_role
 from exceptions import KeycloakUserNotFound
 
 
@@ -25,9 +25,10 @@ def search(offset, limit, filters):
 
 
 # POST /capsules
-@oidc.accept_token(require_token=True, render_errors=False)
+# @oidc.accept_token(require_token=True, render_errors=False)
+@oidc_require_role(min_role=RoleEnum.admin)
 def post():
-    check_user_role(RoleEnum.admin)
+    #check_user_role(RoleEnum.admin)
 
     capsule_data = request.get_json()
     data = capsule_schema.load(capsule_data).data
@@ -110,7 +111,7 @@ def get(capsule_id):
 #     return capsule_schema.dump(result).data
 
 
-@oidc.accept_token(require_token=True, render_errors=False)
+@oidc_require_role(min_role=RoleEnum.admin)
 def delete(capsule_id):
     try:
         capsule = Capsule.query.get(capsule_id)
