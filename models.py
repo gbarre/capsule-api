@@ -53,25 +53,37 @@ class RuntimeTypeEnum(str, enum.Enum):
 
 
 class RoleEnum(str, enum.Enum):
+
     user = "user"
     admin = "admin"
     superadmin = "superadmin"
 
+    def getpower(self):
+        if self == __class__.user:
+            return 10
+        if self == __class__.admin:
+            return 20
+        if self == __class__.superadmin:
+            return 42
+
     def __ge__(self, other):
         if self.__class__ is other.__class__:
-            return self.value >= other.value
+            return self.getpower() >= other.getpower()
         return NotImplemented
+
     def __gt__(self, other):
         if self.__class__ is other.__class__:
-            return self.value > other.value
+            return self.getpower() > other.getpower()
         return NotImplemented
+
     def __le__(self, other):
         if self.__class__ is other.__class__:
-            return self.value <= other.value
+            return self.getpower() <= other.getpower()
         return NotImplemented
+
     def __lt__(self, other):
         if self.__class__ is other.__class__:
-            return self.value < other.value
+            return self.getpower() < other.getpower()
         return NotImplemented
 
 
