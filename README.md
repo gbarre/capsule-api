@@ -44,7 +44,7 @@ $ python -m flask db upgrade
 ## Run unit tests
 
 ```sh
-pytest
+pytest -v
 ```
 
 

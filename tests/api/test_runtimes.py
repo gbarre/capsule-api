@@ -4,7 +4,9 @@ from tests.utils import dict_contains
 from unittest.mock import patch
 import tests.foodata as foodata
 
+
 class TestRuntimes:
+
     _runtime_input = {
         "name": "Runtime Test",
         "runtimeType": "webapp"
