@@ -8,7 +8,7 @@ from werkzeug.exceptions import Forbidden
 
 class TestCapsules:
     _capsule_input = {
-        "name": "Test Capsule",
+        "name": "test-capsule",
         "owners": [
             "foobar",
             "barfoo",
@@ -21,6 +21,13 @@ class TestCapsules:
             "+W9KtofeG8xbCGWHUaQPxxhralgJjkhAWxoCq7Gj92Kbb5/bvOBHpEeMdD6iDJ2zfW"\
             "/xyRI8btllTDGzKmYVZlSHwbNje3jX4yiR2V20SlewSn07K7xykmTPsUPgpx+uysYR"\
             "VwWUb2sWJVARfjZUzeSLrDATpxQIWYU9iY0l4cPOztnTMZN3LIBkD john@doe",
+        ]
+    }
+
+    _capsule_input_illegal = {
+        "name" : "1 Capsule with_illegal charactères",
+        "owners": [
+            "foobar"
         ]
     }
 
@@ -54,6 +61,22 @@ class TestCapsules:
 
             res = testapp.post_json("/v1/capsules", self._capsule_input, status=400).json
             assert "barfoo" in res["detail"]
+
+    def test_create_illegal_name(self, testapp):
+        with patch.object(oidc, "validate_token", return_value=True), \
+            patch("utils.check_user_role"), \
+            patch("api.capsules.check_owners_on_keycloak"):
+
+            res = testapp.post_json("/v1/capsules", self._capsule_input_illegal, status=400).json
+            assert "illegal" in res["detail"]
+
+    def test_create_duplicated_name(self, testapp):
+        with patch.object(oidc, "validate_token", return_value=True), \
+            patch("utils.check_user_role"), \
+            patch("api.capsules.check_owners_on_keycloak"):
+
+            res = testapp.post_json("/v1/capsules", self._capsule_output, status=400).json
+            assert "already exists" in res["detail"]
 
     # TODO: bad json input (missing name or owner)
 

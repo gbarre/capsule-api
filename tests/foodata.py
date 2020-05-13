@@ -22,10 +22,10 @@ available_opt2 = {
     "value_type": "integer", # models.OptionValueTypeEnum.integer
     "description": "PHP worker count.",
     "default_value": "6",
-    "validation_rules" : [{
-        validation_rule1["type"]: validation_rule1["arg"],
-        validation_rule2["type"]: validation_rule2["arg"],
-    }]
+    "validation_rules" : [
+        validation_rule1,
+        validation_rule2
+    ]
 }
 
 runtime1 = {
@@ -73,7 +73,7 @@ HTTPS_PROXY=https://proxy:3128/
 }
 
 capsule1 = {
-    "name": "Test Default Capsule",
+    "name": "test-default-capsule",
     "owners": [
         "toto1",
         "tata2",

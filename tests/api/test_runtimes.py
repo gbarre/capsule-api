@@ -6,7 +6,6 @@ import tests.foodata as foodata
 
 
 class TestRuntimes:
-
     _runtime_input = {
         "name": "Runtime Test",
         "runtimeType": "webapp"
