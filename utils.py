@@ -1,5 +1,6 @@
 import json
 import requests
+import re
 from models import RoleEnum
 from models import User
 from flask import current_app, g
@@ -9,6 +10,8 @@ from functools import wraps
 from app import oidc
 
 OIDC_CONFIG = None
+
+REGEX_CAPSULE_NAME = re.compile('^[a-z][-a-z0-9]+$')
 
 
 def check_owners_on_keycloak(usernames):

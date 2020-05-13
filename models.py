@@ -1,6 +1,5 @@
 # TODO: Quid de savoir la fin de pagination ?
 
-import json
 import enum
 import uuid
 from datetime import datetime
@@ -309,7 +308,7 @@ class Capsule(db.Model):
     __tablename__ = "capsules"
     id = db.Column(GUID, nullable=False, unique=True,
                    default=uuid.uuid4, primary_key=True)
-    name = db.Column(db.String(256), nullable=False) # FIXME: Unique ?
+    name = db.Column(db.String(256), nullable=False, unique=True) # FIXME: Unique ?
     webapp_id = db.Column(GUID, db.ForeignKey(
         'webapps.id'), nullable=True)
     webapp = db.relationship(
