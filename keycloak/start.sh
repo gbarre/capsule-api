@@ -127,7 +127,7 @@ echo "
         \"userinfo_uri\": \"${KC_URL}/realms/dev/protocol/openid-connect/userinfo\",
         \"token_uri\": \"${KC_URL}/realms/dev/protocol/openid-connect/token\",
         \"token_introspection_uri\": \"${KC_URL}/realms/dev/protocol/openid-connect/token/introspect\",
-        \"admin_uri\": \"${KC_URL}/admin/realms/ac-versaille\s\"
+        \"admin_uri\": \"${KC_URL}/admin/realms/dev\"
     }
 }"
 
