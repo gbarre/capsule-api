@@ -2,6 +2,8 @@
 
 # require docker & jq
 
+script_dir=$(cd "${0%/*}"; pwd)
+
 KC_CONTAINER_NAME="keycloak_dev"
 KC_DOCKER_IMAGE="jboss/keycloak"
 KC_ADMIN="admin"
@@ -18,10 +20,10 @@ if [ ! "$(docker ps -q -f name=${KC_CONTAINER_NAME})" ]; then
         if [ "${resp}" = "rm" ]
         then
           # cleanup
-          sudo docker rm "${KC_CONTAINER_NAME}"
+          docker rm "${KC_CONTAINER_NAME}"
         elif [ "${resp}" = "start" ]
         then
-          sudo docker start "${KC_CONTAINER_NAME}"
+          docker start "${KC_CONTAINER_NAME}"
           echo "Enjoy!"
           exit 0
         else
@@ -31,10 +33,14 @@ if [ ! "$(docker ps -q -f name=${KC_CONTAINER_NAME})" ]; then
         fi
     fi
     # run your container
-    sudo docker run -d --name "${KC_CONTAINER_NAME}" \
+    docker run -d --name "${KC_CONTAINER_NAME}" \
     -e KEYCLOAK_USER="${KC_ADMIN}" -e KEYCLOAK_PASSWORD="${KC_PWD}" \
     -p8080:8080 \
     "${KC_DOCKER_IMAGE}"
+else
+    echo "Container ${KC_CONTAINER_NAME} alreay running."
+    echo "Bye..."
+    exit 0
 fi
 
 echo "Wating for Keycloak docker..."
@@ -61,7 +67,7 @@ curl -s -X POST \
   "${KC_URL}/admin/realms/" \
   --header "Authorization: Bearer ${TKN}" \
   --header 'Content-Type: application/json' \
-  --data-raw "$(cat ${PWD}/dev-realm.json)"
+  --data-raw "$(cat ${script_dir}/dev-realm.json)"
 
 echo "Dev realm imported."
 
