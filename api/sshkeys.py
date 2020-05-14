@@ -1,14 +1,14 @@
+# /GET /sshkeys
+@oidc.accept_token(require_token=True, render_errors=False)
 def search(offset, limit, filters):
     pass
 
-def get(sshkey_id):
-    pass
-
+# /POST /sshkeys/{skId}
+@oidc.accept_token(require_token=True, render_errors=False)
 def post(sshkey):
     pass
 
-def put(sshkey_id, sshkey):
-    pass
-
+# /DELETE /sshkeys/{skId}
+@oidc.accept_token(require_token=True, render_errors=False)
 def delete(sshkey_id):
     pass

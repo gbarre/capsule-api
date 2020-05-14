@@ -13,6 +13,7 @@ from exceptions import KeycloakUserNotFound
 @oidc.accept_token(require_token=True, render_errors=False)
 def search(offset, limit, filters):
     # TODO: test filters with relationships
+    # TODO: check role : user see his capsules, admin/superadmin see all
     try:
         results = Capsule.query.filter_by(**filters).limit(limit).offset(offset).all()
     except:
@@ -76,6 +77,7 @@ def post():
 # TODO: Adapt the spec exception schema
 @oidc.accept_token(require_token=True, render_errors=False)
 def get(capsule_id):
+    # TODO: user must be in owners to show the capsule, admin/superadmin can see
     try:
         capsule = Capsule.query.get(capsule_id)
     except:
