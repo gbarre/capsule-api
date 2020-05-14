@@ -26,8 +26,7 @@ $ python server.py
 ```
 
 **Remark:** if the server is running, you can view the API specification
-at the address http://localhost:5000/v1/ui/.
-
+at the address [http://localhost:5000/v1/ui/](http://localhost:5000/v1/ui/).
 
 ## Database migration
 
@@ -46,7 +45,6 @@ $ python -m flask db upgrade
 ```sh
 pytest -v
 ```
-
 
 ## How to create a local and complete dev environment
 
@@ -98,7 +96,7 @@ curl -s -X GET "${KEYCLOAK_URL}/admin/realms/${KEYCLOAK_REALM}/users/${FILTER}" 
 
 ```
 
-```
+```sh
 $ docker-compose exec db mysql -u root -p'XXXXX' capsule_local
 Reading table information for completion of table and column names
 You can turn off this feature to get a quicker startup with -A
@@ -139,4 +137,13 @@ MariaDB [capsule_local]> select * from users;
 
 MariaDB [capsule_local]> quit;
 Bye
+```
+
+## Use local Keycloak
+
+```sh
+## Ensure docker & jq are installed before !!
+
+cd keycloak
+./start.sh
 ```
