@@ -30,7 +30,6 @@ def post():
     data = runtime_schema.load(runtime_data).data
 
     d = dict(data)
-
     if "available_opts" in d:
         available_opts_array = d["available_opts"]
         available_opts = []
@@ -62,7 +61,6 @@ def post():
 
 
 # GET /runtimes/{rID}
-#@oidc.accept_token(require_token=True, render_errors=False)
 @oidc_require_role(min_role=RoleEnum.user)
 def get(runtime_id):
     try:
@@ -78,8 +76,32 @@ def get(runtime_id):
 
 # PUT /runtimes/{rId}
 @oidc_require_role(min_role=RoleEnum.superadmin)
-def put(runtime_id, runtime):
-    pass
+def put(runtime_id):
+    runtime_data = request.get_json()
+    data = runtime_schema.load(runtime_data).data
+
+    try:
+        runtime = Runtime.query.get(runtime_id)
+    except:
+        raise BadRequest
+
+    if runtime is None:
+        raise NotFound(description=f"The requested runtime '{runtime_id}' has not been found.")
+
+    def update(dict, obj): # TODO: optimize this !!
+        for k, v in dict.items():
+            if not isinstance(v, list):
+                setattr(obj, k, v)
+            elif k == "available_opts": # TODO: look for sur dict in list
+                pass
+            elif k == "validation_rules": # TODO: look for sur dict in list
+                pass
+
+    update(data, runtime)
+    db.session.commit()
+
+    result = Runtime.query.get(runtime.id)
+    return runtime_schema.dump(result).data
 
 
 # DELETE /runtimes/{rId}
