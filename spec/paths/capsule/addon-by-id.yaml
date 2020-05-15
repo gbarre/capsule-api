@@ -8,7 +8,7 @@ put:
   operationId: api.capsules.addons.put
   parameters:
     - $ref: "../../components/parameters.yaml#/capsule_id"
-    - $ref: "../../components/parameters.yaml#/addonId"
+    - $ref: "../../components/parameters.yaml#/addon_id"
   requestBody:
     required: true
     content:
@@ -45,7 +45,7 @@ get:
   operationId: api.capsules.addons.get
   parameters:
     - $ref: "../../components/parameters.yaml#/capsule_id"
-    - $ref: "../../components/parameters.yaml#/addonId"
+    - $ref: "../../components/parameters.yaml#/addon_id"
   responses:
     "404":
       $ref: "../../components/responses.yaml#/NotFound"
@@ -68,7 +68,7 @@ delete:
   operationId: api.capsules.addons.delete
   parameters:
     - $ref: "../../components/parameters.yaml#/capsule_id"
-    - $ref: "../../components/parameters.yaml#/addonId"
+    - $ref: "../../components/parameters.yaml#/addon_id"
   responses:
     "404":
       $ref: "../../components/responses.yaml#/NotFound"

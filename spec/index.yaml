@@ -37,7 +37,7 @@ components:
 paths:
   /users:
     $ref: ./paths/users.yaml
-  /users/{userId}:
+  /users/{user_id}:
     $ref: ./paths/user-by-id.yaml
 
   /capsules:
@@ -46,22 +46,22 @@ paths:
     $ref: ./paths/capsule-by-id.yaml
   /capsules/{capsule_id}/owners:
     $ref: ./paths/capsule/owners.yaml
-  /capsules/{capsule_id}/owners/{userId}:
+  /capsules/{capsule_id}/owners/{user_id}:
     $ref: ./paths/capsule/owner-by-id.yaml
   /capsules/{capsule_id}/webapp:
     $ref: ./paths/capsule/webapp.yaml
   /capsules/{capsule_id}/addons:
     $ref: ./paths/capsule/addons.yaml
-  /capsules/{capsule_id}/addons/{addonId}:
+  /capsules/{capsule_id}/addons/{addon_id}:
     $ref: ./paths/capsule/addon-by-id.yaml
 
   /runtimes:
     $ref: ./paths/runtimes.yaml
-  /runtimes/{runtimeId}:
+  /runtimes/{runtime_id}:
     $ref: ./paths/runtime-by-id.yaml
-  
+
   # Self endpoints
   /sshkeys:
     $ref: ./paths/sshkeys.yaml
-  /sshkeys/{sshkeyId}:
+  /sshkeys/{sshkey_id}:
     $ref: ./paths/sshkey-by-id.yaml

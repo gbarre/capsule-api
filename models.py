@@ -1,6 +1,5 @@
 # TODO: Quid de savoir la fin de pagination ?
 
-import json
 import enum
 import uuid
 from datetime import datetime
@@ -54,25 +53,37 @@ class RuntimeTypeEnum(str, enum.Enum):
 
 
 class RoleEnum(str, enum.Enum):
+
     user = "user"
     admin = "admin"
     superadmin = "superadmin"
 
+    def getpower(self):
+        if self == __class__.user:
+            return 10
+        if self == __class__.admin:
+            return 20
+        if self == __class__.superadmin:
+            return 42
+
     def __ge__(self, other):
         if self.__class__ is other.__class__:
-            return self.value >= other.value
+            return self.getpower() >= other.getpower()
         return NotImplemented
+
     def __gt__(self, other):
         if self.__class__ is other.__class__:
-            return self.value > other.value
+            return self.getpower() > other.getpower()
         return NotImplemented
+
     def __le__(self, other):
         if self.__class__ is other.__class__:
-            return self.value <= other.value
+            return self.getpower() <= other.getpower()
         return NotImplemented
+
     def __lt__(self, other):
         if self.__class__ is other.__class__:
-            return self.value < other.value
+            return self.getpower() < other.getpower()
         return NotImplemented
 
 
@@ -122,9 +133,9 @@ class Runtime(db.Model):
     id = db.Column(GUID, nullable=False, unique=True,
                    default=uuid.uuid4, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
-    description = db.Column(db.String(256))
-    family = db.Column(db.String(256))
-    type = db.Column(db.Enum(RuntimeTypeEnum), nullable=False)
+    desc = db.Column(db.String(256), nullable=False)
+    fam = db.Column(db.String(256), nullable=False)
+    runtime_type = db.Column(db.Enum(RuntimeTypeEnum), nullable=False)
     webapps = db.relationship(
         "WebApp",
         backref="runtime",
@@ -161,10 +172,10 @@ class AvailableOption(db.Model):
     access_level = db.Column(
         db.Enum(RoleEnum), default=RoleEnum.superadmin, nullable=False)
     tag = db.Column(db.String(256), nullable=False)
-    name = db.Column(db.String(256), nullable=False)
-    description = db.Column(db.String(256))
+    field_name = db.Column(db.String(256), nullable=False)
+    field_description = db.Column(db.String(256))
     value_type = db.Column(db.Enum(OptionValueTypeEnum), nullable=False)
-    default_value = db.Column(db.String(256))
+    default_value = db.Column(db.String(256), nullable=True)
     validation_rules = db.relationship(
         "AvailableOptionValidationRule",
         backref="available_option",
@@ -305,11 +316,10 @@ class SSHKey(db.Model):
 
 
 class Capsule(db.Model):
-    # TODO quota?
     __tablename__ = "capsules"
     id = db.Column(GUID, nullable=False, unique=True,
                    default=uuid.uuid4, primary_key=True)
-    name = db.Column(db.String(256), nullable=False) # FIXME: Unique ?
+    name = db.Column(db.String(256), nullable=False, unique=True) # FIXME: Unique ?
     webapp_id = db.Column(GUID, db.ForeignKey(
         'webapps.id'), nullable=True)
     webapp = db.relationship(

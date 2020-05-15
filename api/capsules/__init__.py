@@ -5,7 +5,7 @@ from models import Capsule, capsule_schema, capsules_schema
 from app import db, oidc
 from werkzeug.exceptions import NotFound, BadRequest
 from sqlalchemy import inspect
-from utils import check_owners_on_keycloak, check_user_role, oidc_require_role
+from utils import check_owners_on_keycloak, oidc_require_role, REGEX_CAPSULE_NAME
 from exceptions import KeycloakUserNotFound
 
 
@@ -13,6 +13,7 @@ from exceptions import KeycloakUserNotFound
 @oidc.accept_token(require_token=True, render_errors=False)
 def search(offset, limit, filters):
     # TODO: test filters with relationships
+    # TODO: check role : user see his capsules, admin/superadmin see all
     try:
         results = Capsule.query.filter_by(**filters).limit(limit).offset(offset).all()
     except:
@@ -25,11 +26,9 @@ def search(offset, limit, filters):
 
 
 # POST /capsules
-# @oidc.accept_token(require_token=True, render_errors=False)
+#@oidc.accept_token(require_token=True, render_errors=False)
 @oidc_require_role(min_role=RoleEnum.admin)
 def post():
-    #check_user_role(RoleEnum.admin)
-
     capsule_data = request.get_json()
     data = capsule_schema.load(capsule_data).data
 
@@ -55,6 +54,15 @@ def post():
             else:
                 data['authorized_keys'][i] = sshkey
 
+    capsule_name = data['name']
+
+    if not REGEX_CAPSULE_NAME.match(capsule_name):
+        raise BadRequest(description=f'The capsule name "{capsule_name}" contains illegal charaters.')
+
+    caps = Capsule.query.filter_by(name=capsule_name).limit(1).one_or_none()
+    if caps is not None:
+        raise BadRequest(description=f'{capsule_name} already exists.')
+
     capsule = Capsule(**data)
     db.session.add(capsule)
     db.session.commit()
@@ -67,7 +75,7 @@ def post():
 
 # GET /capsules/{cID}
 # TODO: Adapt the spec exception schema
-@oidc.accept_token(require_token=True, render_errors=False)
+@oidc_require_role(min_role=RoleEnum.user, apply_owner_filter=True)
 def get(capsule_id):
     try:
         capsule = Capsule.query.get(capsule_id)

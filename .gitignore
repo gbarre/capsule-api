@@ -2,6 +2,7 @@
 *.db
 *.db-journal
 client_secrets.json
+client_secrets-*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
