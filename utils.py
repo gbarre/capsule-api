@@ -50,7 +50,7 @@ def oidc_require_role(min_role, apply_owner_filter=False):
 
         @wraps(view_func)
         @oidc.accept_token(require_token=True, render_errors=False)
-        def wrapper(capsule_id=None, *args, **kwargs):
+        def wrapper(capsule_id=None, runtime_id=None, *args, **kwargs):
             (user_name, user_role) = check_user_role(min_role)
             if (apply_owner_filter) and (capsule_id is not None):
                 caps = Capsule.query.filter_by(id=capsule_id).one_or_none()
@@ -61,6 +61,8 @@ def oidc_require_role(min_role, apply_owner_filter=False):
                 if (user_role is RoleEnum.user) and (user_name not in owners):
                     raise Forbidden
                 return view_func(capsule_id=capsule_id, *args, **kwargs)
+            elif runtime_id is not None:
+                return view_func(runtime_id=runtime_id, *args, **kwargs)
             else :
                 return view_func(*args, **kwargs)
 
