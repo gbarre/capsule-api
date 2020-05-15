@@ -30,9 +30,9 @@ available_opt2 = {
 
 runtime1 = {
     "name": "apache-2.4 php-7.2.x",
-    "description": "Stack web classique Apache 2.4 + PHP 7.2.x",
-    "family": "Apache PHP",
-    "type": "webapp", # models.RuntimeTypeEnum.webapp
+    "desc": "Stack web classique Apache 2.4 + PHP 7.2.x",
+    "fam": "Apache PHP",
+    "runtimeType": "webapp", # models.RuntimeTypeEnum.webapp
     "available_opts": [
         available_opt1,
         available_opt2,

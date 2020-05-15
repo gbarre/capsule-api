@@ -74,14 +74,14 @@ Runtime:
     name:
       type: string
       example: apache-2.4 php-7.2.x
-    description:
+    desc:
       type: string
       example: >-
         Stack web classique Apache 2.4 + PHP 7.2.x
-    family:
+    fam:
       type: string
       example: Apache PHP
-    type:
+    runtimeType:
       type: string
       enum: [webapp, addon]
     availableOpts:
@@ -149,7 +149,7 @@ Runtime:
       example : "2020-03-17T15:32:28Z"
   required:
     - name
-    - type
+    - runtimeType
 
 WebApp:
   type: object

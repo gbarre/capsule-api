@@ -57,7 +57,7 @@ def setup_initial_data(db):
     )
 
     d = dict(foodata.runtime1)
-    d["type"] = getattr(RuntimeTypeEnum, foodata.runtime1["type"])
+    d["runtimeType"] = getattr(RuntimeTypeEnum, foodata.runtime1["runtimeType"])
     d.pop("available_opts")
     runtime1 = Runtime(**d,
         available_opts=[

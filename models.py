@@ -133,9 +133,9 @@ class Runtime(db.Model):
     id = db.Column(GUID, nullable=False, unique=True,
                    default=uuid.uuid4, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
-    description = db.Column(db.String(256))
-    family = db.Column(db.String(256))
-    type = db.Column(db.Enum(RuntimeTypeEnum), nullable=False)
+    desc = db.Column(db.String(256))
+    fam = db.Column(db.String(256))
+    runtimeType = db.Column(db.Enum(RuntimeTypeEnum), nullable=False)
     webapps = db.relationship(
         "WebApp",
         backref="runtime",
