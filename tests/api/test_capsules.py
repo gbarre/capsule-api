@@ -4,6 +4,7 @@ from tests.utils import dict_contains
 from unittest.mock import patch
 import tests.foodata as foodata
 from werkzeug.exceptions import Forbidden
+from models import RoleEnum
 
 
 class TestCapsules:
@@ -56,7 +57,7 @@ class TestCapsules:
     # Response 400:
     def test_create_raises_on_invalid_owner(self, testapp):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role"), \
+            patch("utils.check_user_role", return_value=('fake_user', RoleEnum.admin)), \
             patch("api.capsules.check_owners_on_keycloak", side_effect=KeycloakUserNotFound("barfoo")):
 
             res = testapp.post_json("/v1/capsules", self._capsule_input, status=400).json
@@ -64,7 +65,7 @@ class TestCapsules:
 
     def test_create_illegal_name(self, testapp):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role"), \
+            patch("utils.check_user_role", return_value=('fake_user', RoleEnum.admin)), \
             patch("api.capsules.check_owners_on_keycloak"):
 
             res = testapp.post_json("/v1/capsules", self._capsule_input_illegal, status=400).json
@@ -72,7 +73,7 @@ class TestCapsules:
 
     def test_create_duplicated_name(self, testapp):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role"), \
+            patch("utils.check_user_role", return_value=('fake_user', RoleEnum.admin)), \
             patch("api.capsules.check_owners_on_keycloak"):
 
             res = testapp.post_json("/v1/capsules", self._capsule_output, status=400).json
@@ -95,7 +96,7 @@ class TestCapsules:
     def test_create(self, testapp, db):
 
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role"), \
+            patch("utils.check_user_role", return_value=('fake_user', RoleEnum.admin)), \
             patch("api.capsules.check_owners_on_keycloak"):
 
             res = testapp.post_json("/v1/capsules", self._capsule_input, status=201).json

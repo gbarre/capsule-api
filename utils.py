@@ -2,10 +2,10 @@ import json
 import requests
 import re
 from models import RoleEnum
-from models import User
+from models import User, Capsule, capsule_schema
 from flask import current_app, g
 from exceptions import KeycloakUserNotFound, KeycloakIdNotFound
-from werkzeug.exceptions import BadRequest, Forbidden
+from werkzeug.exceptions import BadRequest, Forbidden, NotFound
 from functools import wraps
 from app import oidc
 
@@ -44,15 +44,25 @@ def check_owners_on_keycloak(usernames):
             raise KeycloakUserNotFound(username)
 
 
-def oidc_require_role(min_role):
+def oidc_require_role(min_role, apply_owner_filter=False):
 
     def decorator(view_func):
 
         @wraps(view_func)
         @oidc.accept_token(require_token=True, render_errors=False)
-        def wrapper(*args, **kwargs):
-            check_user_role(min_role)
-            return view_func(*args, **kwargs)
+        def wrapper(capsule_id=None, *args, **kwargs):
+            (user_name, user_role) = check_user_role(min_role)
+            if (apply_owner_filter) and (capsule_id is not None):
+                caps = Capsule.query.filter_by(id=capsule_id).one_or_none()
+                if caps is None:
+                    raise NotFound(description=f"The requested capsule '{capsule_id}' has not been found.")
+
+                owners = capsule_schema.dump(caps).data['owners']
+                if (user_role is RoleEnum.user) and (user_name not in owners):
+                    raise Forbidden
+                return view_func(capsule_id=capsule_id, *args, **kwargs)
+            else :
+                return view_func(*args, **kwargs)
 
         return wrapper
 
@@ -72,6 +82,8 @@ def check_user_role(min_role=RoleEnum.admin):
 
     if (user is None) or (user.role < min_role) :
         raise Forbidden
+
+    return (name, user.role)
 
 def get_user_from_keycloak(id):
     global OIDC_CONFIG

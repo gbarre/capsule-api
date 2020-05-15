@@ -75,9 +75,8 @@ def post():
 
 # GET /capsules/{cID}
 # TODO: Adapt the spec exception schema
-@oidc.accept_token(require_token=True, render_errors=False)
+@oidc_require_role(min_role=RoleEnum.user, apply_owner_filter=True)
 def get(capsule_id):
-    # TODO: user must be in owners to show the capsule, admin/superadmin can see
     try:
         capsule = Capsule.query.get(capsule_id)
     except:
