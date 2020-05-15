@@ -1,9 +1,10 @@
 available_opt1 = {
     "access_level": "user", # models.RoleEnum.user
     "tag": "Apache",
-    "name": "vhost.conf",
+    "field_name": "vhost.conf",
     "value_type": "file", # models.OptionValueTypeEnum.file
-    "description": "Apache2 vhost configuration file.",
+    "field_description": "Apache2 vhost configuration file.",
+    "default_value": ""
 }
 
 validation_rule1 = {
@@ -18,9 +19,9 @@ validation_rule2 = {
 available_opt2 = {
     "access_level": "user", # models.RoleEnum.user
     "tag": "PHP",
-    "name": "worker",
+    "field_name": "worker",
     "value_type": "integer", # models.OptionValueTypeEnum.integer
-    "description": "PHP worker count.",
+    "field_description": "PHP worker count.",
     "default_value": "6",
     "validation_rules" : [
         validation_rule1,
@@ -32,7 +33,7 @@ runtime1 = {
     "name": "apache-2.4 php-7.2.x",
     "desc": "Stack web classique Apache 2.4 + PHP 7.2.x",
     "fam": "Apache PHP",
-    "runtimeType": "webapp", # models.RuntimeTypeEnum.webapp
+    "runtime_type": "webapp", # models.RuntimeTypeEnum.webapp
     "available_opts": [
         available_opt1,
         available_opt2,

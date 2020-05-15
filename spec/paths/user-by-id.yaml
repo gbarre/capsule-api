@@ -5,7 +5,7 @@ get:
   summary: Get a user
   operationId: api.users.get
   parameters:
-    - $ref: "../components/parameters.yaml#/userId"
+    - $ref: "../components/parameters.yaml#/user_id"
   responses:
     "404":
       $ref: "../components/responses.yaml#/NotFound"

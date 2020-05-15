@@ -43,30 +43,30 @@ capsule_id:
   description: Capsule GUID
   schema:
     type: string
-addonId:
+addon_id:
   in: path
-  name: addonId
+  name: addon_id
   required: true
   description: AddOn GUID
   schema:
     type: string
-runtimeId:
+runtime_id:
   in: path
-  name: runtimeId
+  name: runtime_id
   required: true
   description: Runtime GUID
   schema:
     type: string
-userId:
+user_id:
   in: path
-  name: userId
+  name: user_id
   required: true
   description: User LDAP nsUniqueId
   schema:
     type: string
-sshkeyId:
+sshkey_id:
   in: path
-  name: sshkeyId
+  name: sshkey_id
   required: true
   description: SSH Key GUID
   schema:

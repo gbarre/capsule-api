@@ -9,7 +9,9 @@ from models import RoleEnum
 class TestRuntimes:
     _runtime_input = {
         "name": "Runtime Test",
-        "runtimeType": "webapp"
+        "runtime_type": "webapp",
+        "desc": "test runtime",
+        "fam": "test",
     }
 
     _runtime_output = foodata.runtime1
@@ -42,7 +44,7 @@ class TestRuntimes:
             assert dict_contains(res, self._runtime_input)
 
     # Response 400:
-    # TODO: bad json input (missing name or runtimeType)
+    # TODO: bad json input (missing name or runtime_type)
 
     # Response 401:
     def test_create_with_no_token(self, testapp):

@@ -5,7 +5,7 @@ delete:
   summary: Delete a public key
   operationId: api.sshkeys.delete
   parameters:
-    - $ref: "../components/parameters.yaml#/sshkeyId"
+    - $ref: "../components/parameters.yaml#/sshkey_id"
   responses:
     "204":
       description: Successful deletion

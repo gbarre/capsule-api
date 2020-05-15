@@ -133,9 +133,9 @@ class Runtime(db.Model):
     id = db.Column(GUID, nullable=False, unique=True,
                    default=uuid.uuid4, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
-    desc = db.Column(db.String(256))
-    fam = db.Column(db.String(256))
-    runtimeType = db.Column(db.Enum(RuntimeTypeEnum), nullable=False)
+    desc = db.Column(db.String(256), nullable=False)
+    fam = db.Column(db.String(256), nullable=False)
+    runtime_type = db.Column(db.Enum(RuntimeTypeEnum), nullable=False)
     webapps = db.relationship(
         "WebApp",
         backref="runtime",
@@ -172,10 +172,10 @@ class AvailableOption(db.Model):
     access_level = db.Column(
         db.Enum(RoleEnum), default=RoleEnum.superadmin, nullable=False)
     tag = db.Column(db.String(256), nullable=False)
-    name = db.Column(db.String(256), nullable=False)
-    description = db.Column(db.String(256))
+    field_name = db.Column(db.String(256), nullable=False)
+    field_description = db.Column(db.String(256))
     value_type = db.Column(db.Enum(OptionValueTypeEnum), nullable=False)
-    default_value = db.Column(db.String(256))
+    default_value = db.Column(db.String(256), nullable=True)
     validation_rules = db.relationship(
         "AvailableOptionValidationRule",
         backref="available_option",
@@ -316,7 +316,6 @@ class SSHKey(db.Model):
 
 
 class Capsule(db.Model):
-    # TODO quota?
     __tablename__ = "capsules"
     id = db.Column(GUID, nullable=False, unique=True,
                    default=uuid.uuid4, primary_key=True)

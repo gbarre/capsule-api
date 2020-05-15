@@ -5,7 +5,7 @@ get:
   summary: Get details about a runtime
   operationId: api.runtimes.get
   parameters:
-    - $ref: "../components/parameters.yaml#/runtimeId"
+    - $ref: "../components/parameters.yaml#/runtime_id"
   responses:
     "200":
       description: The requested runtime
@@ -25,7 +25,7 @@ put:
   summary: Update a runtime
   operationId: api.runtimes.put
   parameters:
-    - $ref: "../components/parameters.yaml#/runtimeId"
+    - $ref: "../components/parameters.yaml#/runtime_id"
   requestBody:
     content:
       application/json:
@@ -58,7 +58,7 @@ delete:
   summary: Delete a runtime
   operationId: api.runtimes.delete
   parameters:
-    - $ref: "../components/parameters.yaml#/runtimeId"
+    - $ref: "../components/parameters.yaml#/runtime_id"
   responses:
     "204":
       description: Successful deletion
