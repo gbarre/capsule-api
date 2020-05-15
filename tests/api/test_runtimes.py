@@ -3,6 +3,7 @@ from exceptions import KeycloakUserNotFound
 from tests.utils import dict_contains
 from unittest.mock import patch
 import tests.foodata as foodata
+from models import RoleEnum
 
 
 class TestRuntimes:
@@ -32,20 +33,23 @@ class TestRuntimes:
     #### Testing POST /runtimes
     #################################
     # Response 201:
-    # def test_create(self, testapp, db):
-    #     with patch.object(oidc, 'validate_token', return_value=True):
-    #         res = testapp.post_json('/v1/runtimes', self._runtime_input, status=201).json
-    #         assert dict_contains(res, self._runtime_input)
+    def test_create(self, testapp, db):
+        with patch.object(oidc, 'validate_token', return_value=True), \
+            patch("utils.check_user_role", return_value=('fake_user', RoleEnum.superadmin)):
+
+            res = testapp.post_json('/v1/runtimes', self._runtime_input, status=201).json
+
+            assert dict_contains(res, self._runtime_input)
 
     # Response 400:
     # TODO: bad json input (missing name or runtimeType)
 
     # Response 401:
-    # def test_create_with_no_token(self, testapp):
-    #     testapp.post_json('/v1/runtimes', self._runtime_input, status=401)
+    def test_create_with_no_token(self, testapp):
+        testapp.post_json('/v1/runtimes', self._runtime_input, status=401)
 
     # Response 403:
-    # def test_create_with_non_admin(self, testapp, db, monkeypatch):
+    # def test_create_raises_on_invalid_role(self, testapp):
 
     #################################
 
