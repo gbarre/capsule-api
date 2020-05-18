@@ -8,6 +8,8 @@ from exceptions import KeycloakUserNotFound, KeycloakIdNotFound
 from werkzeug.exceptions import BadRequest, Forbidden, NotFound
 from functools import wraps
 from app import oidc
+from inspect import signature
+
 
 OIDC_CONFIG = None
 
@@ -44,27 +46,20 @@ def check_owners_on_keycloak(usernames):
             raise KeycloakUserNotFound(username)
 
 
-def oidc_require_role(min_role, apply_owner_filter=False):
+def oidc_require_role(min_role):
 
     def decorator(view_func):
 
         @wraps(view_func)
         @oidc.accept_token(require_token=True, render_errors=False)
-        def wrapper(capsule_id=None, runtime_id=None, *args, **kwargs):
+        def wrapper(*args, **kwargs):
             (user_name, user_role) = check_user_role(min_role)
-            if (apply_owner_filter) and (capsule_id is not None):
-                caps = Capsule.query.filter_by(id=capsule_id).one_or_none()
-                if caps is None:
-                    raise NotFound(description=f"The requested capsule '{capsule_id}' has not been found.")
 
-                owners = capsule_schema.dump(caps).data['owners']
-                if (user_role is RoleEnum.user) and (user_name not in owners):
-                    raise Forbidden
-                return view_func(capsule_id=capsule_id, *args, **kwargs)
-            elif runtime_id is not None:
-                return view_func(runtime_id=runtime_id, *args, **kwargs)
-            else :
-                return view_func(*args, **kwargs)
+            sig = signature(view_func)
+            if "user_infos" in sig.parameters:
+                kwargs["user_infos"] = (user_name, user_role)
+
+            return view_func(*args, **kwargs)
 
         return wrapper
 

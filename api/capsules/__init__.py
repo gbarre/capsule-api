@@ -3,7 +3,7 @@ from models import RoleEnum
 from models import SSHKey, User
 from models import Capsule, capsule_schema, capsules_schema
 from app import db, oidc
-from werkzeug.exceptions import NotFound, BadRequest
+from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 from sqlalchemy import inspect
 from utils import check_owners_on_keycloak, oidc_require_role, REGEX_CAPSULE_NAME
 from exceptions import KeycloakUserNotFound
@@ -75,8 +75,8 @@ def post():
 
 # GET /capsules/{cID}
 # TODO: Adapt the spec exception schema
-@oidc_require_role(min_role=RoleEnum.user, apply_owner_filter=True)
-def get(capsule_id):
+@oidc_require_role(min_role=RoleEnum.user)
+def get(capsule_id, user_infos):
     try:
         capsule = Capsule.query.get(capsule_id)
     except:
@@ -84,6 +84,11 @@ def get(capsule_id):
 
     if capsule is None:
         raise NotFound(description=f"The requested capsule '{capsule_id}' has not been found.")
+
+    owners = capsule_schema.dump(capsule).data['owners']
+    (user_role, user_name) = user_infos
+    if (user_role is RoleEnum.user) and (user_name not in owners):
+        raise Forbidden
 
     return capsule_schema.dump(capsule).data
 

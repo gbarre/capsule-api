@@ -79,7 +79,25 @@ class TestCapsules:
             res = testapp.post_json("/v1/capsules", self._capsule_output, status=400).json
             assert "already exists" in res["detail"]
 
-    # TODO: bad json input (missing name or owner)
+    def test_create_bad_json_missing_name(self, testapp):
+        with patch.object(oidc, "validate_token", return_value=True), \
+            patch("utils.check_user_role", return_value=('fake_user', RoleEnum.admin)), \
+            patch("api.capsules.check_owners_on_keycloak"):
+
+            temp_input = dict(self._capsule_input)
+            temp_input.pop("name")
+            res = testapp.post_json("/v1/capsules", temp_input, status=400).json
+            assert "'name' is a required property" in res["detail"]
+
+    def test_create_bad_json_missing_owners(self, testapp):
+        with patch.object(oidc, "validate_token", return_value=True), \
+            patch("utils.check_user_role", return_value=('fake_user', RoleEnum.admin)), \
+            patch("api.capsules.check_owners_on_keycloak"):
+
+            temp_input = dict(self._capsule_input)
+            temp_input.pop("owners")
+            res = testapp.post_json("/v1/capsules", temp_input, status=400).json
+            assert "'owners' is a required property" in res["detail"]
 
     # Response 401:
     def test_create_with_no_token(self, testapp):
