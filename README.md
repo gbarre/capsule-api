@@ -174,8 +174,14 @@ docker rm $(docker ps -qa)
 ./keycloak/start.sh
 vim client_secrets.json # Copy the json displayed by the previous command.
 
-# Run database
+# Run database which is currently empty without structure.
+cp .env.local .env
 docker-compose up -d
 
+#
+FLASK_APP=server.py python -m flask db upgrade
 
+
+# Run the server.
+python server.py
 ```
