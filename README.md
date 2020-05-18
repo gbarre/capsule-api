@@ -155,3 +155,27 @@ After updating the API spec, you must rebuild the `openapi.json` file with this 
 ```sh
 swagger-cli bundle -o spec/openapi.json spec/index.yaml
 ```
+
+```sh
+git clone git@github.com:gbarre/capsule-api.git && cd capsule-api
+
+# Virtual env Python.
+python3 -m venv venv
+. venv/bin/activate
+pip install --upgrade pip
+pip install --upgrade setuptools
+pip install -r requirements.txt
+pip install -r test-requirements.txt
+
+docker stop $(docker ps -qa)
+docker rm $(docker ps -qa)
+
+# Run a docker instance
+./keycloak/start.sh
+vim client_secrets.json # Copy the json displayed by the previous command.
+
+# Run database
+docker-compose up -d
+
+
+```
