@@ -147,3 +147,11 @@ Bye
 cd keycloak
 ./start.sh
 ```
+
+## Update API spec
+
+After updating the API spec, you must rebuild the `openapi.json` file with this command :
+
+```sh
+swagger-cli bundle -o spec/openapi.json spec/index.yaml
+```
