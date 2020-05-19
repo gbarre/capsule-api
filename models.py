@@ -163,6 +163,13 @@ class Runtime(db.Model):
     def instances(self):
         return self.webapps or self.addons
 
+    def update(self, other):
+        self.name = other.name
+        self.desc = other.desc
+        self.fam = other.fam
+        self.runtime_type = other.runtime_type
+        # self.available_opts = other.available_opts
+
 
 class AvailableOption(db.Model):
     __tablename__ = "available_options"
@@ -391,6 +398,7 @@ class AvailableOptionValidationRuleSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = AvailableOptionValidationRule
         sqla_session = db.session
+
 
 
 class WebAppSchema(ma.SQLAlchemyAutoSchema):

@@ -88,16 +88,12 @@ def put(runtime_id):
     if runtime is None:
         raise NotFound(description=f"The requested runtime '{runtime_id}' has not been found.")
 
-    def update(dict, obj): # TODO: optimize this !!
-        for k, v in dict.items():
-            if not isinstance(v, list):
-                setattr(obj, k, v)
-            elif k == "available_opts": # TODO: look for sur dict in list
-                pass
-            elif k == "validation_rules": # TODO: look for sur dict in list
-                pass
+    if 'available_opts' in data:
+        data.pop("available_opts")
+    # TODO: look for PUT available_opts
 
-    update(data, runtime)
+    new_runtime = Runtime(**data)
+    runtime.update(new_runtime)
     db.session.commit()
 
     result = Runtime.query.get(runtime.id)
