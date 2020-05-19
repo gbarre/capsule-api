@@ -4,7 +4,7 @@ from tests.utils import dict_contains
 from unittest.mock import patch
 import tests.foodata as foodata
 from werkzeug.exceptions import Forbidden
-from models import RoleEnum
+from models import RoleEnum, User
 import pytest
 
 
@@ -14,7 +14,7 @@ class TestCapsules:
         "owners": [
             "foobar",
             "barfoo",
-            "toto",
+            "toto1",
         ],
         "authorized_keys": [
             "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCfIjBj6woA9p+xZh8cqeiZLzN"\
@@ -35,6 +35,10 @@ class TestCapsules:
 
     _capsule_output = foodata.capsule1
 
+    _foobar = User(name="toto1", role=RoleEnum.user)
+    _fake_admin = User(name="fake_user", role=RoleEnum.admin)
+    _fake_superadmin = User(name="fake_user", role=RoleEnum.superadmin)
+
     #################################
     #### Testing GET /capsules
     #################################
@@ -46,7 +50,8 @@ class TestCapsules:
 
     # Response 200:
     def test_get(self, testapp, db):
-        with patch.object(oidc, "validate_token", return_value=True):
+        with patch.object(oidc, "validate_token", return_value=True), \
+            patch("utils.check_user_role", return_value=self._foobar):
 
             res = testapp.get("/v1/capsules", status=200).json
             assert dict_contains(res[0], self._capsule_output)
@@ -58,7 +63,7 @@ class TestCapsules:
     # Response 400:
     def test_create_raises_on_invalid_owner(self, testapp):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=('fake_user', RoleEnum.admin)), \
+            patch("utils.check_user_role", return_value=self._fake_admin), \
             patch("api.capsules.check_owners_on_keycloak", side_effect=KeycloakUserNotFound("barfoo")):
 
             res = testapp.post_json("/v1/capsules", self._capsule_input, status=400).json
@@ -66,7 +71,7 @@ class TestCapsules:
 
     def test_create_illegal_name(self, testapp):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=('fake_user', RoleEnum.admin)), \
+            patch("utils.check_user_role", return_value=self._fake_admin), \
             patch("api.capsules.check_owners_on_keycloak"):
 
             res = testapp.post_json("/v1/capsules", self._capsule_input_illegal, status=400).json
@@ -74,7 +79,7 @@ class TestCapsules:
 
     def test_create_duplicated_name(self, testapp):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=('fake_user', RoleEnum.admin)), \
+            patch("utils.check_user_role", return_value=self._fake_admin), \
             patch("api.capsules.check_owners_on_keycloak"):
 
             res = testapp.post_json("/v1/capsules", self._capsule_output, status=400).json
@@ -82,7 +87,7 @@ class TestCapsules:
 
     def test_create_bad_json_missing_name(self, testapp):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=('fake_user', RoleEnum.admin)), \
+            patch("utils.check_user_role", return_value=self._fake_admin), \
             patch("api.capsules.check_owners_on_keycloak"):
 
             temp_input = dict(self._capsule_input)
@@ -92,7 +97,7 @@ class TestCapsules:
 
     def test_create_bad_json_missing_owners(self, testapp):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=('fake_user', RoleEnum.admin)), \
+            patch("utils.check_user_role", return_value=self._fake_admin), \
             patch("api.capsules.check_owners_on_keycloak"):
 
             temp_input = dict(self._capsule_input)
@@ -114,7 +119,7 @@ class TestCapsules:
     # Response 201:
     def test_create(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=('fake_user', RoleEnum.admin)), \
+            patch("utils.check_user_role", return_value=self._fake_admin), \
             patch("api.capsules.check_owners_on_keycloak"):
 
             res = testapp.post_json("/v1/capsules", self._capsule_input, status=201).json
@@ -127,7 +132,7 @@ class TestCapsules:
     # Response 404:
     def test_get_bad_capsule(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=('fake_user', RoleEnum.user)):
+            patch("utils.check_user_role", return_value=self._foobar):
 
             res = testapp.get("/v1/capsules/ffffffff-ffff-ffff-ffff-ffffffffffff", status=404).json
             assert "The requested capsule 'ffffffff-ffff-ffff-ffff-ffffffffffff' has not been found." in res["detail"]
@@ -143,7 +148,7 @@ class TestCapsules:
     # Response 200:
     def test_get_capsule(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=('foobar', RoleEnum.user)):
+            patch("utils.check_user_role", return_value=self._foobar):
 
             # Get the capsule id
             res = testapp.get("/v1/capsules", status=200).json
@@ -161,7 +166,7 @@ class TestCapsules:
     @pytest.mark.filterwarnings("ignore:.*Content-Type header found in a 204 response.*:Warning")
     def test_delete_capsule(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=('fake_user', RoleEnum.superadmin)):
+            patch("utils.check_user_role", return_value=self._fake_superadmin):
 
             # Get the capsule id
             res = testapp.get("/v1/capsules", status=200).json
@@ -176,14 +181,15 @@ class TestCapsules:
     # Response 400:
     def test_delete_bad_capsule(self, testapp, db):
         with patch.object(oidc, 'validate_token', return_value=True), \
-            patch("utils.check_user_role", return_value=('fake_user', RoleEnum.superadmin)):
+            patch("utils.check_user_role", return_value=self._fake_superadmin):
 
             res = testapp.delete('/v1/runtimes/XYZ', status=400).json
             assert "The browser (or proxy) sent a request that this server could not understand." in res["detail"]
 
     # Response 401:
     def test_delete_unauthenticated(self, testapp, db):
-        with patch.object(oidc, "validate_token", return_value=True):
+        with patch.object(oidc, "validate_token", return_value=True), \
+            patch("utils.check_user_role", return_value=self._foobar):
 
             # Get the capsule id
             res = testapp.get("/v1/capsules", status=200).json
@@ -194,7 +200,8 @@ class TestCapsules:
 
     # Response 403:
     def test_delete_insufficient_rights(self, testapp, db):
-         with patch.object(oidc, "validate_token", return_value=True):
+         with patch.object(oidc, "validate_token", return_value=True), \
+            patch("utils.check_user_role", return_value=self._foobar):
 
             # Get the capsule id
             res = testapp.get("/v1/capsules", status=200).json

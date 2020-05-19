@@ -53,18 +53,17 @@ def oidc_require_role(min_role):
         @wraps(view_func)
         @oidc.accept_token(require_token=True, render_errors=False)
         def wrapper(*args, **kwargs):
-            (user_name, user_role) = check_user_role(min_role)
+            user = check_user_role(min_role)
 
             sig = signature(view_func)
-            if "user_infos" in sig.parameters:
-                kwargs["user_infos"] = (user_name, user_role)
+            if "user" in sig.parameters:
+                kwargs["user"] = user
 
             return view_func(*args, **kwargs)
 
         return wrapper
 
     return decorator
-
 
 def check_user_role(min_role=RoleEnum.admin):
     # Get user uid in keycloak from token
@@ -80,7 +79,7 @@ def check_user_role(min_role=RoleEnum.admin):
     if (user is None) or (user.role < min_role) :
         raise Forbidden
 
-    return (name, user.role)
+    return user
 
 def get_user_from_keycloak(id):
     global OIDC_CONFIG

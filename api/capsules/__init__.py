@@ -1,7 +1,7 @@
 from flask import request
 from models import RoleEnum
 from models import SSHKey, User
-from models import Capsule, capsule_schema, capsules_schema
+from models import Capsule, capsule_schema, capsules_schema, capsules_users_table
 from app import db, oidc
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 from sqlalchemy import inspect
@@ -10,10 +10,11 @@ from exceptions import KeycloakUserNotFound
 
 
 # GET /capsules
-@oidc.accept_token(require_token=True, render_errors=False)
-def search(offset, limit, filters):
+@oidc_require_role(min_role=RoleEnum.user)
+def search(offset, limit, filters, verbose, user):
     # TODO: test filters with relationships
     # TODO: check role : user see his capsules, admin/superadmin see all
+    # TODO: verbose mode
     try:
         results = Capsule.query.filter_by(**filters).limit(limit).offset(offset).all()
     except:
@@ -76,7 +77,7 @@ def post():
 # GET /capsules/{cID}
 # TODO: Adapt the spec exception schema
 @oidc_require_role(min_role=RoleEnum.user)
-def get(capsule_id, user_infos):
+def get(capsule_id, user):
     try:
         capsule = Capsule.query.get(capsule_id)
     except:
@@ -86,8 +87,7 @@ def get(capsule_id, user_infos):
         raise NotFound(description=f"The requested capsule '{capsule_id}' has not been found.")
 
     owners = capsule_schema.dump(capsule).data['owners']
-    (user_role, user_name) = user_infos
-    if (user_role is RoleEnum.user) and (user_name not in owners):
+    if (user.role is RoleEnum.user) and (user.name not in owners):
         raise Forbidden
 
     return capsule_schema.dump(capsule).data
