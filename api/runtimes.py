@@ -25,31 +25,33 @@ def search(offset, limit, filters):
 
 # POST /runtimes
 @oidc_require_role(min_role=RoleEnum.superadmin)
-def post():
-    runtime_data = request.get_json()
-    data = runtime_schema.load(runtime_data).data
+def post(runtime=None):
+    # runtime could come from PUT
+    if runtime is None:
+        runtime_data = request.get_json()
+        data = runtime_schema.load(runtime_data).data
 
-    d = dict(data)
-    if "available_opts" in d:
-        available_opts_array = d["available_opts"]
-        available_opts = []
-        for opt in available_opts_array:
-            if "validation_rules" in opt:
-                validation_rules_array = opt["validation_rules"]
-                validation_rules = []
-                for rule in validation_rules_array:
-                    validation_rule = AvailableOptionValidationRule(**rule)
-                    validation_rules.append(validation_rule)
-                opt.pop("validation_rules")
-                available_opt = AvailableOption(**opt, validation_rules=validation_rules)
-            else:
-                available_opt = AvailableOption(**opt)
-            available_opts.append(available_opt)
-        d.pop("available_opts")
+        d = dict(data)
+        if "available_opts" in d:
+            available_opts_array = d["available_opts"]
+            available_opts = []
+            for opt in available_opts_array:
+                if "validation_rules" in opt:
+                    validation_rules_array = opt["validation_rules"]
+                    validation_rules = []
+                    for rule in validation_rules_array:
+                        validation_rule = AvailableOptionValidationRule(**rule)
+                        validation_rules.append(validation_rule)
+                    opt.pop("validation_rules")
+                    available_opt = AvailableOption(**opt, validation_rules=validation_rules)
+                else:
+                    available_opt = AvailableOption(**opt)
+                available_opts.append(available_opt)
+            d.pop("available_opts")
 
-        runtime = Runtime(**d, available_opts=available_opts)
-    else:
-        runtime = Runtime(**data)
+            runtime = Runtime(**d, available_opts=available_opts)
+        else:
+            runtime = Runtime(**data)
 
     db.session.add(runtime)
     db.session.commit()
@@ -86,7 +88,7 @@ def put(runtime_id):
         raise BadRequest
 
     if runtime is None:
-        raise NotFound(description=f"The requested runtime '{runtime_id}' has not been found.")
+        return post(runtime=runtime)
 
     if 'available_opts' in data:
         data.pop("available_opts")
