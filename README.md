@@ -178,9 +178,10 @@ vim client_secrets.json # Copy the json displayed by the previous command.
 cp .env.local .env
 docker-compose up -d
 
-#
+# Set the database schema.
 FLASK_APP=server.py python -m flask db upgrade
 
+# You have to add some users in the database to have an available API.
 
 # Run the server.
 python server.py

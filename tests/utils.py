@@ -6,34 +6,6 @@ def dict_contains(superset, subset):
 
     return (subset_o <= superset_o)
 
-    # for k, v in subset.items():
-    #     try:
-    #         v_cmp = superset[k]
-    #         if DictArrayCompare(v_cmp) != DictArrayCompare(v):
-    #             return False
-
-            # if isinstance(v, list):
-            #     if isinstance(v_cmp, list):
-            #         ### et si v et v_cmp sont des list de dict ???
-            #         if sorted(v) != sorted(v_cmp):
-            #             return False
-            #     else:
-            #         return False
-            # elif isinstance(v, dict):
-            #     if isinstance(v_cmp, dict):
-            #         res = dict_contains(v_cmp, v)
-            #         if res == False:
-            #             return False
-            #     else:
-            #         return False
-            # elif v != v_cmp:
-            #     return False
-
-        # except KeyError:
-        #     return False
-
-    # return True
-
 
 class DictArrayCompare:
 
