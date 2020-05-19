@@ -113,3 +113,11 @@ def setup_initial_data(db):
 
     db.session.add_all(array_obj)
     db.session.commit()
+
+    user1 = User.query.filter_by(name=foodata.capsule1["owners"][0]).one_or_none()
+    user2 = User.query.filter_by(name=foodata.capsule1["owners"][1]).one_or_none()
+    sshkey1 = SSHKey(public_key=foodata.sshkey1, user_id=user1.id)
+    sshkey2 = SSHKey(public_key=foodata.sshkey2, user_id=user2.id)
+
+    db.session.add_all([sshkey1, sshkey2])
+    db.session.commit()
