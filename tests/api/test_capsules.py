@@ -5,6 +5,7 @@ from unittest.mock import patch
 import tests.foodata as foodata
 from werkzeug.exceptions import Forbidden
 from models import RoleEnum
+import pytest
 
 
 class TestCapsules:
@@ -46,8 +47,8 @@ class TestCapsules:
     # Response 200:
     def test_get(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True):
-            res = testapp.get("/v1/capsules", status=200).json
 
+            res = testapp.get("/v1/capsules", status=200).json
             assert dict_contains(res[0], self._capsule_output)
     #################################
 
@@ -112,44 +113,92 @@ class TestCapsules:
 
     # Response 201:
     def test_create(self, testapp, db):
-
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=('fake_user', RoleEnum.admin)), \
             patch("api.capsules.check_owners_on_keycloak"):
 
             res = testapp.post_json("/v1/capsules", self._capsule_input, status=201).json
-
             assert dict_contains(res, self._capsule_input)
     #################################
 
-    # TODO: GET & DELETE capsules/cId
     #################################
     #### Testing GET /capsules/cId
     #################################
     # Response 404:
+    def test_get_bad_capsule(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+            patch("utils.check_user_role", return_value=('fake_user', RoleEnum.user)):
 
+            res = testapp.get("/v1/capsules/ffffffff-ffff-ffff-ffff-ffffffffffff", status=404).json
+            assert "The requested capsule 'ffffffff-ffff-ffff-ffff-ffffffffffff' has not been found." in res["detail"]
 
     # Response 403:
+    def test_get_capsule_raise_bad_owner(self, testapp):
+        with patch.object(oidc, "validate_token", return_value=True), \
+            patch("utils.check_user_role", side_effect=Forbidden):
 
+            res = testapp.get("/v1/capsules/ffffffff-ffff-ffff-ffff-ffffffffffff", status=403).json
+            assert "You don't have the permission to access the requested resource." in res["detail"]
 
     # Response 200:
+    def test_get_capsule(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+            patch("utils.check_user_role", return_value=('foobar', RoleEnum.user)):
 
-
+            # Get the capsule id
+            res = testapp.get("/v1/capsules", status=200).json
+            capsule_id = res[0]["id"]
+            # Get this capsule by id
+            capsule = testapp.get("/v1/capsules/" + capsule_id, status=200).json
+            assert dict_contains(res[0], self._capsule_output)
     #################################
 
     #################################
     #### Testing DELETE /capsules/cId
     #################################
     # Response 204:
+    # TODO: how to remove the header "Content-Type" in the a DELETE request only?
+    @pytest.mark.filterwarnings("ignore:.*Content-Type header found in a 204 response.*:Warning")
+    def test_delete_capsule(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+            patch("utils.check_user_role", return_value=('fake_user', RoleEnum.superadmin)):
 
+            # Get the capsule id
+            res = testapp.get("/v1/capsules", status=200).json
+            capsule_id = res[0]["id"]
+            # Delete this capsule
+            testapp.delete("/v1/capsules/" + capsule_id, status=204)
 
-    # Response 400:
+            # No more capsule
+            res = testapp.get("/v1/capsules/" + capsule_id, status=404).json
+            assert "The requested capsule '" + capsule_id + "' has not been found." in res["detail"]
+
+    # Response 400: TOTO: WHY ???
 
 
     # Response 401:
+    def test_delete_unauthenticated(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True):
 
+            # Get the capsule id
+            res = testapp.get("/v1/capsules", status=200).json
+            capsule_id = res[0]["id"]
+
+        # Delete this capsule
+        testapp.delete("/v1/capsules/" + capsule_id, status=401)
 
     # Response 403:
+    def test_delete_insufficient_rights(self, testapp, db):
+         with patch.object(oidc, "validate_token", return_value=True):
 
+            # Get the capsule id
+            res = testapp.get("/v1/capsules", status=200).json
+            capsule_id = res[0]["id"]
 
+         with patch.object(oidc, "validate_token", return_value=True), \
+            patch("utils.check_user_role", side_effect=Forbidden):
+
+            # Delete this capsule
+            res = testapp.delete("/v1/capsules/" + capsule_id, status=403).json
+            assert "You don't have the permission to access the requested resource." in res["detail"]
     #################################

@@ -124,7 +124,7 @@ def get(capsule_id, user_infos):
 #     return capsule_schema.dump(result).data
 
 
-@oidc_require_role(min_role=RoleEnum.admin)
+@oidc_require_role(min_role=RoleEnum.superadmin)
 def delete(capsule_id):
     try:
         capsule = Capsule.query.get(capsule_id)
