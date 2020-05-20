@@ -89,11 +89,22 @@ def setup_initial_data(db):
         runtime=runtime1,
     )
 
-    users = [User(name=x) for x in foodata.capsule1["owners"]]
+    d = dict(foodata.user1)
+    d.pop("public_keys")
+    user1 = User(**d)
+
+    d = dict(foodata.user2)
+    d.pop("public_keys")
+    user2 = User(**d)
 
     d = dict(foodata.capsule1)
     d.pop("owners")
-    capsule1 = Capsule(**d, owners=users)
+    capsule1 = Capsule(**d,
+        owners=[
+            user1,
+            user2,
+        ]
+    )
 
     array_obj = [
         validation_rule1,
@@ -105,19 +116,18 @@ def setup_initial_data(db):
         fqdn1,
         fqdn2,
         webapp1,
+        user1,
+        user2,
         capsule1,
     ]
-
-    for u in users:
-        array_obj.append(u)
 
     db.session.add_all(array_obj)
     db.session.commit()
 
-    user1 = User.query.filter_by(name=foodata.capsule1["owners"][0]).one_or_none()
-    user2 = User.query.filter_by(name=foodata.capsule1["owners"][1]).one_or_none()
-    sshkey1 = SSHKey(public_key=foodata.sshkey1, user_id=user1.id)
-    sshkey2 = SSHKey(public_key=foodata.sshkey2, user_id=user2.id)
+    db_user1 = User.query.filter_by(name=foodata.user1["name"]).first()
+    db_user2 = User.query.filter_by(name=foodata.user2["name"]).first()
+    sshkey1 = SSHKey(public_key=foodata.sshkey1, user_id=db_user1.id)
+    sshkey2 = SSHKey(public_key=foodata.sshkey2, user_id=db_user2.id)
 
     db.session.add_all([sshkey1, sshkey2])
     db.session.commit()

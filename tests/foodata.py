@@ -73,14 +73,6 @@ HTTPS_PROXY=https://proxy:3128/
     "tls_redirect_https": True,
 }
 
-capsule1 = {
-    "name": "test-default-capsule",
-    "owners": [
-        "toto1",
-        "tata2",
-    ],
-}
-
 sshkey1 = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCt+vNHscC4LbZY/YQP0hcV4QrwRlhqrcuhAvZZERmp"\
           "NLLOWK4Neaa7ywikVGOOVcY+q3XRHPNZTVkEZhwm0F+/87LJpNhxhZu4BdJ2mfIwx0JS5gRflfeUxxLJ"\
           "AwLXQZpcO7GRdz/w12EgBohHNbxJyKwL7DSFAnaZ08/tlsjoNRlo1k4NHFf5Xf8K3M1ZlXeSxNV9nlpX"\
@@ -92,3 +84,25 @@ sshkey2 = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqDWN5ay+bKoNg/+DbugWvLjY6q+ODd
           "YDOVKRTrqm5X721TnpqAo2RjqGBeEU+y9REfXPNPMUsni3w/h/BQqJi/e2CRBRdgbi/3bO0Xf0Pt0bc/"\
           "9jjF6vulqzttdbxowbee8bJlPyz/LnNcTGDdmw2PNQFwe0ZuhHsFzSLX4acM3je0+xcdlq0+Gq8nU5jz"\
           "/x0SXuXFz9zFHPO3Ivko1VFdBXaqeb8wOluUjmOxJdDcg3Uqswc5Z08KU+9r jane@doe"
+
+user1 = {
+    "name": "toto1",
+    "public_keys": [
+        sshkey1,
+    ],
+}
+
+user2 = {
+    "name": "tata2",
+    "public_keys": [
+        sshkey2,
+    ],
+}
+
+capsule1 = {
+    "name": "test-default-capsule",
+    "owners": [
+        user1["name"],
+        user2["name"],
+    ],
+}

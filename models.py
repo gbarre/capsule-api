@@ -491,9 +491,28 @@ class CapsuleSchema(ma.SQLAlchemyAutoSchema):
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
 
+class UserSchema(ma.SQLAlchemyAutoSchema):
+    def __init__(self, **kwargs):
+        super().__init__(strict=True, **kwargs)
+
+    class Meta:
+        model = User
+        sqla_session = db.session
+
+    id = ma.auto_field(dump_only=True)
+    public_keys = fields.Nested(
+        "SSHKeySchema",
+        default=[],
+        many=True,
+        only=('public_key'),
+    )
+    created_at = ma.auto_field(dump_only=True)
+    updated_at = ma.auto_field(dump_only=True)
 
 capsule_schema = CapsuleSchema()
 capsules_schema = CapsuleSchema(many=True)
 runtime_schema = RuntimeSchema()
 runtimes_schema = RuntimeSchema(many=True)
 sshkey_schema = SSHKeySchema()
+user_schema = UserSchema()
+users_schema = UserSchema(many=True)
