@@ -155,7 +155,7 @@ class TestCapsules:
             capsule_id = res[0]["id"]
             # Get this capsule by id
             capsule = testapp.get("/v1/capsules/" + capsule_id, status=200).json
-            assert dict_contains(res[0], self._capsule_output)
+            assert dict_contains(capsule, self._capsule_output)
     #################################
 
     #################################
