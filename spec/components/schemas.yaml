@@ -120,7 +120,7 @@ Runtime:
       type: string
       readOnly: true
       example: a972e936-0840-4278-b5d2-8ec7af8836bc
-    version:
+    name:
       type: string
       example: apache-2.4 php-7.2.x
     desc:

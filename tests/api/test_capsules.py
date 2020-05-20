@@ -183,7 +183,7 @@ class TestCapsules:
         with patch.object(oidc, 'validate_token', return_value=True), \
             patch("utils.check_user_role", return_value=self._fake_superadmin):
 
-            res = testapp.delete('/v1/runtimes/XYZ', status=400).json
+            res = testapp.delete('/v1/capsules/XYZ', status=400).json
             assert "The browser (or proxy) sent a request that this server could not understand." in res["detail"]
 
     # Response 401:
