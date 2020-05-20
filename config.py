@@ -30,6 +30,7 @@ class TestConfig(Config):
     # FIXME: Fix test configuration
     ENV = 'test'
     SQLALCHEMY_DATABASE_URI = 'sqlite:///test_capsule.db'
+    OIDC_CLIENT_SECRETS = 'client_secrets.json.sample'
 
 class LocalConfig(Config):
     ENV = 'development'
