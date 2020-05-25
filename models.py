@@ -500,11 +500,11 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
         sqla_session = db.session
 
     id = ma.auto_field(dump_only=True)
-    public_keys = fields.Nested(
+    sshkeys = fields.Nested(
         "SSHKeySchema",
         default=[],
         many=True,
-        only=('public_key'),
+        only=('id', 'public_key'),
     )
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
@@ -514,5 +514,6 @@ capsules_schema = CapsuleSchema(many=True)
 runtime_schema = RuntimeSchema()
 runtimes_schema = RuntimeSchema(many=True)
 sshkey_schema = SSHKeySchema()
+sshkeys_schema = SSHKeySchema(many=True)
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)

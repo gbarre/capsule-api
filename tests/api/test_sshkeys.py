@@ -9,17 +9,27 @@ import pytest
 
 class TestSshKeys:
 
-    _sshkey_input = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDVbtGe1p6vAjwizqEiO"\
+    _sshkey_input = {
+        "public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDVbtGe1p6vAjwizqEiO"\
                     "8EY5K3jyB7NoBT+gDREp6TcimUMJzsWryJampX7IqDpkC7I2/Y7oiUudV"\
                     "R97Q6H//IckCJetaD/yONkqzRCxCoQz+J0JWlMZsS/MmIy6BHDrLYB6KB"\
                     "Z4zk6exxbxcanJnz2fHahom8GE57l9khYgm3WLGi+v3ofb6ZsT6BrR8eX"\
                     "Rpb6wJ6HcghGRwWg7+M6IMqZdprvzGomc7UO3fPmQXf3KF9ZlelNCBscz"\
                     "D4qrYshiScVqmWmo2jePTDESWaaP3jlqz7EkvfxukAuTm2spohtmVs+iw"\
                     "xOTvEwP3o7ucfp/o7QRYPqL/OPXAN8pjzf7wZ3"
+    }
 
-    _sshkeys_output = [foodata.sshkey1, foodata.sshkey2]
+    _sshkeys_output = [
+        {
+            "public_key": foodata.sshkey1,
+        },
+        {
+            "public_key": foodata.sshkey2,
+        },
+    ]
 
     _foobar = User(name="toto1", role=RoleEnum.user)
+    _fake_admin = User(name="fake_user", role=RoleEnum.admin)
 
     #################################
     #### Testing GET /sshkeys
@@ -38,9 +48,7 @@ class TestSshKeys:
             patch("utils.check_user_role", return_value=self._foobar):
 
             res = testapp.get("/v1/sshkeys", status=200).json
-            for key in self._sshkeys_output:
-                assert key in res
-
+            assert dict_contains(res, self._sshkeys_output)
     #################################
 
     #################################
@@ -53,13 +61,12 @@ class TestSshKeys:
         testapp.post_json("/v1/sshkeys", self._sshkey_input, status=401)
 
     # Response 201: TODO Write test for posting raw text
-    # def test_create(self, testapp, db):
-    #     with patch.object(oidc, "validate_token", return_value=True), \
-    #         patch("utils.check_user_role", return_value=self._foobar):
+    def test_create(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+            patch("utils.check_user_role", return_value=self._foobar):
 
-    #         res = testapp.post("/v1/runtimes", self._sshkey_input, status=201).json
-    #         assert dict_contains(res, self._sshkey_input)
-
+            res = testapp.post_json("/v1/sshkeys", self._sshkey_input, status=201).json
+            assert dict_contains(res, self._sshkey_input)
     #################################
 
     #################################
@@ -70,7 +77,7 @@ class TestSshKeys:
     @pytest.mark.filterwarnings("ignore:.*Content-Type header found in a 204 response.*:Warning")
     def test_delete_sshkey(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=self._foobar):
+            patch("utils.check_user_role", return_value=self._fake_admin):
 
             # Get sshkey id
             sshkey = SSHKey.query.filter_by(public_key=foodata.sshkey1).first()

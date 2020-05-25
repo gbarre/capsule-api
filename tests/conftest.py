@@ -90,11 +90,9 @@ def setup_initial_data(db):
     )
 
     d = dict(foodata.user1)
-    d.pop("public_keys")
     user1 = User(**d)
 
     d = dict(foodata.user2)
-    d.pop("public_keys")
     user2 = User(**d)
 
     d = dict(foodata.capsule1)

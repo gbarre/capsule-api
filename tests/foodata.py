@@ -87,16 +87,10 @@ sshkey2 = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqDWN5ay+bKoNg/+DbugWvLjY6q+ODd
 
 user1 = {
     "name": "toto1",
-    "public_keys": [
-        sshkey1,
-    ],
 }
 
 user2 = {
     "name": "tata2",
-    "public_keys": [
-        sshkey2,
-    ],
 }
 
 capsule1 = {

@@ -19,22 +19,8 @@ get:
       content:
         application/json:
           schema:
-            type: array
-            items:
-              type: string
-            example:
-              - >-
-                ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCt+vNHscC4LbZY/YQP0hcV4QrwRlhqrcuhAvZZERmp
-                NLLOWK4Neaa7ywikVGOOVcY+q3XRHPNZTVkEZhwm0F+/87LJpNhxhZu4BdJ2mfIwx0JS5gRflfeUxxLJ
-                AwLXQZpcO7GRdz/w12EgBohHNbxJyKwL7DSFAnaZ08/tlsjoNRlo1k4NHFf5Xf8K3M1ZlXeSxNV9nlpX
-                tD6tbVVJn18tDCZgSqH64m1+iVb05sB2htifgkBB+fCElRV/v7Eylc5Zu1EMTlrHmeHB3Yf8DpRMkwYH
-                e4j+yDutLvhhZzGmrnNGcD8zZkE1pwKivjwBKee4Bee8NzVR7vMary2GkqY1 john@doe
-              - >-
-                ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqDWN5ay+bKoNg/+DbugWvLjY6q+ODdelRkZTakj7U
-                Nq+a40Vm+HHRT2tuoB1NxeR87UieJt9IxWiiTasb/Ss+OgcAn5l8kvQvRQe+dp10qbeQHzkrgjpsFj49
-                YDOVKRTrqm5X721TnpqAo2RjqGBeEU+y9REfXPNPMUsni3w/h/BQqJi/e2CRBRdgbi/3bO0Xf0Pt0bc/
-                9jjF6vulqzttdbxowbee8bJlPyz/LnNcTGDdmw2PNQFwe0ZuhHsFzSLX4acM3je0+xcdlq0+Gq8nU5jz
-                /x0SXuXFz9zFHPO3Ivko1VFdBXaqeb8wOluUjmOxJdDcg3Uqswc5Z08KU+9r jane@doe
+            $ref: "../components/schemas.yaml#/SSHKey"
+
 
 post:
   tags: [user]
@@ -46,22 +32,7 @@ post:
     content:
       application/json:
         schema:
-          type: string
-          example: >-
-            ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCt+vNHscC4LbZY/YQP0hcV4QrwRlhqrcuhAvZZERmp
-            NLLOWK4Neaa7ywikVGOOVcY+q3XRHPNZTVkEZhwm0F+/87LJpNhxhZu4BdJ2mfIwx0JS5gRflfeUxxLJ
-            AwLXQZpcO7GRdz/w12EgBohHNbxJyKwL7DSFAnaZ08/tlsjoNRlo1k4NHFf5Xf8K3M1ZlXeSxNV9nlpX
-            tD6tbVVJn18tDCZgSqH64m1+iVb05sB2htifgkBB+fCElRV/v7Eylc5Zu1EMTlrHmeHB3Yf8DpRMkwYH
-            e4j+yDutLvhhZzGmrnNGcD8zZkE1pwKivjwBKee4Bee8NzVR7vMary2GkqY1 john@doe
-      text/plain:
-        schema:
-          type: string
-          example: >-
-            ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCt+vNHscC4LbZY/YQP0hcV4QrwRlhqrcuhAvZZERmp
-            NLLOWK4Neaa7ywikVGOOVcY+q3XRHPNZTVkEZhwm0F+/87LJpNhxhZu4BdJ2mfIwx0JS5gRflfeUxxLJ
-            AwLXQZpcO7GRdz/w12EgBohHNbxJyKwL7DSFAnaZ08/tlsjoNRlo1k4NHFf5Xf8K3M1ZlXeSxNV9nlpX
-            tD6tbVVJn18tDCZgSqH64m1+iVb05sB2htifgkBB+fCElRV/v7Eylc5Zu1EMTlrHmeHB3Yf8DpRMkwYH
-            e4j+yDutLvhhZzGmrnNGcD8zZkE1pwKivjwBKee4Bee8NzVR7vMary2GkqY1 john@doe
+            $ref: "../components/schemas.yaml#/SSHKeyPost"
   responses:
     "403":
       $ref: "../components/responses.yaml#/Forbidden"
