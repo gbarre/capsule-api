@@ -11,10 +11,14 @@ get:
     - $ref: "../../components/parameters.yaml#/limit"
     - $ref: "../../components/parameters.yaml#/filters"
   responses:
+    "400":
+      $ref: "../../components/responses.yaml#/BadRequest"
     "401":
       $ref: "../../components/responses.yaml#/Unauthorized"
     "403":
       $ref: "../../components/responses.yaml#/Forbidden"
+    "404":
+      $ref: "../../components/responses.yaml#/NotFound"
     "200":
       description: List of the owners of the capsule
       content:
@@ -41,11 +45,7 @@ patch:
           properties:
             newOwner:
               type: string
-              example: 04b41ffb-2144-4f28-acb2-b3f3741ca7dc
-      text/plain:
-        schema:
-          type: string
-          example: 04b41ffb-2144-4f28-acb2-b3f3741ca7dc
+              example: foobar
   responses:
     "400":
       $ref: "../../components/responses.yaml#/BadRequest"

@@ -941,6 +941,9 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
           },
@@ -970,7 +973,7 @@
                 "properties": {
                   "newOwner": {
                     "type": "string",
-                    "example": "04b41ffb-2144-4f28-acb2-b3f3741ca7dc"
+                    "example": "foobar"
                   }
                 }
               }
@@ -1032,6 +1035,9 @@
         "responses": {
           "204": {
             "description": "Successful deletion"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
