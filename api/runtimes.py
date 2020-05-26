@@ -9,7 +9,7 @@ from utils import oidc_require_role
 
 
 # GET /runtimes
-@oidc.accept_token(require_token=True, render_errors=False)
+@oidc_require_role(min_role=RoleEnum.user)
 def search(offset, limit, filters):
     # TODO: test filters with relationships
     #try:
