@@ -500,7 +500,7 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
         sqla_session = db.session
 
     id = ma.auto_field(dump_only=True)
-    sshkeys = fields.Nested(
+    public_keys = fields.Nested(
         "SSHKeySchema",
         default=[],
         many=True,

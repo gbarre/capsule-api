@@ -212,7 +212,7 @@
             "type": "string",
             "example": "foobar"
           },
-          "sshkeys": {
+          "public_keys": {
             "$ref": "#/components/schemas/SSHKey"
           },
           "role": {
@@ -973,12 +973,6 @@
                     "example": "04b41ffb-2144-4f28-acb2-b3f3741ca7dc"
                   }
                 }
-              }
-            },
-            "text/plain": {
-              "schema": {
-                "type": "string",
-                "example": "04b41ffb-2144-4f28-acb2-b3f3741ca7dc"
               }
             }
           }

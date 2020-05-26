@@ -28,7 +28,7 @@ User:
     name:
       type: string
       example: foobar
-    sshkeys:
+    public_keys:
       $ref: "./schemas.yaml#/SSHKey"
     role:
       type: string
