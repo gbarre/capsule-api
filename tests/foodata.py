@@ -56,10 +56,10 @@ option = {
 }
 
 webapp = {
-    "env": """
-HTTP_PROXY=http://proxy:3128/
-HTTPS_PROXY=https://proxy:3128/
-""",
+    "env": {
+        "HTTP_PROXY": "http://proxy:3128/",
+        "HTTPS_PROXY": "https://proxy:3128/",
+    },
     "fqdns": [
         fqdn1,
         fqdn2,

@@ -96,8 +96,9 @@ curl -s -X GET "${KEYCLOAK_URL}/admin/realms/${KEYCLOAK_REALM}/users/${FILTER}" 
 
 ```
 
-```sh
 $ docker-compose exec db mysql -u root -p'XXXXX' capsule_local
+
+```sh
 Reading table information for completion of table and column names
 You can turn off this feature to get a quicker startup with -A
 

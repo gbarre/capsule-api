@@ -395,14 +395,28 @@
           "fqdns": {
             "type": "array",
             "items": {
-              "type": "string",
-              "format": "hostname",
-              "pattern": "/^(?!:\\/\\/)([a-zA-Z0-9]+\\.)?[a-zA-Z0-9][a-zA-Z0-9-]+\\.[a-zA-Z]{2,6}?$/i"
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "format": "hostname",
+                  "pattern": "^(?!:\\/\\/)([a-zA-Z0-9]+\\.)?[a-zA-Z0-9][a-zA-Z0-9-]+\\.[a-zA-Z]{2,6}?$"
+                },
+                "alias": {
+                  "type": "boolean"
+                }
+              },
+              "example": [
+                {
+                  "name": "main.fqdn.ac-versailles.fr",
+                  "alias": false
+                },
+                {
+                  "name": "secondary.fqdn.ac-versailles.fr",
+                  "alias": true
+                }
+              ]
             },
-            "example": [
-              "main.fqdn.ac-versailles.fr",
-              "secondary.fqdn.ac-versailles.fr"
-            ],
             "description": "first FQDN is the main one"
           },
           "runtime_id": {

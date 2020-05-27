@@ -221,7 +221,7 @@ class AddOn(db.Model):
     name = db.Column(db.String(256), nullable=False)
     description = db.Column(db.String(256))
     uri = db.Column(db.String(256), nullable=False)
-    env = db.Column(db.String(256))
+    env = db.Column(db.Text)
     opts = db.relationship(
         "Option",
         backref="addon",
@@ -254,7 +254,7 @@ class WebApp(db.Model):
         single_parent=True,
         order_by="asc(FQDN.alias)",
     )
-    env = db.Column(db.String(256))
+    env = db.Column(db.Text)
     opts = db.relationship(
         "Option",
         backref="webapp",

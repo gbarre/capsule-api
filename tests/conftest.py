@@ -78,6 +78,7 @@ def setup_initial_data(db):
     d = dict(foodata.webapp)
     d.pop("fqdns")
     d.pop("opts")
+    d["env"] = str(d["env"])
     webapp1 = WebApp(**d,
         fqdns=[
             fqdn1,
