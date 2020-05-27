@@ -77,7 +77,6 @@ class TestCapsuleOwners:
 
             res = testapp.get("/v1/capsules/" + capsule_id + "/owners", status=200).json
             assert dict_contains(res, self._owners_output)
-
     ################################################
 
     ################################################
@@ -143,11 +142,11 @@ class TestCapsuleOwners:
     def test_patch(self,testapp):
         capsule_id = TestCapsuleOwners.get_capsule_id(self, testapp)
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=self._foobar):
+            patch("utils.check_user_role", return_value=self._foobar), \
+            patch("api.capsules.owners.check_owners_on_keycloak"):
 
             res = testapp.patch_json("/v1/capsules/" + capsule_id + "/owners", self._owners_input, status=200).json
-            assert dict_contains(res.owners, self._owners_input["name"])
-
+            assert self._owners_input["newOwner"] in res["owners"]
     ################################################
 
     ################################################
@@ -179,14 +178,15 @@ class TestCapsuleOwners:
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=self._foobar):
 
-            testapp.delete("/v1/capsules/" + self._unexisting_capsule_id + "/owners/" + self._owners_output[0]["name"], status=404)
+            testapp.delete("/v1/capsules/" + self._unexisting_capsule_id + "/owners/" + self._owners_output[1]["name"], status=404)
 
     def test_delete_not_found_owner(self, testapp):
         capsule_id = TestCapsuleOwners.get_capsule_id(self, testapp)
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=self._foobar):
+            patch("utils.check_user_role", return_value=self._foobar), \
+            patch("api.capsules.owners.check_owners_on_keycloak", side_effect=KeycloakUserNotFound("tutu3")):
 
-            testapp.delete("/v1/capsules/" + capsule_id + "/owners/" + self._fake_user.name, status=404)
+            testapp.delete("/v1/capsules/" + capsule_id + "/owners/" + self._owners_input["newOwner"], status=404)
 
     # Response 409:
     def test_delete_conflict(self,testapp):
@@ -201,8 +201,13 @@ class TestCapsuleOwners:
     def test_delete(self, testapp):
         capsule_id = TestCapsuleOwners.get_capsule_id(self, testapp)
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=self._foobar):
+            patch("utils.check_user_role", return_value=self._foobar), \
+            patch("api.capsules.owners.check_owners_on_keycloak"):
 
+            # Delete owner
             testapp.delete("/v1/capsules/" + capsule_id + "/owners/" + self._owners_output[1]["name"], status=204)
 
+            # Check owner is not present anymore
+            res = testapp.get("/v1/capsules/" + capsule_id + "/owners", status=200).json
+            assert self._owners_output[1]["name"] not in res
     ################################################
