@@ -1,4 +1,7 @@
-#from pprint import pprint
+from app import oidc
+from unittest.mock import patch
+from models import RoleEnum, User
+
 
 def dict_contains(superset, subset):
     superset_o = DictArrayCompare(superset)
@@ -47,4 +50,26 @@ class DictArrayCompare:
 
         return True
 
+foobar = User(name="toto1", role=RoleEnum.user)
+fake_admin = User(name="fake_user", role=RoleEnum.admin)
+fake_superadmin = User(name="fake_user", role=RoleEnum.superadmin)
+fake_user = User(name="fake_user", role=RoleEnum.user)
 
+bad_id = "XYZ"
+unexisting_id = "ffffffff-ffff-ffff-ffff-ffffffffffff"
+
+def get_capsule_id(testapp):
+    with patch.object(oidc, "validate_token", return_value=True), \
+        patch("utils.check_user_role", return_value=foobar):
+
+        # Get the capsule id
+        res = testapp.get("/v1/capsules").json
+        return res[0]["id"]
+
+def get_runtime_id(testapp):
+        with patch.object(oidc, "validate_token", return_value=True), \
+            patch("utils.check_user_role", return_value=foobar):
+
+            # Get the runtime id
+            res = testapp.get("/v1/runtimes", status=200).json
+            return res[0]["id"]

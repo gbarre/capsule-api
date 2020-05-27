@@ -1,5 +1,5 @@
 from app import oidc
-from tests.utils import dict_contains
+from tests.utils import *
 from unittest.mock import patch
 import tests.foodata as foodata
 from models import RoleEnum, User
@@ -8,9 +8,6 @@ from werkzeug.exceptions import Forbidden
 
 class TestUsers:
     _user_output = foodata.user1
-
-    _foobar = User(name="toto1", role=RoleEnum.user)
-    _fake_admin = User(name="fake_user", role=RoleEnum.admin)
 
     #################################
     #### Testing GET /users
@@ -29,7 +26,7 @@ class TestUsers:
     # Response 200:
     def test_get(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=self._fake_admin):
+            patch("utils.check_user_role", return_value=fake_admin):
 
             res = testapp.get("/v1/users", status=200).json
 
@@ -43,7 +40,7 @@ class TestUsers:
     # Response 404:
     def test_get_bad_user(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=self._fake_admin):
+            patch("utils.check_user_role", return_value=fake_admin):
 
             res = testapp.get("/v1/users/XYZ", status=404).json
             assert "The requested user 'XYZ' has not been found." in res["detail"]
@@ -65,7 +62,7 @@ class TestUsers:
     # Response 200:
     def test_get_user(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=self._fake_admin):
+            patch("utils.check_user_role", return_value=fake_admin):
 
             user_id = foodata.user1["name"]
             # Get this user by id
