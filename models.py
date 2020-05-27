@@ -163,13 +163,6 @@ class Runtime(db.Model):
     def instances(self):
         return self.webapps or self.addons
 
-    def update(self, other):
-        self.name = other.name
-        self.desc = other.desc
-        self.fam = other.fam
-        self.runtime_type = other.runtime_type
-        # self.available_opts = other.available_opts
-
 
 class AvailableOption(db.Model):
     __tablename__ = "available_options"
@@ -189,6 +182,24 @@ class AvailableOption(db.Model):
         cascade="all, delete, delete-orphan",
         single_parent=True,
     )
+
+    @staticmethod
+    def create(available_opts_array):
+        available_opts = []
+        for opt in available_opts_array:
+            if "validation_rules" in opt:
+                validation_rules_array = opt["validation_rules"]
+                validation_rules = []
+                for rule in validation_rules_array:
+                    validation_rule = AvailableOptionValidationRule(**rule)
+                    validation_rules.append(validation_rule)
+                opt.pop("validation_rules")
+                available_opt = AvailableOption(**opt, validation_rules=validation_rules)
+            else:
+                available_opt = AvailableOption(**opt)
+            available_opts.append(available_opt)
+
+        return available_opts
 
 
 class AvailableOptionValidationRule(db.Model):

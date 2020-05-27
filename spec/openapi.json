@@ -229,7 +229,7 @@
         "readOnly": true
       },
       "AvailableOpt": {
-        "type": "object",
+        "type": "array",
         "properties": {
           "access_level": {
             "type": "string",
@@ -290,15 +290,15 @@
             "field_name": "worker",
             "field_description": "Nombre de workers pour PHP",
             "value_type": "integer",
-            "default_value": 6,
+            "default_value": "6",
             "validation_rules": [
               {
                 "type": "min",
-                "arg": 1
+                "arg": "1"
               },
               {
                 "type": "max",
-                "arg": 42
+                "arg": "42"
               }
             ]
           }
@@ -332,10 +332,7 @@
             ]
           },
           "available_opts": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AvailableOpt"
-            }
+            "$ref": "#/components/schemas/AvailableOpt"
           },
           "created_at": {
             "type": "string",
@@ -435,7 +432,7 @@
                 },
                 "value": {
                   "type": "string",
-                  "example": 42
+                  "example": "42"
                 }
               }
             },
@@ -448,17 +445,17 @@
               "volume_size": {
                 "type": "integer",
                 "readOnly": true,
-                "example": 20
+                "example": "20"
               },
               "memory_max": {
                 "type": "integer",
                 "readOnly": true,
-                "example": 4
+                "example": "4"
               },
               "cpu_max": {
                 "type": "number",
                 "readOnly": true,
-                "example": 2.5
+                "example": "2.5"
               }
             },
             "readOnly": true
@@ -542,17 +539,17 @@
               "volume_size": {
                 "type": "integer",
                 "readOnly": true,
-                "example": 20
+                "example": "20"
               },
               "memory_max": {
                 "type": "integer",
                 "readOnly": true,
-                "example": 4
+                "example": "4"
               },
               "cpu_max": {
                 "type": "number",
                 "readOnly": true,
-                "example": 2.5
+                "example": "2.5"
               }
             },
             "readOnly": true
@@ -949,6 +946,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
           }
         }
       },

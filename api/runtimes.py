@@ -6,6 +6,7 @@ from models import RoleEnum
 from models import AvailableOption, AvailableOptionValidationRule
 import json
 from utils import oidc_require_role
+from pprint import pprint
 
 
 # GET /runtimes
@@ -31,25 +32,10 @@ def post(runtime=None):
         runtime_data = request.get_json()
         data = runtime_schema.load(runtime_data).data
 
-        d = dict(data)
-        if "available_opts" in d:
-            available_opts_array = d["available_opts"]
-            available_opts = []
-            for opt in available_opts_array:
-                if "validation_rules" in opt:
-                    validation_rules_array = opt["validation_rules"]
-                    validation_rules = []
-                    for rule in validation_rules_array:
-                        validation_rule = AvailableOptionValidationRule(**rule)
-                        validation_rules.append(validation_rule)
-                    opt.pop("validation_rules")
-                    available_opt = AvailableOption(**opt, validation_rules=validation_rules)
-                else:
-                    available_opt = AvailableOption(**opt)
-                available_opts.append(available_opt)
-            d.pop("available_opts")
-
-            runtime = Runtime(**d, available_opts=available_opts)
+        if "available_opts" in data:
+            available_opts = AvailableOption.create(data["available_opts"])
+            data.pop("available_opts")
+            runtime = Runtime(**data, available_opts=available_opts)
         else:
             runtime = Runtime(**data)
 
@@ -90,12 +76,16 @@ def put(runtime_id):
     if runtime is None:
         return post(runtime=runtime)
 
-    if 'available_opts' in data:
-        data.pop("available_opts")
-    # TODO: look for PUT available_opts
+    runtime.desc = data["desc"]
+    runtime.fam = data["fam"]
+    runtime.name = data["name"]
+    runtime.runtime_type = data["runtime_type"]
 
-    new_runtime = Runtime(**data)
-    runtime.update(new_runtime)
+    delattr(runtime, "available_opts")
+    if "available_opts" in data:
+        available_opts = AvailableOption.create(data["available_opts"])
+        runtime.available_opts = available_opts
+
     db.session.commit()
 
     result = Runtime.query.get(runtime.id)

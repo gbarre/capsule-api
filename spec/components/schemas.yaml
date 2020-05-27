@@ -52,7 +52,7 @@ User:
   readOnly: true
 
 AvailableOpt:
-  type: object
+  type: array
   properties:
     access_level:
       type: string
@@ -93,12 +93,12 @@ AvailableOpt:
       field_description: >-
         Nombre de workers pour PHP
       value_type: integer
-      default_value: 6
+      default_value: "6"
       validation_rules:
         - type: min
-          arg: 1
+          arg: "1"
         - type: max
-          arg: 42
+          arg: "42"
 
 Runtime:
   type: object
@@ -121,9 +121,7 @@ Runtime:
       type: string
       enum: [webapp, addon]
     available_opts:
-      type: array
-      items:
-        $ref: "./schemas.yaml#/AvailableOpt"
+      $ref: "./schemas.yaml#/AvailableOpt"
     created_at:
       type: string
       format: date-time
@@ -202,7 +200,7 @@ WebApp:
             example: worker
           value:
             type: string # can be any value
-            example: 42
+            example: "42"
       default: []
     quota:
       description: quota obtained from the capsule declaration
@@ -212,16 +210,16 @@ WebApp:
           type: integer
           #format: GB
           readOnly: true
-          example: 20
+          example: "20"
         memory_max:
           type: integer
           #format: GB
           readOnly: true
-          example: 4
+          example: "4"
         cpu_max:
           type: number
           readOnly: true
-          example: 2.5
+          example: "2.5"
       readOnly: true
     created_at:
       type: string
@@ -287,16 +285,16 @@ AddOn:
           type: integer
           #format: GB
           readOnly: true
-          example: 20
+          example: "20"
         memory_max:
           type: integer
           #format: GB
           readOnly: true
-          example: 4
+          example: "4"
         cpu_max:
           type: number
           readOnly: true
-          example: 2.5
+          example: "2.5"
       readOnly: true
     created_at:
       type: string
