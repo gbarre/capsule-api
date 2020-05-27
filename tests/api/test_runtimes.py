@@ -22,9 +22,10 @@ class TestRuntimes:
     _fake_admin = User(name="fake_user", role=RoleEnum.admin)
     _fake_superadmin = User(name="fake_user", role=RoleEnum.superadmin)
 
-    def get_runtime_id(self, testapp):
+    @classmethod
+    def get_runtime_id(cls, testapp):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=self._foobar):
+            patch("utils.check_user_role", return_value=cls._foobar):
 
             # Get the runtime id
             res = testapp.get("/v1/runtimes", status=200).json
@@ -124,7 +125,7 @@ class TestRuntimes:
 
     # Response 401:
     def test_get_runtime_unauthenticated(self, testapp, db):
-        runtime_id = TestRuntimes.get_runtime_id(self, testapp)
+        runtime_id = TestRuntimes.get_runtime_id(testapp)
         # Get this runtime by id
         testapp.get("/v1/runtimes/" + runtime_id, status=401)
 
@@ -173,14 +174,14 @@ class TestRuntimes:
 
     # Response 401:
     def test_update_unauthenticated(self, testapp, db):
-        runtime_id = TestRuntimes.get_runtime_id(self, testapp)
+        runtime_id = TestRuntimes.get_runtime_id(testapp)
         # Delete this runtime
         testapp.put_json("/v1/runtimes/" + runtime_id, self._runtime_input, status=401)
 
 
     # Response 403:
     def test_update_insufficient_rights(self, testapp, db):
-        runtime_id = TestRuntimes.get_runtime_id(self, testapp)
+        runtime_id = TestRuntimes.get_runtime_id(testapp)
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", side_effect=Forbidden):
 
@@ -211,13 +212,13 @@ class TestRuntimes:
 
     # Response 401
     def test_delete_unauthenticated(self, testapp, db):
-        runtime_id = TestRuntimes.get_runtime_id(self, testapp)
+        runtime_id = TestRuntimes.get_runtime_id(testapp)
         # Delete this runtime
         testapp.delete("/v1/runtimes/" + runtime_id, status=401)
 
     # Response 403:
     def test_delete_insufficient_rights(self, testapp, db):
-        runtime_id = TestRuntimes.get_runtime_id(self, testapp)
+        runtime_id = TestRuntimes.get_runtime_id(testapp)
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", side_effect=Forbidden):
 

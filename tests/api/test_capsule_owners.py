@@ -28,9 +28,10 @@ class TestCapsuleOwners:
     _unexisting_capsule_id = "ffffffff-ffff-ffff-ffff-ffffffffffff"
 
     # Before anything we need a capsule id
-    def get_capsule_id(self, testapp):
+    @classmethod
+    def get_capsule_id(cls, testapp):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=self._foobar):
+            patch("utils.check_user_role", return_value=cls._foobar):
 
             # Get the capsule id
             res = testapp.get("/v1/capsules").json
@@ -48,12 +49,12 @@ class TestCapsuleOwners:
 
     # Response 401:
     def test_get_with_no_token(self, testapp):
-        capsule_id = TestCapsuleOwners.get_capsule_id(self, testapp)
+        capsule_id = TestCapsuleOwners.get_capsule_id(testapp)
         testapp.get("/v1/capsules/" + capsule_id + "/owners", status=401)
 
     # Response 403:
     def test_get_raise_bad_owner(self, testapp):
-        capsule_id = TestCapsuleOwners.get_capsule_id(self, testapp)
+        capsule_id = TestCapsuleOwners.get_capsule_id(testapp)
 
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=self._fake_user):
@@ -71,7 +72,7 @@ class TestCapsuleOwners:
 
     # Response 200:
     def test_get(self, testapp, db):
-        capsule_id = TestCapsuleOwners.get_capsule_id(self, testapp)
+        capsule_id = TestCapsuleOwners.get_capsule_id(testapp)
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=self._foobar):
 
@@ -89,7 +90,7 @@ class TestCapsuleOwners:
             testapp.patch_json("/v1/capsules/" + self._bad_capsule_id + "/owners", self._owners_input, status=400)
 
     def test_patch_bad_request_wrong_input(self, testapp):
-        capsule_id = TestCapsuleOwners.get_capsule_id(self, testapp)
+        capsule_id = TestCapsuleOwners.get_capsule_id(testapp)
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=self._foobar):
 
@@ -99,12 +100,12 @@ class TestCapsuleOwners:
 
     # Response 401:
     def test_patch_unauthorized(self, testapp):
-        capsule_id = TestCapsuleOwners.get_capsule_id(self, testapp)
+        capsule_id = TestCapsuleOwners.get_capsule_id(testapp)
         testapp.patch_json("/v1/capsules/" + capsule_id + "/owners", self._owners_input, status=401)
 
     # Response 403:
     def test_patch_forbidden(self, testapp):
-        capsule_id = TestCapsuleOwners.get_capsule_id(self, testapp)
+        capsule_id = TestCapsuleOwners.get_capsule_id(testapp)
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=self._fake_user):
 
@@ -119,7 +120,7 @@ class TestCapsuleOwners:
             testapp.patch_json("/v1/capsules/" + self._unexisting_capsule_id + "/owners", self._owners_input, status=404)
 
     def test_patch_not_found_owner(self, testapp):
-        capsule_id = TestCapsuleOwners.get_capsule_id(self, testapp)
+        capsule_id = TestCapsuleOwners.get_capsule_id(testapp)
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=self._foobar), \
             patch("api.capsules.owners.check_owners_on_keycloak", side_effect=KeycloakUserNotFound("tutu3")):
@@ -128,7 +129,7 @@ class TestCapsuleOwners:
 
     # Response 409: TODO => is it a real conflict ?
     def test_patch_conflict(self,testapp):
-        capsule_id = TestCapsuleOwners.get_capsule_id(self, testapp)
+        capsule_id = TestCapsuleOwners.get_capsule_id(testapp)
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=self._foobar):
 
@@ -140,7 +141,7 @@ class TestCapsuleOwners:
 
     # Response 200:
     def test_patch(self,testapp):
-        capsule_id = TestCapsuleOwners.get_capsule_id(self, testapp)
+        capsule_id = TestCapsuleOwners.get_capsule_id(testapp)
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=self._foobar), \
             patch("api.capsules.owners.check_owners_on_keycloak"):
@@ -161,12 +162,12 @@ class TestCapsuleOwners:
 
     # Response 401:
     def test_delete_unauthorized(self, testapp):
-        capsule_id = TestCapsuleOwners.get_capsule_id(self, testapp)
+        capsule_id = TestCapsuleOwners.get_capsule_id(testapp)
         testapp.delete("/v1/capsules/" + capsule_id + "/owners/" + self._owners_output[0]["name"], status=401)
 
     # Response 403:
     def test_delete_forbidden(self, testapp):
-        capsule_id = TestCapsuleOwners.get_capsule_id(self, testapp)
+        capsule_id = TestCapsuleOwners.get_capsule_id(testapp)
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=self._fake_user):
 
@@ -181,7 +182,7 @@ class TestCapsuleOwners:
             testapp.delete("/v1/capsules/" + self._unexisting_capsule_id + "/owners/" + self._owners_output[1]["name"], status=404)
 
     def test_delete_not_found_owner(self, testapp):
-        capsule_id = TestCapsuleOwners.get_capsule_id(self, testapp)
+        capsule_id = TestCapsuleOwners.get_capsule_id(testapp)
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=self._foobar), \
             patch("api.capsules.owners.check_owners_on_keycloak", side_effect=KeycloakUserNotFound("tutu3")):
@@ -190,7 +191,7 @@ class TestCapsuleOwners:
 
     # Response 409:
     def test_delete_conflict(self,testapp):
-        capsule_id = TestCapsuleOwners.get_capsule_id(self, testapp)
+        capsule_id = TestCapsuleOwners.get_capsule_id(testapp)
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=self._foobar):
 
@@ -199,7 +200,7 @@ class TestCapsuleOwners:
     # Response 204:
     @pytest.mark.filterwarnings("ignore:.*Content-Type header found in a 204 response.*:Warning")
     def test_delete(self, testapp):
-        capsule_id = TestCapsuleOwners.get_capsule_id(self, testapp)
+        capsule_id = TestCapsuleOwners.get_capsule_id(testapp)
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=self._foobar), \
             patch("api.capsules.owners.check_owners_on_keycloak"):
