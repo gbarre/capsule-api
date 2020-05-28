@@ -102,7 +102,8 @@ def setup_initial_data(db):
         owners=[
             user1,
             user2,
-        ]
+        ],
+        webapp = webapp1
     )
 
     array_obj = [

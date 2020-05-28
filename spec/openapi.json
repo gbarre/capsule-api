@@ -362,35 +362,18 @@
             "readOnly": true,
             "example": "d41ea210-742a-410c-a971-3978143eab80"
           },
-          "insecure": {
+          "tls_redirect_https": {
             "type": "boolean",
-            "default": false,
-            "nullable": true,
-            "description": "mutually exclusive with tls"
+            "default": true
           },
-          "tls": {
-            "type": "object",
-            "properties": {
-              "redirect_https": {
-                "type": "boolean",
-                "default": true
-              },
-              "crt": {
-                "type": "string",
-                "writeOnly": true
-              },
-              "key": {
-                "type": "string",
-                "format": "password",
-                "writeOnly": true
-              }
-            },
-            "nullable": true,
-            "required": [
-              "crt",
-              "key"
-            ],
-            "description": "mutually exclusive with insecure"
+          "tls_crt": {
+            "type": "string",
+            "writeOnly": true
+          },
+          "tls_key": {
+            "type": "string",
+            "format": "password",
+            "writeOnly": true
           },
           "fqdns": {
             "type": "array",
@@ -400,23 +383,23 @@
                 "name": {
                   "type": "string",
                   "format": "hostname",
-                  "pattern": "^(?!:\\/\\/)([a-zA-Z0-9]+\\.)?[a-zA-Z0-9][a-zA-Z0-9-]+\\.[a-zA-Z]{2,6}?$"
+                  "pattern": "^(?!:\\/\\/)([a-zA-Z0-9-]+\\.)*[a-zA-Z0-9-][a-zA-Z0-9-]+\\.[a-zA-Z]{2,6}?$"
                 },
                 "alias": {
                   "type": "boolean"
                 }
-              },
-              "example": [
-                {
-                  "name": "main.fqdn.ac-versailles.fr",
-                  "alias": false
-                },
-                {
-                  "name": "secondary.fqdn.ac-versailles.fr",
-                  "alias": true
-                }
-              ]
+              }
             },
+            "example": [
+              {
+                "name": "main.fqdn.ac-versailles.fr",
+                "alias": false
+              },
+              {
+                "name": "secondary.fqdn.ac-versailles.fr",
+                "alias": true
+              }
+            ],
             "description": "first FQDN is the main one"
           },
           "runtime_id": {

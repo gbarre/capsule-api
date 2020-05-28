@@ -228,9 +228,9 @@ class AddOn(db.Model):
         cascade="all, delete, delete-orphan",
         single_parent=True,
     )
-    quota_volume_size = db.Column(db.String(256), nullable=False)
-    quota_memory_max = db.Column(db.String(256), nullable=False)
-    quota_cpu_max = db.Column(db.String(256), nullable=False)
+    quota_volume_size = db.Column(db.String(256))
+    quota_memory_max = db.Column(db.String(256))
+    quota_cpu_max = db.Column(db.String(256))
     created_at = db.Column(
         db.DateTime, default=datetime.utcnow
     )
@@ -245,8 +245,8 @@ class WebApp(db.Model):
                    default=uuid.uuid4, primary_key=True)
     runtime_id = db.Column(GUID, db.ForeignKey('runtimes.id'))
     tls_redirect_https = db.Column(db.Boolean, default=True)
-    tls_crt = db.Column(db.String(256))
-    tls_key = db.Column(db.String(256))
+    tls_crt = db.Column(db.Text)
+    tls_key = db.Column(db.Text)
     fqdns = db.relationship(
         "FQDN",
         backref="webapp",
@@ -261,9 +261,9 @@ class WebApp(db.Model):
         cascade="all, delete, delete-orphan",
         single_parent=True,
     )
-    quota_volume_size = db.Column(db.String(256), nullable=False)
-    quota_memory_max = db.Column(db.String(256), nullable=False)
-    quota_cpu_max = db.Column(db.String(256), nullable=False)
+    quota_volume_size = db.Column(db.String(256))
+    quota_memory_max = db.Column(db.String(256))
+    quota_cpu_max = db.Column(db.String(256))
     created_at = db.Column(
         db.DateTime, default=datetime.utcnow
     )
@@ -418,11 +418,13 @@ class WebAppSchema(ma.SQLAlchemyAutoSchema):
 
     class Meta:
         model = WebApp
+        include_relationships = True
+        include_fk = True
+        exclude = ('runtime',)
         sqla_session = db.session
 
     id = ma.auto_field(dump_only=True)
-    insecure = fields.Boolean(default=False)
-    fqdns = fields.Nested("FQDNSchema", default=[], many=True, only=('name',))
+    fqdns = fields.Nested("FQDNSchema", default=[], many=True, exclude=('id',))
     opts = fields.Nested(
         "OptionSchema",
         default=[],
@@ -528,3 +530,4 @@ sshkey_schema = SSHKeySchema()
 sshkeys_schema = SSHKeySchema(many=True)
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
+webapp_schema = WebAppSchema()
