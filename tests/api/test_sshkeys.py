@@ -37,14 +37,14 @@ class TestSshKeys:
 
     # Response 401:
     def test_get_with_no_token(self, testapp):
-        testapp.get("/v1/sshkeys", status=401)
+        testapp.get(api_version + "/sshkeys", status=401)
 
     # Response 200:
-    def test_get(self, testapp, db):
+    def test_get(self, testapp):
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
 
-            res = testapp.get("/v1/sshkeys", status=200).json
+            res = testapp.get(api_version + "/sshkeys", status=200).json
             assert dict_contains(res, self._sshkeys_output)
     #################################
 
@@ -55,14 +55,14 @@ class TestSshKeys:
 
     # Response 401:
     def test_create_with_no_token(self, testapp):
-        testapp.post_json("/v1/sshkeys", self._sshkey_input, status=401)
+        testapp.post_json(api_version + "/sshkeys", self._sshkey_input, status=401)
 
     # Response 201: TODO Write test for posting raw text
-    def test_create(self, testapp, db):
+    def test_create(self, testapp):
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
 
-            res = testapp.post_json("/v1/sshkeys", self._sshkey_input, status=201).json
+            res = testapp.post_json(api_version + "/sshkeys", self._sshkey_input, status=201).json
             assert dict_contains(res, self._sshkey_input)
     #################################
 
@@ -72,7 +72,7 @@ class TestSshKeys:
     # Response 204:
     # TODO: how to remove the header "Content-Type" in the a DELETE request only?
     @pytest.mark.filterwarnings("ignore:.*Content-Type header found in a 204 response.*:Warning")
-    def test_delete_sshkey(self, testapp, db):
+    def test_delete_sshkey(self, testapp):
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=fake_admin):
 
@@ -81,22 +81,22 @@ class TestSshKeys:
             sshkey_id = str(sshkey.id)
 
             # Delete this sshkey
-            testapp.delete("/v1/sshkeys/" + sshkey_id, status=204)
+            testapp.delete(api_version + "/sshkeys/" + sshkey_id, status=204)
 
             # Ensure this sshkey is not present anymore
-            res = testapp.get("/v1/sshkeys", status=200)
+            res = testapp.get(api_version + "/sshkeys", status=200)
             assert foodata.sshkey1 not in res
 
     # Response 400:
-    def test_delete_bad_sshkey(self, testapp, db):
+    def test_delete_bad_sshkey(self, testapp):
         with patch.object(oidc, 'validate_token', return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
 
-            res = testapp.delete('/v1/sshkeys/' + bad_id, status=400).json
+            res = testapp.delete(api_version + '/sshkeys/' + bad_id, status=400).json
             assert "The browser (or proxy) sent a request that this server could not understand." in res["detail"]
 
     # Response 401:
-    def test_delete_unauthenticated(self, testapp, db):
+    def test_delete_unauthenticated(self, testapp):
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
 
@@ -105,10 +105,10 @@ class TestSshKeys:
             sshkey_id = str(sshkey.id)
 
         # Delete this sshkey
-        testapp.delete("/v1/sshkeys/" + sshkey_id, status=401)
+        testapp.delete(api_version + "/sshkeys/" + sshkey_id, status=401)
 
     # Response 403:
-    def test_delete_insufficient_rights(self, testapp, db):
+    def test_delete_insufficient_rights(self, testapp):
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
 
@@ -120,6 +120,6 @@ class TestSshKeys:
             patch("utils.check_user_role", side_effect=Forbidden):
 
             # Delete this sshkey
-            res = testapp.delete("/v1/sshkeys/" + sshkey_id, status=403).json
+            res = testapp.delete(api_version + "/sshkeys/" + sshkey_id, status=403).json
             assert "You don't have the permission to access the requested resource." in res["detail"]
     #################################

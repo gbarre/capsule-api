@@ -50,6 +50,8 @@ class DictArrayCompare:
 
         return True
 
+api_version = '/v1'
+
 foobar = User(name="toto1", role=RoleEnum.user)
 fake_admin = User(name="fake_user", role=RoleEnum.admin)
 fake_superadmin = User(name="fake_user", role=RoleEnum.superadmin)
@@ -63,7 +65,7 @@ def get_capsule_id(testapp):
         patch("utils.check_user_role", return_value=foobar):
 
         # Get the capsule id
-        res = testapp.get("/v1/capsules").json
+        res = testapp.get(api_version + "/capsules").json
         return res[0]["id"]
 
 def get_runtime_id(testapp):
@@ -71,5 +73,5 @@ def get_runtime_id(testapp):
             patch("utils.check_user_role", return_value=foobar):
 
             # Get the runtime id
-            res = testapp.get("/v1/runtimes", status=200).json
+            res = testapp.get(api_version + "/runtimes", status=200).json
             return res[0]["id"]

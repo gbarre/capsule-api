@@ -27,12 +27,12 @@ class TestCapsuleOwners:
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
 
-            testapp.get("/v1/capsules/" + bad_id + "/owners", status=400)
+            testapp.get(api_version + "/capsules/" + bad_id + "/owners", status=400)
 
     # Response 401:
     def test_get_with_no_token(self, testapp):
         capsule_id = get_capsule_id(testapp)
-        testapp.get("/v1/capsules/" + capsule_id + "/owners", status=401)
+        testapp.get(api_version + "/capsules/" + capsule_id + "/owners", status=401)
 
     # Response 403:
     def test_get_raise_bad_owner(self, testapp):
@@ -41,7 +41,7 @@ class TestCapsuleOwners:
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=fake_user):
 
-            res = testapp.get("/v1/capsules/" + capsule_id + "/owners", status=403).json
+            res = testapp.get(api_version + "/capsules/" + capsule_id + "/owners", status=403).json
             assert "You don't have the permission to access the requested resource." in res["detail"]
 
     # Response 404:
@@ -49,16 +49,17 @@ class TestCapsuleOwners:
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
 
-            res = testapp.get("/v1/capsules/" + unexisting_id + "/owners", status=404).json
+            res = testapp.get(api_version + "/capsules/" + unexisting_id + "/owners", status=404).json
             assert "The requested capsule '" + unexisting_id + "' has not been found." in res["detail"]
 
     # Response 200:
-    def test_get(self, testapp, db):
+    def test_get(self, testapp):
         capsule_id = get_capsule_id(testapp)
+
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
 
-            res = testapp.get("/v1/capsules/" + capsule_id + "/owners", status=200).json
+            res = testapp.get(api_version + "/capsules/" + capsule_id + "/owners", status=200).json
             assert dict_contains(res, self._owners_output)
     ################################################
 
@@ -69,21 +70,21 @@ class TestCapsuleOwners:
     def test_patch_bad_request_wrong_capsule_id(self, testapp):
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
-            testapp.patch_json("/v1/capsules/" + bad_id + "/owners", self._owners_input, status=400)
+            testapp.patch_json(api_version + "/capsules/" + bad_id + "/owners", self._owners_input, status=400)
 
     def test_patch_bad_request_wrong_input(self, testapp):
         capsule_id = get_capsule_id(testapp)
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
 
-            res = testapp.patch_json("/v1/capsules/" + capsule_id + "/owners", self._bad_owner_input, status=400).json
+            res = testapp.patch_json(api_version + "/capsules/" + capsule_id + "/owners", self._bad_owner_input, status=400).json
             print(res)
             assert "The key newOwner is required." in res["detail"]
 
     # Response 401:
     def test_patch_unauthorized(self, testapp):
         capsule_id = get_capsule_id(testapp)
-        testapp.patch_json("/v1/capsules/" + capsule_id + "/owners", self._owners_input, status=401)
+        testapp.patch_json(api_version + "/capsules/" + capsule_id + "/owners", self._owners_input, status=401)
 
     # Response 403:
     def test_patch_forbidden(self, testapp):
@@ -91,7 +92,7 @@ class TestCapsuleOwners:
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=fake_user):
 
-            res = testapp.patch_json("/v1/capsules/" + capsule_id + "/owners", self._owners_input, status=403).json
+            res = testapp.patch_json(api_version + "/capsules/" + capsule_id + "/owners", self._owners_input, status=403).json
             assert "You don't have the permission to access the requested resource." in res["detail"]
 
     # Response 404:
@@ -99,7 +100,7 @@ class TestCapsuleOwners:
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
 
-            testapp.patch_json("/v1/capsules/" + unexisting_id + "/owners", self._owners_input, status=404)
+            testapp.patch_json(api_version + "/capsules/" + unexisting_id + "/owners", self._owners_input, status=404)
 
     def test_patch_not_found_owner(self, testapp):
         capsule_id = get_capsule_id(testapp)
@@ -107,7 +108,7 @@ class TestCapsuleOwners:
             patch("utils.check_user_role", return_value=foobar), \
             patch("api.capsules.owners.check_owners_on_keycloak", side_effect=KeycloakUserNotFound("tutu3")):
 
-            testapp.patch_json("/v1/capsules/" + capsule_id + "/owners", self._owners_input, status=404)
+            testapp.patch_json(api_version + "/capsules/" + capsule_id + "/owners", self._owners_input, status=404)
 
     # Response 409: TODO => is it a real conflict ?
     def test_patch_conflict(self,testapp):
@@ -119,7 +120,7 @@ class TestCapsuleOwners:
                 "newOwner": self._owners_output[0]["name"]
             }
 
-            testapp.patch_json("/v1/capsules/" + capsule_id + "/owners", new_owner, status=409)
+            testapp.patch_json(api_version + "/capsules/" + capsule_id + "/owners", new_owner, status=409)
 
     # Response 200:
     def test_patch(self,testapp):
@@ -128,7 +129,7 @@ class TestCapsuleOwners:
             patch("utils.check_user_role", return_value=foobar), \
             patch("api.capsules.owners.check_owners_on_keycloak"):
 
-            res = testapp.patch_json("/v1/capsules/" + capsule_id + "/owners", self._owners_input, status=200).json
+            res = testapp.patch_json(api_version + "/capsules/" + capsule_id + "/owners", self._owners_input, status=200).json
             assert self._owners_input["newOwner"] in res["owners"]
     ################################################
 
@@ -140,12 +141,12 @@ class TestCapsuleOwners:
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
 
-            testapp.delete("/v1/capsules/" + bad_id + "/owners/whatever", status=400)
+            testapp.delete(api_version + "/capsules/" + bad_id + "/owners/whatever", status=400)
 
     # Response 401:
     def test_delete_unauthorized(self, testapp):
         capsule_id = get_capsule_id(testapp)
-        testapp.delete("/v1/capsules/" + capsule_id + "/owners/" + self._owners_output[0]["name"], status=401)
+        testapp.delete(api_version + "/capsules/" + capsule_id + "/owners/" + self._owners_output[0]["name"], status=401)
 
     # Response 403:
     def test_delete_forbidden(self, testapp):
@@ -153,7 +154,7 @@ class TestCapsuleOwners:
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=fake_user):
 
-            res = testapp.delete("/v1/capsules/" + capsule_id + "/owners/" + self._owners_output[0]["name"], status=403).json
+            res = testapp.delete(api_version + "/capsules/" + capsule_id + "/owners/" + self._owners_output[0]["name"], status=403).json
             assert "You don't have the permission to access the requested resource." in res["detail"]
 
     # Response 404:
@@ -161,7 +162,7 @@ class TestCapsuleOwners:
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
 
-            testapp.delete("/v1/capsules/" + unexisting_id + "/owners/" + self._owners_output[1]["name"], status=404)
+            testapp.delete(api_version + "/capsules/" + unexisting_id + "/owners/" + self._owners_output[1]["name"], status=404)
 
     def test_delete_not_found_owner(self, testapp):
         capsule_id = get_capsule_id(testapp)
@@ -169,7 +170,7 @@ class TestCapsuleOwners:
             patch("utils.check_user_role", return_value=foobar), \
             patch("api.capsules.owners.check_owners_on_keycloak", side_effect=KeycloakUserNotFound("tutu3")):
 
-            testapp.delete("/v1/capsules/" + capsule_id + "/owners/" + self._owners_input["newOwner"], status=404)
+            testapp.delete(api_version + "/capsules/" + capsule_id + "/owners/" + self._owners_input["newOwner"], status=404)
 
     # Response 409:
     def test_delete_conflict(self,testapp):
@@ -177,7 +178,7 @@ class TestCapsuleOwners:
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
 
-            testapp.delete("/v1/capsules/" + capsule_id + "/owners/" + foobar.name, status=409)
+            testapp.delete(api_version + "/capsules/" + capsule_id + "/owners/" + foobar.name, status=409)
 
     # Response 204:
     @pytest.mark.filterwarnings("ignore:.*Content-Type header found in a 204 response.*:Warning")
@@ -188,9 +189,9 @@ class TestCapsuleOwners:
             patch("api.capsules.owners.check_owners_on_keycloak"):
 
             # Delete owner
-            testapp.delete("/v1/capsules/" + capsule_id + "/owners/" + self._owners_output[1]["name"], status=204)
+            testapp.delete(api_version + "/capsules/" + capsule_id + "/owners/" + self._owners_output[1]["name"], status=204)
 
             # Check owner is not present anymore
-            res = testapp.get("/v1/capsules/" + capsule_id + "/owners", status=200).json
+            res = testapp.get(api_version + "/capsules/" + capsule_id + "/owners", status=200).json
             assert self._owners_output[1]["name"] not in res
     ################################################
