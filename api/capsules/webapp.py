@@ -7,7 +7,6 @@ from models import FQDN, Option
 from app import db, oidc
 from utils import oidc_require_role
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden, Conflict
-from pprint import pprint
 
 
 def _get_capsule(capsule_id, user):
@@ -31,7 +30,7 @@ def _get_capsule(capsule_id, user):
 
 # /POST /capsules/{cId}/webapp
 @oidc_require_role(min_role=RoleEnum.user)
-def post(capsule_id, user, webapp=None):
+def post(capsule_id, user, webapp_data=None):
     capsule = _get_capsule(capsule_id, user)
     webapp = capsule.webapp
 
@@ -39,23 +38,21 @@ def post(capsule_id, user, webapp=None):
     if webapp is not None:
         raise Conflict(description="This capsule already has a webapp.")
 
-    webapp_data = request.get_json()
+    # Datas could come from PUT
+    if webapp_data is None:
+        webapp_data = request.get_json()
 
     if "env" in webapp_data:
         webapp_data["env"] = str(webapp_data["env"])
 
     newArgs = dict()
     if "fqdns" in webapp_data:
-        fqdns = []
-        for fqdn in webapp_data["fqdns"]:
-            fqdns.append(FQDN(**fqdn))
+        fqdns = FQDN.create(webapp_data["fqdns"])
         webapp_data.pop("fqdns")
         newArgs["fqdns"] = fqdns
 
     if "opts" in webapp_data:
-        opts = []
-        for opt in webapp_data["opts"]:
-            opts.append(Option(**opt))
+        opts = Option.create(webapp_data["opts"])
         webapp_data.pop("opts")
         newArgs["opts"] = opts
 
@@ -94,6 +91,46 @@ def get(capsule_id, user):
 @oidc_require_role(min_role=RoleEnum.user)
 def put(capsule_id, user):
     capsule = _get_capsule(capsule_id, user)
+    webapp = capsule.webapp
+    webapp_data = request.get_json()
+
+    # PUT become POST if there is no webapp
+    if webapp is None:
+        return post(capsule_id=capsule_id, webapp_data=webapp_data)
+
+    if "env" in webapp_data:
+        webapp.env = str(webapp_data["env"])
+
+    if "fqdns" in webapp_data:
+        fqdns = FQDN.create(webapp_data["fqdns"])
+        webapp.fqdns = fqdns
+
+    if "opts" in webapp_data:
+        opts = Option.create(webapp_data["opts"])
+        webapp.opts = opts
+
+    webapp.runtime_id = webapp_data["runtime_id"]
+
+    if "tls_crt" in webapp_data:
+        webapp.tls_crt = webapp_data["tls_crt"]
+    else:
+        webapp.tls_crt = None
+
+    if "tls_key" in webapp_data:
+        webapp.tls_key = webapp_data["tls_key"]
+    else:
+        webapp.tls_key = None
+
+    if "tls_redirect_https" in webapp_data:
+        webapp.tls_redirect_https = webapp_data["tls_redirect_https"]
+    else:
+        webapp.tls_redirect_https = False
+
+    capsule.webapp = webapp
+    db.session.commit()
+
+    return get(capsule_id)
+
 
 # /DELETE /capsules/{cId}/webapp
 @oidc_require_role(min_role=RoleEnum.user)

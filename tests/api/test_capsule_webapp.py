@@ -1,11 +1,7 @@
-# from app import oidc
-# from exceptions import KeycloakUserNotFound
 from tests.utils import *
-# from unittest.mock import patch
 import tests.foodata as foodata
 from werkzeug.exceptions import Forbidden
 import pytest
-from pprint import pprint
 
 class TestCapsuleWebapp:
 
@@ -164,11 +160,13 @@ class TestCapsuleWebapp:
     # Response 200:
     def test_update(self, testapp):
         capsule_id = get_capsule_id(testapp)
+        runtime_id = get_runtime_id(testapp)
 
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
 
-            current_webapp = testapp.get(api_version + '/capsules/' + capsule_id + '/webapp', status=201).json
+            current_webapp = self._webapp_output
+            current_webapp["runtime_id"] = runtime_id
             current_webapp["fqdns"] = [
                 {
                     "alias": False,

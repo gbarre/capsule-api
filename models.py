@@ -289,14 +289,28 @@ class Option(db.Model):
     def instance_id(self):
         return self.webapp_id or self.addon_id
 
+    @staticmethod
+    def create(opts):
+        opts_array = []
+        for opt in opts:
+            opts_array.append(Option(**opt))
+        return opts_array
+
 
 class FQDN(db.Model):
     __tablename__ = "fqdns"
     id = db.Column(GUID, nullable=False, unique=True,
                    default=uuid.uuid4, primary_key=True)
     webapp_id = db.Column(GUID, db.ForeignKey('webapps.id'))
-    name = db.Column(db.String(256), nullable=False, unique=True)
+    name = db.Column(db.String(256), nullable=False)
     alias = db.Column(db.Boolean, nullable=False, default=False)
+
+    @staticmethod
+    def create(fqdns):
+        fqdns_array = []
+        for fqdn in fqdns:
+            fqdns_array.append(FQDN(**fqdn))
+        return fqdns_array
 
 
 capsules_users_table = db.Table('capsules_users', db.Model.metadata,
