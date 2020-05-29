@@ -90,6 +90,16 @@ def setup_initial_data(db):
         runtime=runtime1,
     )
 
+    d = dict(foodata.runtime2)
+    d["runtime_type"] = getattr(RuntimeTypeEnum, foodata.runtime2["runtime_type"])
+    runtime2 = Runtime(**d)
+
+    d = dict(foodata.addon)
+    d["env"] = str(d["env"])
+    addon1 = AddOn(**d,
+        runtime=runtime2,
+    )
+
     d = dict(foodata.user1)
     user1 = User(**d)
 
@@ -103,7 +113,10 @@ def setup_initial_data(db):
             user1,
             user2,
         ],
-        webapp = webapp1
+        webapp = webapp1,
+        addons = [
+            addon1,
+        ]
     )
 
     array_obj = [
@@ -116,6 +129,8 @@ def setup_initial_data(db):
         fqdn1,
         fqdn2,
         webapp1,
+        runtime2,
+        addon1,
         user1,
         user2,
         capsule1,

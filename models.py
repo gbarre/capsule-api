@@ -220,7 +220,7 @@ class AddOn(db.Model):
     capsule_id = db.Column(GUID, db.ForeignKey('capsules.id'))
     name = db.Column(db.String(256), nullable=False)
     description = db.Column(db.String(256))
-    uri = db.Column(db.String(256), nullable=False)
+    uri = db.Column(db.String(256))
     env = db.Column(db.Text)
     opts = db.relationship(
         "Option",
@@ -457,6 +457,9 @@ class AddOnSchema(ma.SQLAlchemyAutoSchema):
 
     class Meta:
         model = AddOn
+        # include_relationships = True
+        # include_fk = True
+        # exclude = ('runtime',)
         sqla_session = db.session
 
     id = ma.auto_field(dump_only=True)
@@ -545,3 +548,5 @@ sshkeys_schema = SSHKeySchema(many=True)
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
 webapp_schema = WebAppSchema()
+addon_schema = WebAppSchema()
+addons_schema = WebAppSchema(many=True)

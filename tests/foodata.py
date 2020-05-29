@@ -40,6 +40,13 @@ runtime1 = {
     ],
 }
 
+runtime2 = {
+    "name": "MariaDB 10.1",
+    "desc": "SQL server",
+    "fam": "SQL",
+    "runtime_type": "addon", # models.RuntimeTypeEnum.addons
+}
+
 fqdn1 = {
     "name": "main.fqdn.ac-versailles.fr",
     "alias": False
@@ -71,6 +78,18 @@ webapp = {
     "quota_memory_max": "4",
     "quota_volume_size": "20",
     "tls_redirect_https": True,
+    # "runtime_id": "b5ce1c27-b2bb-4eaf-8d29-c8dee632df67",
+}
+
+addon = {
+    "description": "Service de base de données pour ma capsule",
+    "env": {
+        "HTTPS_PROXY": "https://proxy:3128/",
+        "HTTP_PROXY": "http://proxy:3128/"
+    },
+    "name": "MySQL-1",
+    "opts": [],
+    # "runtime_id": "10f6e1d7-2976-43e4-a4a5-bab833cb3241",
 }
 
 sshkey1 = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCt+vNHscC4LbZY/YQP0hcV4QrwRlhqrcuhAvZZERmp"\
