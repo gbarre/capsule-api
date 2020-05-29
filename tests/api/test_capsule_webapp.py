@@ -49,14 +49,14 @@ class TestCapsuleWebapp:
         with patch.object(oidc, 'validate_token', return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
 
-            res = testapp.post_json(api_version + '/capsules/' + bad_id + '/webapp', self._webapp_input, status=400)
+            testapp.post_json(api_version + '/capsules/' + bad_id + '/webapp', self._webapp_input, status=400)
 
     def test_create_missing_runtime_id(self, testapp):
         with patch.object(oidc, 'validate_token', return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
             capsule_id = get_capsule_id(testapp)
 
-            res = testapp.post_json(api_version + '/capsules/' + capsule_id + '/webapp', self._webapp_input, status=400)
+            testapp.post_json(api_version + '/capsules/' + capsule_id + '/webapp', self._webapp_input, status=400)
 
     def test_create_missing_fqdns(self, testapp):
         with patch.object(oidc, 'validate_token', return_value=True), \

@@ -4,7 +4,8 @@ from models import RoleEnum
 from models import Capsule, User
 from models import WebApp, webapp_schema
 from models import FQDN, Option
-from app import db, oidc
+from models import Runtime, RuntimeTypeEnum
+from app import db
 from utils import oidc_require_role
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden, Conflict
 
@@ -28,6 +29,7 @@ def _get_capsule(capsule_id, user):
 
     return capsule
 
+
 # /POST /capsules/{cId}/webapp
 @oidc_require_role(min_role=RoleEnum.user)
 def post(capsule_id, user, webapp_data=None):
@@ -41,6 +43,10 @@ def post(capsule_id, user, webapp_data=None):
     # Datas could come from PUT
     if webapp_data is None:
         webapp_data = request.get_json()
+
+    runtime = Runtime.query.get(webapp_data["runtime_id"])
+    if runtime.runtime_type is not RuntimeTypeEnum.webapp:
+        raise BadRequest(description=f"The runtime_id '{runtime.id}' has not type 'webapp'.")
 
     if "env" in webapp_data:
         webapp_data["env"] = str(webapp_data["env"])
