@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # require docker & jq
 
@@ -43,15 +43,25 @@ else
     exit 0
 fi
 
-echo "Wating for Keycloak docker..."
+echo -n "Starting Keycloak docker..."
 
-for i in `seq 1 12`;
+DONE=KO
+for i in `seq 1 60`;
 do
+  HTTP_CODE=$(curl -m 1 -s -w '%{http_code}' -o /dev/null ${KC_URL}/)
+  if [ "$?" -eq 0 ] && [ "$HTTP_CODE" = "200" ] ; then
+    echo " Done!"
+    DONE=OK
+    break;
+  fi
   sleep 5
   echo -n "."
 done
-echo " Keycloak should run..."
-echo "Wait for dev realm import..."
+
+if [ "$DONE" != "OK" ] ; then
+  echo "Could not connect to keycloak. Aborting."
+  exit 1
+fi
 
 # get KC admin token
 TKN=`curl -s -X POST \
