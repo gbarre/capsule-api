@@ -9,6 +9,8 @@ from werkzeug.exceptions import BadRequest, Forbidden, NotFound
 from functools import wraps
 from app import oidc
 from inspect import signature
+from marshmallow import fields
+from sqlalchemy.util import symbol
 
 
 OIDC_CONFIG = None
@@ -110,3 +112,34 @@ def get_user_from_keycloak(id):
         raise KeycloakIdNotFound(id)
 
     return res
+
+def build_query_filters(model_class, filters):
+    query = []
+
+    for filter, value in filters.items():
+        field = getattr(model_class, filter)
+        if field is None:
+            continue
+
+        # If the property to filter on is a collection
+        if hasattr(field.property, 'direction') \
+            and field.property.direction in (symbol('ONETOMANY'), symbol('MANYTOMANY')):
+            value_class = field.property.entity.mapper.entity
+
+            if hasattr(value_class, '__default_filter__'):
+                property_to_filter = value_class.__default_filter__
+            else:
+                property_to_filter = 'id'
+
+            value_class_property = getattr(value_class, property_to_filter)
+            if ',' in value:
+                values = value.split(',')
+                for v in values:
+                    query.append(field.any(value_class_property == v))
+            elif '|' in value:
+                values = value.split('|')
+                query.append(field.any(value_class_property.in_(values)))
+            else:
+                # For instance with "owners" filter: query.append(Capsule.owners.any(User.id == user.id))
+                query.append(field.any(value_class_property == value))
+    return query

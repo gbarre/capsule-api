@@ -1,29 +1,49 @@
 from flask import request
 from models import RoleEnum
 from models import SSHKey, User
-from models import Capsule, capsule_schema, capsules_schema, capsules_users_table
+from models import Capsule, capsule_schema, capsules_schema, capsules_users_table, capsules_verbose_schema
 from app import db, oidc
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 from sqlalchemy import inspect
-from utils import check_owners_on_keycloak, oidc_require_role, REGEX_CAPSULE_NAME
+from utils import check_owners_on_keycloak, oidc_require_role, REGEX_CAPSULE_NAME, build_query_filters
 from exceptions import KeycloakUserNotFound
 
 
-# GET /capsules
+# GET /capsules?filters[toto]=tata&filters[titi]=tutu
 @oidc_require_role(min_role=RoleEnum.user)
 def search(offset, limit, filters, verbose, user):
-    # TODO: test filters with relationships
-    # TODO: check role : user see his capsules, admin/superadmin see all
     # TODO: verbose mode
+    # NOTE: https://stackoverflow.com/questions/6474989/sqlalchemy-filter-by-membership-in-at-least-one-many-to-many-related-table
+
+    # filters[owners]=user2
+
+    # filters[owners]=user1|user2
+    print(filters)
+
+    # capsule_schema.fields.owners : fields list
+    # capsule_schema.fields.addons : fields Related list
+    # capsule_schema.fields.webapp : fields Related
+
+    # Capsule.owners.property.entity.mapper.class_variables.entity : User
+    # Capsule.owners.property.direction : symbol('MANYTOMANY')
+
     try:
-        results = Capsule.query.filter_by(**filters).limit(limit).offset(offset).all()
-    except:
+        query = build_query_filters(Capsule, filters)
+        if user.role < RoleEnum.admin:
+            query.append(Capsule.owners.any(User.id == user.id))
+        results = Capsule.query.filter(*query).limit(limit).offset(offset).all()
+        # filter_by(toto="tata", titi="tutu")
+    except Exception as e:
+        raise e
         raise BadRequest
 
     if not results:
         raise NotFound(description="No capsules have been found.")
 
-    return capsules_schema.dump(results).data
+    if verbose is True:
+        return capsules_verbose_schema.dump(results).data
+    else:
+        return capsules_schema.dump(results).data
 
 
 # POST /capsules

@@ -38,11 +38,11 @@ class TestCapsules:
     #################################
     #### Testing GET /capsules
     #################################
+    # Response 404: TODO
+
     # Response 401:
     def test_get_with_no_token(self, testapp):
         testapp.get(api_version + "/capsules", status=401)
-
-    # Response 403: TODO
 
     # Response 200:
     def test_get(self, testapp):

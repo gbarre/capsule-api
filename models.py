@@ -107,6 +107,8 @@ class ValidationRuleEnum(str, enum.Enum):
 
 class User(db.Model):
     __tablename__ = "users"
+    __default_filter__ = "name"
+
     id = db.Column(GUID, nullable=False,
                    unique=True, primary_key=True, default=uuid.uuid4)
     name = db.Column(db.String(32), nullable=False, unique=True) # LDAP UID
@@ -354,23 +356,33 @@ class Capsule(db.Model):
     name = db.Column(db.String(256), nullable=False, unique=True) # FIXME: Unique ?
     webapp_id = db.Column(GUID, db.ForeignKey(
         'webapps.id'), nullable=True)
+
+    # One-To-One
+    # 1 (capsule) To 0..1 (webapp)
     webapp = db.relationship(
         "WebApp",
         backref=backref("capsule", uselist=False),
         cascade="all, delete, delete-orphan",
         single_parent=True,
     )
+
+    # One-To-Many
+    # 1 (capsule) To 0..N (addons)
     addons = db.relationship(
         "AddOn",
         backref="capsule",
         cascade="all, delete, delete-orphan",
         single_parent=True,
     )
+
+    # Many-To-Many
+    # 1..N (capsules) To 0..N (sshkeys)
     authorized_keys = db.relationship(
         "SSHKey",
         secondary=capsules_sshkeys_table,
         backref="capsules",
     )
+
     owners = db.relationship(
         "User",
         secondary=capsules_users_table,
@@ -396,7 +408,7 @@ class RuntimeSchema(ma.SQLAlchemyAutoSchema):
         sqla_session = db.session
 
     id = ma.auto_field(dump_only=True)
-    webapp = fields.Nested('WebAppSchema', default=[], many=True)
+    webapps = fields.Nested('WebAppSchema', default=[], many=True)
     addons = fields.Nested('AddOnSchema', default=[], many=True)
     available_opts = fields.Nested(
         'AvailableOptionSchema', default=[], many=True, exclude=('available_option_id',))
@@ -432,9 +444,9 @@ class WebAppSchema(ma.SQLAlchemyAutoSchema):
 
     class Meta:
         model = WebApp
-        include_relationships = True
+        # include_relationships = True
         include_fk = True
-        exclude = ('runtime',)
+        # exclude = ('runtime',)
         sqla_session = db.session
 
     id = ma.auto_field(dump_only=True)
@@ -521,6 +533,35 @@ class CapsuleSchema(ma.SQLAlchemyAutoSchema):
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
 
+
+class CapsuleSchemaVerbose(ma.SQLAlchemyAutoSchema):
+    def __init__(self, **kwargs):
+        super().__init__(strict=True, **kwargs)
+
+    class Meta:
+        model = Capsule
+        include_relationships = True
+        include_fk = True
+        exclude = ('webapp_id',)
+        sqla_session = db.session
+
+    id = ma.auto_field(dump_only=True)
+    addons = fields.Nested(
+        "AddOnSchema",
+        default=[],
+        many=True,
+    )
+    webapp = fields.Nested(
+        "WebAppSchema",
+        default=None,
+        many=False,
+    )
+    owners = fields.List(fields.String())
+    authorized_keys = fields.List(fields.String())
+    created_at = ma.auto_field(dump_only=True)
+    updated_at = ma.auto_field(dump_only=True)
+
+
 class UserSchema(ma.SQLAlchemyAutoSchema):
     def __init__(self, **kwargs):
         super().__init__(strict=True, **kwargs)
@@ -541,6 +582,7 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
 
 capsule_schema = CapsuleSchema()
 capsules_schema = CapsuleSchema(many=True)
+capsules_verbose_schema = CapsuleSchemaVerbose(many=True)
 runtime_schema = RuntimeSchema()
 runtimes_schema = RuntimeSchema(many=True)
 sshkey_schema = SSHKeySchema()
