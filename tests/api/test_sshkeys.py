@@ -6,7 +6,6 @@ from werkzeug.exceptions import Forbidden
 from models import RoleEnum, User, SSHKey
 import pytest
 
-
 class TestSshKeys:
 
     _sshkey_input = {
@@ -31,18 +30,23 @@ class TestSshKeys:
     #################################
     #### Testing GET /sshkeys
     #################################
-    # Response 404: TODO after filter by user
+    # Response 404:
+    def test_get_not_found(self, testapp, users):
+        with patch.object(oidc, "validate_token", return_value=True), \
+            patch("utils.check_user_role", return_value=users['fake_user']):
+
+            testapp.get(api_version + "/sshkeys", status=404)
 
     # Response 403: WHY ???
 
     # Response 401:
-    def test_get_with_no_token(self, testapp):
+    def test_get_with_no_token(self, testapp, users):
         testapp.get(api_version + "/sshkeys", status=401)
 
     # Response 200:
-    def test_get(self, testapp):
+    def test_get(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=foobar):
+            patch("utils.check_user_role", return_value=users['fake_admin']):
 
             res = testapp.get(api_version + "/sshkeys", status=200).json
             assert dict_contains(res, self._sshkeys_output)
@@ -54,13 +58,13 @@ class TestSshKeys:
     # Response 403: TODO => is it possible ?
 
     # Response 401:
-    def test_create_with_no_token(self, testapp):
+    def test_create_with_no_token(self, testapp, users):
         testapp.post_json(api_version + "/sshkeys", self._sshkey_input, status=401)
 
     # Response 201: TODO Write test for posting raw text
-    def test_create(self, testapp):
+    def test_create(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=foobar):
+            patch("utils.check_user_role", return_value=users["fake_user"]):
 
             res = testapp.post_json(api_version + "/sshkeys", self._sshkey_input, status=201).json
             assert dict_contains(res, self._sshkey_input)
@@ -72,9 +76,9 @@ class TestSshKeys:
     # Response 204:
     # TODO: how to remove the header "Content-Type" in the a DELETE request only?
     @pytest.mark.filterwarnings("ignore:.*Content-Type header found in a 204 response.*:Warning")
-    def test_delete_sshkey(self, testapp):
+    def test_delete_sshkey(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=fake_admin):
+            patch("utils.check_user_role", return_value=users["fake_admin"]):
 
             # Get sshkey id
             sshkey = SSHKey.query.filter_by(public_key=foodata.sshkey1).first()
@@ -88,17 +92,17 @@ class TestSshKeys:
             assert foodata.sshkey1 not in res
 
     # Response 400:
-    def test_delete_bad_sshkey(self, testapp):
+    def test_delete_bad_sshkey(self, testapp, users):
         with patch.object(oidc, 'validate_token', return_value=True), \
-            patch("utils.check_user_role", return_value=foobar):
+            patch("utils.check_user_role", return_value=users["fake_user"]):
 
             res = testapp.delete(api_version + '/sshkeys/' + bad_id, status=400).json
             assert "The browser (or proxy) sent a request that this server could not understand." in res["detail"]
 
     # Response 401:
-    def test_delete_unauthenticated(self, testapp):
+    def test_delete_unauthenticated(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=foobar):
+            patch("utils.check_user_role", return_value=users["fake_user"]):
 
             # Get sshkey id
             sshkey = SSHKey.query.filter_by(public_key=foodata.sshkey1).first()
@@ -108,9 +112,9 @@ class TestSshKeys:
         testapp.delete(api_version + "/sshkeys/" + sshkey_id, status=401)
 
     # Response 403:
-    def test_delete_insufficient_rights(self, testapp):
+    def test_delete_insufficient_rights(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=foobar):
+            patch("utils.check_user_role", return_value=users["fake_user"]):
 
             # Get sshkey id
             sshkey = SSHKey.query.filter_by(public_key=foodata.sshkey1).first()

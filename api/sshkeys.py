@@ -7,12 +7,14 @@ from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 
 # /GET /sshkeys
 @oidc_require_role(min_role=RoleEnum.user)
-def search(offset, limit):
-    # TODO: test filters with relationships
-    # TODO: check role : user see his keys, admin/superadmin see all
+def search(offset, limit, user):
     try:
-        results = SSHKey.query.limit(limit).offset(offset).all()
-    except:
+        query = []
+        if user.role < RoleEnum.admin:
+            query.append(SSHKey.owner == user)
+        results = SSHKey.query.filter(*query).limit(limit).offset(offset).all()
+    except Exception as e:
+        raise e
         raise BadRequest
 
     if not results:

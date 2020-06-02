@@ -30,7 +30,6 @@ def create_app(config=ProdConfig):
 
     # Read the swagger.yml file to configure the endpoints
     # TODO: Voir comment on peut utiliser une spec découpée
-    # TODO: Activer la validation des réponses avec `validate_responses=true`
     connex_app.add_api('openapi.json', strict_validation=True, validate_responses=True)
 
     # Get the underlying Flask app instance

@@ -5,18 +5,17 @@ from models import Runtime, runtime_schema, runtimes_schema
 from models import RoleEnum
 from models import AvailableOption, AvailableOptionValidationRule
 import json
-from utils import oidc_require_role
-from pprint import pprint
+from utils import oidc_require_role, build_query_filters
 
 
 # GET /runtimes
 @oidc_require_role(min_role=RoleEnum.user)
 def search(offset, limit, filters):
-    # TODO: test filters with relationships
-    #try:
-    results = Runtime.query.filter_by(**filters).limit(limit).offset(offset).all()
-    #except:
-    #    raise BadRequest
+    try:
+        query = build_query_filters(Runtime, filters)
+        results = Runtime.query.filter(*query).limit(limit).offset(offset).all()
+    except:
+       raise BadRequest
 
     if not results:
         raise NotFound(description="No runtimes have been found.")

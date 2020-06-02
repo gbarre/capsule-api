@@ -13,28 +13,16 @@ from exceptions import KeycloakUserNotFound
 @oidc_require_role(min_role=RoleEnum.user)
 def search(offset, limit, filters, verbose, user):
     # TODO: verbose mode
+    # TODO: pagination hyperlinks (next, previous, etc.)
     # NOTE: https://stackoverflow.com/questions/6474989/sqlalchemy-filter-by-membership-in-at-least-one-many-to-many-related-table
-
-    # filters[owners]=user2
-
-    # filters[owners]=user1|user2
-    print(filters)
-
-    # capsule_schema.fields.owners : fields list
-    # capsule_schema.fields.addons : fields Related list
-    # capsule_schema.fields.webapp : fields Related
-
-    # Capsule.owners.property.entity.mapper.class_variables.entity : User
-    # Capsule.owners.property.direction : symbol('MANYTOMANY')
 
     try:
         query = build_query_filters(Capsule, filters)
         if user.role < RoleEnum.admin:
-            query.append(Capsule.owners.any(User.id == user.id))
+            query.append(Capsule.owners.any(User.name == user.name))
         results = Capsule.query.filter(*query).limit(limit).offset(offset).all()
         # filter_by(toto="tata", titi="tutu")
-    except Exception as e:
-        raise e
+    except:
         raise BadRequest
 
     if not results:
@@ -95,7 +83,6 @@ def post():
 
 
 # GET /capsules/{cID}
-# TODO: Adapt the spec exception schema
 @oidc_require_role(min_role=RoleEnum.user)
 def get(capsule_id, user):
     try:
@@ -111,37 +98,6 @@ def get(capsule_id, user):
         raise Forbidden
 
     return capsule_schema.dump(capsule).data
-
-
-# @oidc.accept_token(require_token=True, render_errors=False)
-# def put(capsule_id, capsule):
-#     capsule_data = request.get_json()
-#     data = capsule_schema.load(capsule_data).data
-
-#     try:
-#         capsule = Capsule.query.get(capsule_id)
-#     except:
-#         raise BadRequest
-#     if capsule is None:
-#         raise NotFound(description=f"The requested capsule '{capsule_id}' has not been found.")
-
-#     capsule.update(**data)
-#     for owner in capsule.owners:
-#         # Check keycloak user and force the associated role
-#         #
-#         # if inspect(owner).transient:  # if owner does not yet exist in database
-#         #   try:
-#         #       owner.role = check_owner_nsuniqueid_on_keycloak(owner.id)
-#         #   except:
-#         #     raise BadRequest
-#         if inspect(owner).transient:  # TODO: à remplacer ^
-#             owner.role = 'user'
-
-#     db.session.add(capsule)
-#     db.session.commit()
-
-#     result = Capsule.query.get(capsule.id)
-#     return capsule_schema.dump(result).data
 
 
 @oidc_require_role(min_role=RoleEnum.superadmin)

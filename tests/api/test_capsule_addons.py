@@ -1,7 +1,9 @@
 from tests.utils import *
+from models import RuntimeTypeEnum
 import tests.foodata as foodata
 from werkzeug.exceptions import Forbidden
 import pytest
+from pprint import pprint
 
 class TestCapsuleAddons:
 
@@ -20,7 +22,7 @@ class TestCapsuleAddons:
     # Build addon with correct runtime_id
     @classmethod
     def build_addon(cls, testapp):
-        runtime_id = get_runtime_id(testapp)
+        runtime_id = get_runtime_id(testapp, runtime_type=RuntimeTypeEnum.addon)
         addon = dict(cls._addon_input)
         addon["runtime_id"] = runtime_id
         return addon
@@ -70,7 +72,6 @@ class TestCapsuleAddons:
             testapp.post_json(api_version + '/capsules/' + capsule_id + '/addons', new_addon, status=403)
 
     # Response 201:
-    @pytest.mark.filterwarnings("ignore:.*Content-Type header found in a 204 response.*:Warning")
     def test_create(self, testapp):
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=foobar):

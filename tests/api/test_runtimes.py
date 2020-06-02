@@ -22,15 +22,15 @@ class TestRuntimes:
     #### Testing GET /runtimes
     #################################
     # Response 200:
-    def test_get(self, testapp):
+    def test_get(self, testapp, users):
         with patch.object(oidc, 'validate_token', return_value=True), \
-            patch("utils.check_user_role", return_value=foobar):
+            patch("utils.check_user_role", return_value=users["fake_user"]):
 
             res = testapp.get(api_version + '/runtimes', status=200).json
             assert dict_contains(res[0], self._runtime_output)
 
     # Response 401:
-    def test_get_with_no_token(self, testapp):
+    def test_get_with_no_token(self, testapp, users):
         testapp.get(api_version + '/runtimes', status=401)
     #################################
 
@@ -38,44 +38,44 @@ class TestRuntimes:
     #### Testing POST /runtimes
     #################################
     # Response 201:
-    def test_create(self, testapp):
+    def test_create(self, testapp, users):
         with patch.object(oidc, 'validate_token', return_value=True), \
-            patch("utils.check_user_role", return_value=fake_superadmin):
+            patch("utils.check_user_role", return_value=users["fake_superadmin"]):
 
             res = testapp.post_json(api_version + '/runtimes', self._runtime_input, status=201).json
             assert dict_contains(res, self._runtime_input)
 
     # Response 400:
-    def test_create_bad_json_missing_name(self, testapp):
+    def test_create_bad_json_missing_name(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=fake_superadmin):
+            patch("utils.check_user_role", return_value=users["fake_superadmin"]):
 
             temp_input = dict(self._runtime_input)
             temp_input.pop("name")
             res = testapp.post_json(api_version + "/runtimes", temp_input, status=400).json
             assert "'name' is a required property" in res["detail"]
 
-    def test_create_bad_json_missing_runtime_type(self, testapp):
+    def test_create_bad_json_missing_runtime_type(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=fake_superadmin):
+            patch("utils.check_user_role", return_value=users["fake_superadmin"]):
 
             temp_input = dict(self._runtime_input)
             temp_input.pop("runtime_type")
             res = testapp.post_json(api_version + "/runtimes", temp_input, status=400).json
             assert "'runtime_type' is a required property" in res["detail"]
 
-    def test_create_bad_json_missing_description(self, testapp):
+    def test_create_bad_json_missing_description(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=fake_superadmin):
+            patch("utils.check_user_role", return_value=users["fake_superadmin"]):
 
             temp_input = dict(self._runtime_input)
             temp_input.pop("desc")
             res = testapp.post_json(api_version + "/runtimes", temp_input, status=400).json
             assert "'desc' is a required property" in res["detail"]
 
-    def test_create_bad_json_missing_runtime_familly(self, testapp):
+    def test_create_bad_json_missing_runtime_familly(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=fake_superadmin):
+            patch("utils.check_user_role", return_value=users["fake_superadmin"]):
 
             temp_input = dict(self._runtime_input)
             temp_input.pop("fam")
@@ -83,11 +83,11 @@ class TestRuntimes:
             assert "'fam' is a required property" in res["detail"]
 
     # Response 401:
-    def test_create_with_no_token(self, testapp):
+    def test_create_with_no_token(self, testapp, users):
         testapp.post_json(api_version + '/runtimes', self._runtime_input, status=401)
 
     # Response 403:
-    def test_create_raises_on_invalid_role(self, testapp):
+    def test_create_raises_on_invalid_role(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", side_effect=Forbidden):
 
@@ -98,9 +98,9 @@ class TestRuntimes:
     #### Testing GET /runtimes/rId
     #################################
     # Response 200:
-    def test_get_runtime(self, testapp):
+    def test_get_runtime(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=foobar):
+            patch("utils.check_user_role", return_value=users["fake_user"]):
 
             # Get the runtime id
             res = testapp.get(api_version + "/runtimes", status=200).json
@@ -111,15 +111,15 @@ class TestRuntimes:
             assert dict_contains(runtime, self._runtime_output)
 
     # Response 401:
-    def test_get_runtime_unauthenticated(self, testapp):
-        runtime_id = get_runtime_id(testapp)
+    def test_get_runtime_unauthenticated(self, testapp, users):
+        runtime_id = get_runtime_id(testapp, users)
         # Get this runtime by id
         testapp.get(api_version + "/runtimes/" + runtime_id, status=401)
 
     # Response 404:
-    def test_get_bad_runtime(self, testapp):
+    def test_get_bad_runtime(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=foobar):
+            patch("utils.check_user_role", return_value=users["fake_user"]):
 
             # Get the runtime id
             res = testapp.get(api_version + "/runtimes/" + unexisting_id, status=404).json
@@ -130,9 +130,9 @@ class TestRuntimes:
     #### Testing PUT /runtimes/rId
     #################################
     # Response 200:
-    def test_update_runtime(self, testapp):
+    def test_update_runtime(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=fake_superadmin):
+            patch("utils.check_user_role", return_value=users["fake_superadmin"]):
 
             # Get the runtime id
             res = testapp.get(api_version + "/runtimes", status=200).json
@@ -144,29 +144,29 @@ class TestRuntimes:
             assert dict_contains(runtime, temp_runtime)
 
     # Response 201:
-    def test_update_unexisting_runtime(self, testapp):
+    def test_update_unexisting_runtime(self, testapp, users):
         with patch.object(oidc, 'validate_token', return_value=True), \
-            patch("utils.check_user_role", return_value=fake_superadmin):
+            patch("utils.check_user_role", return_value=users["fake_superadmin"]):
 
             res = testapp.put_json(api_version + '/runtimes/' + unexisting_id, self._runtime_input, status=201).json
             assert dict_contains(res, self._runtime_input)
 
     # Response 400:
-    def test_update_bad_runtime(self, testapp):
+    def test_update_bad_runtime(self, testapp, users):
         with patch.object(oidc, 'validate_token', return_value=True), \
-            patch("utils.check_user_role", return_value=fake_superadmin):
+            patch("utils.check_user_role", return_value=users["fake_superadmin"]):
 
             res = testapp.put_json(api_version + '/runtimes/' + bad_id, self._runtime_input, status=400).json
             assert "The browser (or proxy) sent a request that this server could not understand." in res["detail"]
 
     # Response 401:
-    def test_update_unauthenticated(self, testapp):
-        runtime_id = get_runtime_id(testapp)
+    def test_update_unauthenticated(self, testapp, users):
+        runtime_id = get_runtime_id(testapp, users)
         testapp.put_json(api_version + "/runtimes/" + runtime_id, self._runtime_input, status=401)
 
     # Response 403:
-    def test_update_insufficient_rights(self, testapp):
-        runtime_id = get_runtime_id(testapp)
+    def test_update_insufficient_rights(self, testapp, users):
+        runtime_id = get_runtime_id(testapp, users)
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", side_effect=Forbidden):
 
@@ -181,9 +181,9 @@ class TestRuntimes:
 
     # Response 204
     @pytest.mark.filterwarnings("ignore:.*Content-Type header found in a 204 response.*:Warning")
-    def test_delete_runtime(self, testapp):
+    def test_delete_runtime(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=fake_superadmin):
+            patch("utils.check_user_role", return_value=users["fake_superadmin"]):
 
             # Get the runtime id
             res = testapp.get(api_version + "/runtimes", status=200).json
@@ -196,14 +196,14 @@ class TestRuntimes:
             assert "The requested runtime '" + runtime_id + "' has not been found." in res["detail"]
 
     # Response 401
-    def test_delete_unauthenticated(self, testapp):
-        runtime_id = get_runtime_id(testapp)
+    def test_delete_unauthenticated(self, testapp, users):
+        runtime_id = get_runtime_id(testapp, users)
         # Delete this runtime
         testapp.delete(api_version + "/runtimes/" + runtime_id, status=401)
 
     # Response 403:
-    def test_delete_insufficient_rights(self, testapp):
-        runtime_id = get_runtime_id(testapp)
+    def test_delete_insufficient_rights(self, testapp, users):
+        runtime_id = get_runtime_id(testapp, users)
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", side_effect=Forbidden):
 

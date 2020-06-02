@@ -18,6 +18,19 @@ def testapp(app):
     return webtest.TestApp(app)
 
 
+@pytest.fixture(scope='function')
+def users(db):
+    users = {
+        'fake_admin': User(name="fake_admin", role=RoleEnum.admin),
+        'fake_superadmin': User(name="fake_superadmin", role=RoleEnum.superadmin),
+        'fake_user': User(name="fake_user", role=RoleEnum.user),
+    }
+
+    db.session.add_all(list(users.values()))
+    db.session.commit()
+    return users
+
+
 @pytest.fixture(scope='function', autouse=True)
 def db(app):
     # HACK: app parameter is here to trigger db object configuration
@@ -25,6 +38,13 @@ def db(app):
         _db.create_all()
 
         setup_initial_data(_db)
+        # TODO: Make a fixture class to move around sqlalchemy objects more consistently and easily
+        # klass = MyFixtureClass(_db, <user_transient_object_dict>)
+        # yield klass
+
+        # klass._db.session.close()
+        # klass._db.drop_all()
+
         yield _db
 
         _db.session.close()

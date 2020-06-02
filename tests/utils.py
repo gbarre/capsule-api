@@ -1,6 +1,6 @@
 from app import oidc
 from unittest.mock import patch
-from models import RoleEnum, User
+from models import RoleEnum, User, RuntimeTypeEnum
 
 
 def dict_contains(superset, subset):
@@ -52,26 +52,29 @@ class DictArrayCompare:
 
 api_version = '/v1'
 
-foobar = User(name="toto1", role=RoleEnum.user)
-fake_admin = User(name="fake_user", role=RoleEnum.admin)
-fake_superadmin = User(name="fake_user", role=RoleEnum.superadmin)
-fake_user = User(name="fake_user", role=RoleEnum.user)
+# foobar = User.query.filter_by(name="toto1").first()
+# fake_admin = User.query.filter_by(name="fake_admin").first()
+# fake_superadmin = User.query.filter_by(name="fake_superadmin").first()
+# fake_user = User.query.filter_by(name="fake_user").first()
 
 bad_id = "XYZ"
 unexisting_id = "ffffffff-ffff-ffff-ffff-ffffffffffff"
 
-def get_capsule_id(testapp):
+def get_capsule_id(testapp, users):
     with patch.object(oidc, "validate_token", return_value=True), \
-        patch("utils.check_user_role", return_value=foobar):
+        patch("utils.check_user_role", return_value=users["fake_admin"]):
 
         # Get the capsule id
         res = testapp.get(api_version + "/capsules").json
         return res[0]["id"]
 
-def get_runtime_id(testapp):
+def get_runtime_id(testapp, users, runtime_type=RuntimeTypeEnum.webapp):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=foobar):
+            patch("utils.check_user_role", return_value=users["fake_user"]):
 
             # Get the runtime id
             res = testapp.get(api_version + "/runtimes", status=200).json
-            return res[0]["id"]
+            for r in res:
+                if r["runtime_type"] == runtime_type:
+                    return r["id"]
+            return None

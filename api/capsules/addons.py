@@ -1,5 +1,6 @@
 from flask import request
 import ast
+import json
 from models import RoleEnum
 from models import Capsule, User
 from models import AddOn, addon_schema, addons_schema
@@ -43,7 +44,7 @@ def post(capsule_id, user, addon_data=None):
         raise BadRequest(description=f"The runtime_id '{runtime.id}' has not type 'addon'.")
 
     if "env" in addon_data:
-        addon_data["env"] = str(addon_data["env"])
+        addon_data["env"] = json.dumps(addon_data["env"])
 
     if "opts" in addon_data:
         opts = Option.create(addon_data["opts"])
@@ -58,9 +59,12 @@ def post(capsule_id, user, addon_data=None):
     db.session.add(addon)
     db.session.commit()
 
-    # TODO: return
-    # result_json = addon_schema.dump(addon).data
-    # result_json["env"] = ast.literal_eval(result_json["env"])
+    result = AddOn.query.get(addon.id)
+    result_json = addon_schema.dump(addon).data
+    result_json["env"] = json.loads(result_json["env"])
+    return result_json, 201, {
+        'Location': f'{request.base_url}/capsules/{capsule_id}/addons/{addon.id}',
+    }
 
 
 # GET /capsules/{cID}/addons

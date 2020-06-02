@@ -88,7 +88,6 @@ class RoleEnum(str, enum.Enum):
 
 
 class OptionValueTypeEnum(str, enum.Enum):
-    # FIXME: Decide the types
     integer = "integer"
     float = "float"
     boolean = "bloolean"
@@ -353,7 +352,7 @@ class Capsule(db.Model):
     __tablename__ = "capsules"
     id = db.Column(GUID, nullable=False, unique=True,
                    default=uuid.uuid4, primary_key=True)
-    name = db.Column(db.String(256), nullable=False, unique=True) # FIXME: Unique ?
+    name = db.Column(db.String(256), nullable=False, unique=True)
     webapp_id = db.Column(GUID, db.ForeignKey(
         'webapps.id'), nullable=True)
 
@@ -470,7 +469,7 @@ class AddOnSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = AddOn
         # include_relationships = True
-        # include_fk = True
+        include_fk = True
         # exclude = ('runtime',)
         sqla_session = db.session
 
@@ -510,8 +509,10 @@ class SSHKeySchema(ma.SQLAlchemyAutoSchema):
 
     class Meta:
         model = SSHKey
+        include_relationships = True
         sqla_session = db.session
 
+    owner = fields.String()
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
 
@@ -590,5 +591,5 @@ sshkeys_schema = SSHKeySchema(many=True)
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
 webapp_schema = WebAppSchema()
-addon_schema = WebAppSchema()
-addons_schema = WebAppSchema(many=True)
+addon_schema = AddOnSchema()
+addons_schema = AddOnSchema(many=True)

@@ -17,7 +17,7 @@ get:
             type: array
             items:
               $ref: "../components/schemas.yaml#/Runtime"
-    "400": # TODO : explain this code
+    "400":
       $ref: "../components/responses.yaml#/BadRequest"
     "401":
       $ref: "../components/responses.yaml#/Unauthorized"

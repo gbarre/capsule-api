@@ -38,14 +38,19 @@ class TestCapsules:
     #################################
     #### Testing GET /capsules
     #################################
-    # Response 404: TODO
+    # Response 404:
+    def test_get_no_capsule(self, testapp, users):
+        with patch.object(oidc, "validate_token", return_value=True), \
+            patch("utils.check_user_role", return_value=users["fake_user"]):
+
+            testapp.get(api_version + "/capsules", status=404)
 
     # Response 401:
-    def test_get_with_no_token(self, testapp):
+    def test_get_with_no_token(self, testapp, users):
         testapp.get(api_version + "/capsules", status=401)
 
     # Response 200:
-    def test_get(self, testapp):
+    def test_get(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
 
@@ -57,33 +62,33 @@ class TestCapsules:
     #### Testing POST /capsules
     #################################
     # Response 400:
-    def test_create_raises_on_invalid_owner(self, testapp):
+    def test_create_raises_on_invalid_owner(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=fake_admin), \
+            patch("utils.check_user_role", return_value=users["fake_admin"]), \
             patch("api.capsules.check_owners_on_keycloak", side_effect=KeycloakUserNotFound("barfoo")):
 
             res = testapp.post_json(api_version + "/capsules", self._capsule_input, status=400).json
             assert "barfoo" in res["detail"]
 
-    def test_create_illegal_name(self, testapp):
+    def test_create_illegal_name(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=fake_admin), \
+            patch("utils.check_user_role", return_value=users["fake_admin"]), \
             patch("api.capsules.check_owners_on_keycloak"):
 
             res = testapp.post_json(api_version + "/capsules", self._capsule_input_illegal, status=400).json
             assert "illegal" in res["detail"]
 
-    def test_create_duplicated_name(self, testapp):
+    def test_create_duplicated_name(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=fake_admin), \
+            patch("utils.check_user_role", return_value=users["fake_admin"]), \
             patch("api.capsules.check_owners_on_keycloak"):
 
             res = testapp.post_json(api_version + "/capsules", self._capsule_output, status=400).json
             assert "already exists" in res["detail"]
 
-    def test_create_bad_json_missing_name(self, testapp):
+    def test_create_bad_json_missing_name(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=fake_admin), \
+            patch("utils.check_user_role", return_value=users["fake_admin"]), \
             patch("api.capsules.check_owners_on_keycloak"):
 
             temp_input = dict(self._capsule_input)
@@ -91,9 +96,9 @@ class TestCapsules:
             res = testapp.post_json(api_version + "/capsules", temp_input, status=400).json
             assert "'name' is a required property" in res["detail"]
 
-    def test_create_bad_json_missing_owners(self, testapp):
+    def test_create_bad_json_missing_owners(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=fake_admin), \
+            patch("utils.check_user_role", return_value=users["fake_admin"]), \
             patch("api.capsules.check_owners_on_keycloak"):
 
             temp_input = dict(self._capsule_input)
@@ -102,20 +107,20 @@ class TestCapsules:
             assert "'owners' is a required property" in res["detail"]
 
     # Response 401:
-    def test_create_with_no_token(self, testapp):
+    def test_create_with_no_token(self, testapp, users):
         testapp.post_json(api_version + "/capsules", self._capsule_input, status=401)
 
     # Response 403:
-    def test_create_raises_on_invalid_role(self, testapp):
+    def test_create_raises_on_invalid_role(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", side_effect=Forbidden("User has not sufficient right")):
 
             res = testapp.post_json(api_version + "/capsules", self._capsule_input, status=403).json
 
     # Response 201:
-    def test_create(self, testapp):
+    def test_create(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=fake_admin), \
+            patch("utils.check_user_role", return_value=users["fake_admin"]), \
             patch("api.capsules.check_owners_on_keycloak"):
 
             res = testapp.post_json(api_version + "/capsules", self._capsule_input, status=201).json
@@ -126,7 +131,7 @@ class TestCapsules:
     #### Testing GET /capsules/cId
     #################################
     # Response 404:
-    def test_get_bad_capsule(self, testapp):
+    def test_get_bad_capsule(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
 
@@ -134,7 +139,7 @@ class TestCapsules:
             assert "The requested capsule 'ffffffff-ffff-ffff-ffff-ffffffffffff' has not been found." in res["detail"]
 
     # Response 403:
-    def test_get_capsule_raise_bad_owner(self, testapp):
+    def test_get_capsule_raise_bad_owner(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", side_effect=Forbidden):
 
@@ -142,7 +147,7 @@ class TestCapsules:
             assert "You don't have the permission to access the requested resource." in res["detail"]
 
     # Response 200:
-    def test_get_capsule(self, testapp):
+    def test_get_capsule(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
 
@@ -160,9 +165,9 @@ class TestCapsules:
     # Response 204:
     # TODO: how to remove the header "Content-Type" in the a DELETE request only?
     @pytest.mark.filterwarnings("ignore:.*Content-Type header found in a 204 response.*:Warning")
-    def test_delete_capsule(self, testapp):
+    def test_delete_capsule(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=fake_superadmin):
+            patch("utils.check_user_role", return_value=users["fake_superadmin"]):
 
             # Get the capsule id
             res = testapp.get(api_version + "/capsules", status=200).json
@@ -175,15 +180,15 @@ class TestCapsules:
             assert "The requested capsule '" + capsule_id + "' has not been found." in res["detail"]
 
     # Response 400:
-    def test_delete_bad_capsule(self, testapp):
+    def test_delete_bad_capsule(self, testapp, users):
         with patch.object(oidc, 'validate_token', return_value=True), \
-            patch("utils.check_user_role", return_value=fake_superadmin):
+            patch("utils.check_user_role", return_value=users["fake_superadmin"]):
 
             res = testapp.delete(api_version + '/capsules/XYZ', status=400).json
             assert "The browser (or proxy) sent a request that this server could not understand." in res["detail"]
 
     # Response 401:
-    def test_delete_unauthenticated(self, testapp):
+    def test_delete_unauthenticated(self, testapp, users):
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
 
@@ -195,7 +200,7 @@ class TestCapsules:
         testapp.delete(api_version + "/capsules/" + capsule_id, status=401)
 
     # Response 403:
-    def test_delete_insufficient_rights(self, testapp):
+    def test_delete_insufficient_rights(self, testapp, users):
          with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=foobar):
 

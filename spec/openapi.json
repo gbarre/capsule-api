@@ -496,7 +496,8 @@
             "type": "string",
             "format": "uri",
             "readOnly": true,
-            "example": "mysql://username:password@host/database"
+            "example": "mysql://username:password@host/database",
+            "nullable": true
           },
           "runtime_id": {
             "type": "string",
@@ -614,6 +615,58 @@
           },
           "authorized_keys": {
             "$ref": "#/components/schemas/SSHKeyList",
+            "default": []
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "example": "2017-07-21T17:32:28Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "example": "2020-03-17T15:32:28Z"
+          }
+        },
+        "required": [
+          "name",
+          "owners"
+        ]
+      },
+      "CapsuleVerbose": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "695d0f1a-beb2-4145-828d-0f7f0fcc6696",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "example": "lyc-vernes-osny"
+          },
+          "owners": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/User"
+            },
+            "uniqueItems": true,
+            "minItems": 1
+          },
+          "webapp": {
+            "$ref": "#/components/schemas/WebApp"
+          },
+          "addons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AddOn"
+            },
+            "default": []
+          },
+          "authorized_keys": {
+            "$ref": "#/components/schemas/SSHKey",
             "default": []
           },
           "created_at": {
@@ -843,8 +896,8 @@
               }
             }
           },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
@@ -1296,6 +1349,9 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
