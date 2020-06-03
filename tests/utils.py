@@ -1,6 +1,12 @@
 from app import oidc
 from unittest.mock import patch
 from models import RoleEnum, User, RuntimeTypeEnum
+# from uuid import UUID
+
+
+# def uuid_convert(o):
+#     if isinstance(o, UUID):
+#         return o.hex
 
 
 def dict_contains(superset, subset):
@@ -52,29 +58,24 @@ class DictArrayCompare:
 
 api_version = '/v1'
 
-# foobar = User.query.filter_by(name="toto1").first()
-# fake_admin = User.query.filter_by(name="fake_admin").first()
-# fake_superadmin = User.query.filter_by(name="fake_superadmin").first()
-# fake_user = User.query.filter_by(name="fake_user").first()
-
 bad_id = "XYZ"
 unexisting_id = "ffffffff-ffff-ffff-ffff-ffffffffffff"
 
-def get_capsule_id(testapp, users):
-    with patch.object(oidc, "validate_token", return_value=True), \
-        patch("utils.check_user_role", return_value=users["fake_admin"]):
+# def get_capsule_id(testapp, users):
+#     with patch.object(oidc, "validate_token", return_value=True), \
+#         patch("utils.check_user_role", return_value=users["fake_admin"]):
 
-        # Get the capsule id
-        res = testapp.get(api_version + "/capsules").json
-        return res[0]["id"]
+#         # Get the capsule id
+#         res = testapp.get(api_version + "/capsules").json
+#         return res[0]["id"]
 
-def get_runtime_id(testapp, users, runtime_type=RuntimeTypeEnum.webapp):
-        with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=users["fake_user"]):
+# def get_runtime_id(testapp, users, runtime_type=RuntimeTypeEnum.webapp):
+#         with patch.object(oidc, "validate_token", return_value=True), \
+#             patch("utils.check_user_role", return_value=users["fake_user"]):
 
-            # Get the runtime id
-            res = testapp.get(api_version + "/runtimes", status=200).json
-            for r in res:
-                if r["runtime_type"] == runtime_type:
-                    return r["id"]
-            return None
+#             # Get the runtime id
+#             res = testapp.get(api_version + "/runtimes", status=200).json
+#             for r in res:
+#                 if r["runtime_type"] == runtime_type:
+#                     return r["id"]
+#             return None

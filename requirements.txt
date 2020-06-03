@@ -16,6 +16,7 @@ Jinja2==2.11.2
 jsonschema==2.6.0
 MarkupSafe==1.1.0
 marshmallow==2.18.0
+marshmallow-enum==1.5.1
 marshmallow-sqlalchemy==0.22.0
 openapi-spec-validator==0.2.4
 pathlib==1.0.1

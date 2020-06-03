@@ -5,6 +5,7 @@ import uuid
 from datetime import datetime
 from app import db, ma
 from marshmallow import fields
+from marshmallow_enum import EnumField
 from sqlalchemy.orm import backref
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.types import TypeDecorator, CHAR
@@ -407,6 +408,9 @@ class RuntimeSchema(ma.SQLAlchemyAutoSchema):
         sqla_session = db.session
 
     id = ma.auto_field(dump_only=True)
+
+    runtime_type = EnumField(RuntimeTypeEnum, by_value=True)
+
     webapps = fields.Nested('WebAppSchema', default=[], many=True)
     addons = fields.Nested('AddOnSchema', default=[], many=True)
     available_opts = fields.Nested(
@@ -423,6 +427,9 @@ class AvailableOptionSchema(ma.SQLAlchemyAutoSchema):
         model = AvailableOption
         sqla_session = db.session
 
+    access_level = EnumField(RoleEnum, by_value=True)
+    value_type = EnumField(OptionValueTypeEnum, by_value=True)
+
     validation_rules = fields.Nested(
         'AvailableOptionValidationRuleSchema', default=[], many=True, exclude=('validation_rule_id',))
 
@@ -434,6 +441,8 @@ class AvailableOptionValidationRuleSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = AvailableOptionValidationRule
         sqla_session = db.session
+
+    type = EnumField(ValidationRuleEnum, by_value=True)
 
 
 
@@ -528,7 +537,7 @@ class CapsuleSchema(ma.SQLAlchemyAutoSchema):
         exclude = ('webapp_id',)
         sqla_session = db.session
 
-    id = ma.auto_field(dump_only=True)
+    # id = ma.auto_field(dump_only=True)
     owners = fields.List(fields.String())
     authorized_keys = fields.List(fields.String())
     created_at = ma.auto_field(dump_only=True)
@@ -578,6 +587,7 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
         many=True,
         only=('id', 'public_key'),
     )
+    role = EnumField(RoleEnum, by_value=True)
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
 
