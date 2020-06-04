@@ -4,6 +4,7 @@ from tests.utils import *
 from unittest.mock import patch
 from werkzeug.exceptions import Forbidden
 from models import RoleEnum, capsule_schema
+import json
 import pytest
 
 
@@ -34,7 +35,7 @@ class TestCapsules:
 
     @staticmethod
     def build_output(db):
-        return capsule_schema.dumps(db.capsule1).data
+        return json.loads(capsule_schema.dumps(db.capsule1).data)
 
     #################################
     #### Testing GET /capsules
@@ -57,9 +58,6 @@ class TestCapsules:
             patch("utils.check_user_role", return_value=db.user1):
 
             res = testapp.get(api_version + "/capsules", status=200).json
-            from pprint import pprint
-            pprint(res[0])
-            pprint(capsule_output)
             assert dict_contains(res[0], capsule_output)
     #################################
 
@@ -84,12 +82,15 @@ class TestCapsules:
             assert "illegal" in res["detail"]
 
     def test_create_duplicated_name(self, testapp, db):
-        capsule_output = self.build_output(db)
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=db.admin_user), \
             patch("api.capsules.check_owners_on_keycloak"):
 
-            res = testapp.post_json(api_version + "/capsules", capsule_output, status=400).json
+            # Create first caps
+            testapp.post_json(api_version + "/capsules", self._capsule_input, status=201).json
+
+            # Atempt to recreate
+            res = testapp.post_json(api_version + "/capsules", self._capsule_input, status=400).json
             assert "already exists" in res["detail"]
 
     def test_create_bad_json_missing_name(self, testapp, db):

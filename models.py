@@ -4,7 +4,7 @@ import enum
 import uuid
 from datetime import datetime
 from app import db, ma
-from marshmallow import fields
+from marshmallow import fields, post_dump
 from marshmallow_enum import EnumField
 from sqlalchemy.orm import backref
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -537,12 +537,19 @@ class CapsuleSchema(ma.SQLAlchemyAutoSchema):
         exclude = ('webapp_id',)
         sqla_session = db.session
 
-    # id = ma.auto_field(dump_only=True)
+    id = ma.auto_field(dump_only=True)
     owners = fields.List(fields.String())
     authorized_keys = fields.List(fields.String())
+    # addons = fields.List(fields.String())
+    # webapp = fields.String()
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
 
+    # https://stackoverflow.com/questions/56779627/serialize-uuids-with-marshmallow-sqlalchemy
+    @post_dump()
+    def __post_dump(self, data):
+        data['webapp'] = str(data['webapp'])
+        data['addons'] = list(map(str, data['addons']))
 
 class CapsuleSchemaVerbose(ma.SQLAlchemyAutoSchema):
     def __init__(self, **kwargs):
@@ -590,6 +597,7 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
     role = EnumField(RoleEnum, by_value=True)
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
+
 
 capsule_schema = CapsuleSchema()
 capsules_schema = CapsuleSchema(many=True)
