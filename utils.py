@@ -3,7 +3,7 @@ import requests
 import re
 from models import RoleEnum, Runtime
 from models import User, Capsule, capsule_schema
-from flask import current_app, g
+from flask import current_app, g, request
 from exceptions import KeycloakUserNotFound, KeycloakIdNotFound
 from werkzeug.exceptions import BadRequest, Forbidden, NotFound
 from functools import wraps
@@ -52,9 +52,14 @@ def oidc_require_role(min_role):
 
     def decorator(view_func):
 
+        # if access token:
+        #   trouver user => return user dans kwargs
+        # else:
+
         @wraps(view_func)
-        @oidc.accept_token(require_token=True, render_errors=False)
+        @require_auth
         def wrapper(*args, **kwargs):
+
             user = check_user_role(min_role)
 
             sig = signature(view_func)
@@ -67,14 +72,35 @@ def oidc_require_role(min_role):
 
     return decorator
 
+
+def require_auth(view_func):
+    def wrapper(*args, **kwargs):
+        if 'X-Capsule-Application' in request.headers and request.headers['X-Capsule-Application'].startswith('Bearer '):
+            token = request.headers['X-Capsule-Application'].split(None, 1)[1].strip()
+            validity = (token in ('user1', 'user2', 'admin1', 'superadmin1')) # TODO: Absolutety change token validation process (check in db, etc.)
+            if validity:
+                g.capsule_app_token = token
+                return view_func(*args, **kwargs)
+            else:
+                response_body = {'error': 'invalid_token', 'error_description': 'Token required but invalid'}
+                return response_body, 401, {'WWW-X-Capsule-Application': 'Bearer'}
+        else:  # Fallback on Keycloak auth
+            return oidc.accept_token(require_token=True, render_errors=False)(view_func)(*args, **kwargs)
+
+    return wrapper
+
+
 def check_user_role(min_role=RoleEnum.admin):
-    # Get user uid in keycloak from token
-    kc_user_id = g.oidc_token_info['sub']
-    try:
-        kc_user = get_user_from_keycloak(kc_user_id)
-        name = kc_user['username']
-    except KeycloakIdNotFound as e:
-        raise BadRequest(description=f'{e.missing_id} is an invalid id.')
+    if hasattr(g, 'capsule_app_token'):  # Get user name from application token
+        name = g.capsule_app_token  # TODO: Change the way to get user name from token
+    else:  # Keycloak auth
+        kc_user_id = g.oidc_token_info['sub']
+        try:
+            kc_user = get_user_from_keycloak(kc_user_id)
+            name = kc_user['username']
+        except KeycloakIdNotFound as e:
+            raise BadRequest(description=f'{e.missing_id} is an invalid id.')
+
     # Look for user role
     user = User.query.filter_by(name=name).one_or_none()
 
