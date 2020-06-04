@@ -450,12 +450,14 @@ CapsulePost:
 
 SSHKey:
   type: array
-  properties:
-    id:
-      type: string
-      readOnly: true
-    public_key:
-      type: string
+  items:
+    type: object
+    properties:
+      id:
+        type: string
+        readOnly: true
+      public_key:
+        type: string
   example:
     - id: 2573ccf6-d2d5-4774-958c-8ef6d64744a1
       public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCt+vNHscC4LbZY/YQP0hcV4QrwRlhqrcuhAvZZERmp\

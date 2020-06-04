@@ -2,7 +2,7 @@ import json
 import requests
 import re
 from models import RoleEnum, Runtime
-from models import User, Capsule, capsule_schema
+from models import User, Capsule
 from flask import current_app, g, request
 from exceptions import KeycloakUserNotFound, KeycloakIdNotFound
 from werkzeug.exceptions import BadRequest, Forbidden, NotFound

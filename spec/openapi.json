@@ -763,13 +763,16 @@
       },
       "SSHKey": {
         "type": "array",
-        "properties": {
-          "id": {
-            "type": "string",
-            "readOnly": true
-          },
-          "public_key": {
-            "type": "string"
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "readOnly": true
+            },
+            "public_key": {
+              "type": "string"
+            }
           }
         },
         "example": [

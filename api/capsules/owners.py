@@ -1,6 +1,6 @@
 from flask import request
 from models import RoleEnum
-from models import Capsule, User, user_schema, capsule_schema
+from models import Capsule, User, user_schema, capsule_output_schema
 from app import db, oidc
 from utils import oidc_require_role, check_owners_on_keycloak
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden, Conflict
@@ -75,7 +75,7 @@ def patch(capsule_id, user):
     db.session.commit()
 
     result = Capsule.query.get(capsule.id)
-    return capsule_schema.dump(result).data, 200, {
+    return capsule_output_schema.dump(result).data, 200, {
         'Location': f'{request.base_url}/{capsule.id}',
     }
 
