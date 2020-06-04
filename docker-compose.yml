@@ -10,6 +10,15 @@ services:
     volumes:
       - db_data:/var/lib/mysql
 
+  mq:
+    image: nats:2.1
+    command:
+      - -DVV
+    ports:
+      - "127.0.0.1:4222:4222"
+      - "127.0.0.1:6222:6222"
+      - "127.0.0.1:8222:8222"
+
 volumes:
   db_data:
     driver: local

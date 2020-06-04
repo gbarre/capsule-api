@@ -6,6 +6,7 @@ from flask_migrate import Migrate
 from flask_marshmallow import Marshmallow
 from flask_oidc import OpenIDConnect
 from config import ProdConfig
+from nats import NATS
 
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -22,6 +23,9 @@ ma = Marshmallow()
 # Initialize OpenIDConnect
 oidc = OpenIDConnect()
 
+# Initialize NATS
+nats = NATS()
+
 
 def create_app(config=ProdConfig):
     # Create the connexion application instance
@@ -29,7 +33,6 @@ def create_app(config=ProdConfig):
         __name__, specification_dir=os.path.join(basedir, 'spec'))
 
     # Read the swagger.yml file to configure the endpoints
-    # TODO: Voir comment on peut utiliser une spec découpée
     connex_app.add_api('openapi.json', strict_validation=True, validate_responses=True)
 
     # Get the underlying Flask app instance
@@ -41,4 +44,5 @@ def create_app(config=ProdConfig):
     migrate.init_app(app, db)
     ma.init_app(app)
     oidc.init_app(app)
+    nats.init_app(app)
     return connex_app

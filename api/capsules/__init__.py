@@ -1,15 +1,19 @@
+import json
 from flask import request
 from models import RoleEnum
 from models import SSHKey, User
-from models import Capsule, capsule_schema, capsules_schema, capsules_users_table, capsules_verbose_schema
-from app import db, oidc
+from models import Capsule, capsule_output_schema, capsules_output_schema
+from models import capsule_input_schema
+from models import capsules_users_table, capsules_verbose_schema
+from app import db, oidc, nats
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 from sqlalchemy import inspect
 from utils import check_owners_on_keycloak, oidc_require_role, REGEX_CAPSULE_NAME, build_query_filters
 from exceptions import KeycloakUserNotFound
+from pynats import NATSClient
 
 
-# GET /capsules?filters[toto]=tata&filters[titi]=tutu
+# GET /capsules
 @oidc_require_role(min_role=RoleEnum.user)
 def search(offset, limit, filters, verbose, user):
     # TODO: verbose mode
@@ -21,7 +25,6 @@ def search(offset, limit, filters, verbose, user):
         if user.role < RoleEnum.admin:
             query.append(Capsule.owners.any(User.name == user.name))
         results = Capsule.query.filter(*query).limit(limit).offset(offset).all()
-        # filter_by(toto="tata", titi="tutu")
     except:
         raise BadRequest
 
@@ -31,7 +34,7 @@ def search(offset, limit, filters, verbose, user):
     if verbose is True:
         return capsules_verbose_schema.dump(results).data
     else:
-        return capsules_schema.dump(results).data
+        return capsules_output_schema.dump(results).data
 
 
 # POST /capsules
@@ -39,7 +42,7 @@ def search(offset, limit, filters, verbose, user):
 @oidc_require_role(min_role=RoleEnum.admin)
 def post():
     capsule_data = request.get_json()
-    data = capsule_schema.load(capsule_data).data
+    data = capsule_input_schema.load(capsule_data).data
 
     try:  # Check if owners exist on Keycloak
         check_owners_on_keycloak(data['owners'])
@@ -76,8 +79,11 @@ def post():
     db.session.add(capsule)
     db.session.commit()
 
-    result = Capsule.query.get(capsule.id)
-    return capsule_schema.dump(result).data, 201, {
+    result = capsule_output_schema.dump(Capsule.query.get(capsule.id)).data
+
+    nats.client.publish('driver', payload=str(capsule.id))
+
+    return result, 201, {
         'Location': f'{request.base_url}/{capsule.id}',
     }
 
@@ -93,11 +99,11 @@ def get(capsule_id, user):
     if capsule is None:
         raise NotFound(description=f"The requested capsule '{capsule_id}' has not been found.")
 
-    owners = capsule_schema.dump(capsule).data['owners']
+    owners = capsule_output_schema.dump(capsule).data['owners']
     if (user.role is RoleEnum.user) and (user.name not in owners):
         raise Forbidden
 
-    return capsule_schema.dump(capsule).data
+    return capsule_output_schema.dump(capsule).data
 
 
 @oidc_require_role(min_role=RoleEnum.superadmin)

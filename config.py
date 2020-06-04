@@ -7,6 +7,7 @@ load_dotenv()
 
 class Config(object):
     """Global cofnguration object."""
+    APP_NAME = 'capsule-api'
     DEBUG = False
     SQLALCHEMY_ECHO = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -31,6 +32,7 @@ class TestConfig(Config):
     ENV = 'test'
     SQLALCHEMY_DATABASE_URI = 'sqlite:///test_capsule.db'
     OIDC_CLIENT_SECRETS = 'client_secrets.json.sample'
+    NATS_URI = 'nats://localhost:4222'
 
 class LocalConfig(Config):
     ENV = 'development'
@@ -45,3 +47,4 @@ class LocalConfig(Config):
         port=30306,
         db=os.environ.get('MYSQL_DATABASE'),
     )
+    NATS_URI = 'nats://localhost:4222'

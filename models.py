@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime
 from app import db, ma
-from marshmallow import fields, post_dump
+from marshmallow import fields, pre_load, post_dump
 from marshmallow_enum import EnumField
 from sqlalchemy.orm import backref
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -540,7 +540,31 @@ class SSHKeySchema(ma.SQLAlchemyAutoSchema):
     updated_at = ma.auto_field(dump_only=True)
 
 
-class CapsuleSchema(ma.SQLAlchemyAutoSchema):
+class CapsuleInputSchema(ma.SQLAlchemyAutoSchema):
+    def __init__(self, **kwargs):
+        super().__init__(strict=True, **kwargs)
+
+    class Meta:
+        model = Capsule
+        include_relationships = True
+        include_fk = True
+        exclude = ('webapp_id',)
+        sqla_session = db.session
+
+    id = ma.auto_field(dump_only=True)
+    owners = fields.List(fields.String())
+    authorized_keys = fields.List(fields.String())
+    created_at = ma.auto_field(dump_only=True)
+    updated_at = ma.auto_field(dump_only=True)
+
+    # https://stackoverflow.com/questions/56779627/serialize-uuids-with-marshmallow-sqlalchemy
+    @post_dump()
+    def __post_dump(self, data):
+        data['webapp'] = str(data['webapp'])
+        data['addons'] = list(map(str, data['addons']))
+
+
+class CapsuleOutputSchema(ma.SQLAlchemyAutoSchema):
     def __init__(self, **kwargs):
         super().__init__(strict=True, **kwargs)
 
@@ -567,6 +591,7 @@ class CapsuleSchema(ma.SQLAlchemyAutoSchema):
     def __post_dump(self, data):
         data['webapp'] = str(data['webapp'])
         data['addons'] = list(map(str, data['addons']))
+
 
 class CapsuleSchemaVerbose(ma.SQLAlchemyAutoSchema):
     def __init__(self, **kwargs):
@@ -628,8 +653,10 @@ class AppTokenSchema(ma.SQLAlchemyAutoSchema):
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
 
-capsule_schema = CapsuleSchema()
-capsules_schema = CapsuleSchema(many=True)
+
+capsule_input_schema = CapsuleInputSchema()
+capsule_output_schema = CapsuleOutputSchema()
+capsules_output_schema = CapsuleOutputSchema(many=True)
 capsules_verbose_schema = CapsuleSchemaVerbose(many=True)
 runtime_schema = RuntimeSchema()
 runtimes_schema = RuntimeSchema(many=True)
