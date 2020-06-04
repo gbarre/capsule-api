@@ -43,7 +43,6 @@ def post(user):
 # /DELETE /sshkeys/{skId}
 @oidc_require_role(min_role=RoleEnum.user)
 def delete(sshkey_id, user):
-    # TODO: capsule owners should be able to delete sshkey
     try:
         sshkey = SSHKey.query.get(sshkey_id)
     except:

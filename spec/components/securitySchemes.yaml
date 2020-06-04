@@ -1,4 +1,4 @@
 # TODO: Write securitySchemes (PoC Auth)
 openId:
   type: openIdConnect
-  openIdConnectUrl: https://example.com/.well-known/openid-configuration
+  openIdConnectUrl: http://localhost:8080/auth/realms/dev/.well-known/openid-configuration

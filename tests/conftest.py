@@ -20,7 +20,6 @@ def testapp(app):
 
 @pytest.fixture(scope='function', autouse=True)
 def db(app):
-    # HACK: app parameter is here to trigger db object configuration
     with app.app_context():
         _db.create_all()
 

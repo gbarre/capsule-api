@@ -8,7 +8,7 @@ post:
     content:
       application/json:
         schema:
-          $ref: "../components/schemas.yaml#/Capsule"
+          $ref: "../components/schemas.yaml#/CapsulePost"
   responses:
     "400":
       $ref: "../components/responses.yaml#/BadRequest"

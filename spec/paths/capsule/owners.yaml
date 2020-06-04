@@ -1,4 +1,3 @@
-# TODO: CRUD ?
 get:
   tags: [user]
   description: |

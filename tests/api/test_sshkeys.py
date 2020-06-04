@@ -88,7 +88,7 @@ class TestSshKeys:
     #### Testing DELETE /sshkeys/kId
     #################################
     # Response 204:
-    # TODO: how to remove the header "Content-Type" in the a DELETE request only?
+    # FIXME: how to remove the header "Content-Type" in the a DELETE request only?
     @pytest.mark.filterwarnings("ignore:.*Content-Type header found in a 204 response.*:Warning")
     def test_delete_sshkey(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
