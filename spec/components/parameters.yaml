@@ -71,3 +71,10 @@ sshkey_id:
   description: SSH Key GUID
   schema:
     type: string
+apptoken_id:
+  in: path
+  name: apptoken_id
+  required: true
+  description: Application token GUID
+  schema:
+    type: string
