@@ -1,5 +1,3 @@
-# TODO: Quid de savoir la fin de pagination ?
-
 import enum
 import uuid
 from datetime import datetime
@@ -116,6 +114,11 @@ class User(db.Model):
         "SSHKey",
         backref="owner",
         cascade="all, delete, delete-orphan",
+        single_parent=True,
+    )
+    apptokens = db.relationship(
+        "AppToken",
+        backref="user",
         single_parent=True,
     )
     role = db.Column(db.Enum(RoleEnum), default=RoleEnum.user, nullable=False)
@@ -275,7 +278,6 @@ class WebApp(db.Model):
 
 
 class Option(db.Model):
-    # TODO: Check that there is not two foreign ref active / @listens_for
     __tablename__ = "options"
     id = db.Column(GUID, nullable=False, unique=True,
                    default=uuid.uuid4, primary_key=True)
@@ -395,8 +397,20 @@ class Capsule(db.Model):
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
 
-# FIXME: Check cross references
-# TODO: Check required property
+
+class AppToken(db.Model):
+    __tablename__ = "apptokens"
+    id = db.Column(GUID, nullable=False, unique=True,
+                   default=uuid.uuid4, primary_key=True)
+    app = db.Column(db.String(256), nullable=False)
+    owner_id = db.Column(GUID, db.ForeignKey('users.id'))
+    token = db.Column(db.String(256), nullable=False)
+    created_at = db.Column(
+        db.DateTime, default=datetime.utcnow
+    )
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
 
 
 class RuntimeSchema(ma.SQLAlchemyAutoSchema):
@@ -539,9 +553,12 @@ class CapsuleSchema(ma.SQLAlchemyAutoSchema):
 
     id = ma.auto_field(dump_only=True)
     owners = fields.List(fields.String())
-    authorized_keys = fields.List(fields.String())
-    # addons = fields.List(fields.String())
-    # webapp = fields.String()
+    authorized_keys = fields.Nested(
+        "SSHKeySchema",
+        default=[],
+        many=True,
+        only=('id', 'public_key'),
+    )
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
 
@@ -598,6 +615,18 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
 
+class AppTokenSchema(ma.SQLAlchemyAutoSchema):
+    def __init__(self, **kwargs):
+        super().__init__(strict=True, **kwargs)
+
+    class Meta:
+        model = User
+        include_fk = True
+        sqla_session = db.session
+
+    id = ma.auto_field(dump_only=True)
+    created_at = ma.auto_field(dump_only=True)
+    updated_at = ma.auto_field(dump_only=True)
 
 capsule_schema = CapsuleSchema()
 capsules_schema = CapsuleSchema(many=True)
@@ -611,3 +640,5 @@ users_schema = UserSchema(many=True)
 webapp_schema = WebAppSchema()
 addon_schema = AddOnSchema()
 addons_schema = AddOnSchema(many=True)
+apptoken_schema = AppTokenSchema()
+apptokens_schema = AppTokenSchema(many=True)

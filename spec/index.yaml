@@ -65,3 +65,9 @@ paths:
     $ref: ./paths/sshkeys.yaml
   /sshkeys/{sshkey_id}:
     $ref: ./paths/sshkey-by-id.yaml
+
+  # Self endpoints
+  /apptoken:
+    $ref: ./paths/app-tokens.yaml
+  /apptoken/{apptoken_id}:
+    $ref: ./paths/app-token-by-id.yaml

@@ -1,3 +1,4 @@
+# TODO: Access token endpoint
 Error:
   type: object
   properties:
@@ -340,7 +341,7 @@ Capsule:
       uniqueItems: true
       default: []
     authorized_keys:
-      $ref: "./schemas.yaml#/SSHKeyList"
+      $ref: "./schemas.yaml#/SSHKey"
       default: []
     created_at:
       type: string
@@ -381,6 +382,57 @@ CapsuleVerbose:
       default: []
     authorized_keys:
       $ref: "./schemas.yaml#/SSHKey"
+      default: []
+    created_at:
+      type: string
+      format: date-time
+      readOnly: true
+      example : "2017-07-21T17:32:28Z"
+    updated_at:
+      type: string
+      format: date-time
+      readOnly: true
+      example : "2020-03-17T15:32:28Z"
+  required:
+    - name
+    - owners
+
+CapsulePost:
+  type: object
+  properties:
+    id:
+      type: string
+      example: 695d0f1a-beb2-4145-828d-0f7f0fcc6696
+      readOnly: true
+    name:
+      type: string
+      example: lyc-vernes-osny
+    owners:
+      type: array
+      items:
+        type: string
+      example:
+        - jdoe
+        - jdoe1
+      uniqueItems: true
+      minItems: 1
+    webapp:
+      type: string
+      nullable: true
+      example: 1ba583fb-9731-48f1-afd8-93f8d514faff
+      readOnly: true
+    addons:
+      type: array
+      items:
+        type: string
+      example:
+        - 24236e31-9a9a-42b5-a6fb-2e32f36e054f
+        - bee09122-5b09-4f9c-bc20-9e639f1510bb
+      readOnly: true
+      uniqueItems: true
+      default: []
+    authorized_keys:
+      $ref: "./schemas.yaml#/SSHKeyList"
       default: []
     created_at:
       type: string
@@ -445,3 +497,25 @@ SSHKeyPost:
         AwLXQZpcO7GRdz/w12EgBohHNbxJyKwL7DSFAnaZ08/tlsjoNRlo1k4NHFf5Xf8K3M1ZlXeSxNV9nlpX
         tD6tbVVJn18tDCZgSqH64m1+iVb05sB2htifgkBB+fCElRV/v7Eylc5Zu1EMTlrHmeHB3Yf8DpRMkwYH
         e4j+yDutLvhhZzGmrnNGcD8zZkE1pwKivjwBKee4Bee8NzVR7vMary2GkqY1 john@doe"
+
+AppToken:
+  type: object
+  properties:
+    id:
+      type: string
+      readOnly: true
+      example: b4c75c57-3cf6-4d6c-a5bb-05102151a4c8
+    app:
+      type: string
+      example: My super app
+    owner_id:
+      type: string
+      readOnly: true
+      example: ca9ab78c-9326-4518-a4c3-7c69b8984140
+    token:
+      type: string
+      readOnly: true
+      example: KDCte1raIV-ItPQf-sf_tapY4q-kLmvlcJ9yUKPlqbo
+  required:
+    - app
+
