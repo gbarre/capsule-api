@@ -36,14 +36,14 @@ class TestAppToken:
             patch("utils.check_user_role", return_value=db.user1):
 
             res = testapp.post_json(api_version + "/apptokens", self._apptoken_bad_input, status=400).json
-            assert "'app' is a required property" in res["detail"]
+            assert "'app' is a required property" in res["error_description"]
 
     def test_create_bad_app_input(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=db.user1):
 
             res = testapp.post_json(api_version + "/apptokens", self._apptoken_bad_app_input, status=400).json
-            assert "'app' length must be 5 at least." in res["detail"]
+            assert "'app' length must be 5 at least." in res["error_description"]
 
     # Response 401:
     def test_create_unauthenticated(self, testapp, db):
@@ -108,7 +108,7 @@ class TestAppToken:
             patch("utils.check_user_role", return_value=db.user3):
 
             res = testapp.delete(api_version + '/apptokens/' + bad_id, status=400).json
-            assert "The browser (or proxy) sent a request that this server could not understand." in res["detail"]
+            assert "The browser (or proxy) sent a request that this server could not understand." in res["error_description"]
 
     # Response 401:
     def test_delete_unauthenticated(self, testapp, db):
@@ -126,5 +126,5 @@ class TestAppToken:
 
             # Delete this apptoken
             res = testapp.delete(api_version + "/apptokens/" + apptoken_id, status=403).json
-            assert "You don't have the permission to access the requested resource." in res["detail"]
+            assert "You don't have the permission to access the requested resource." in res["error_description"]
     #################################

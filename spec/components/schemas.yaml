@@ -1,17 +1,4 @@
-# TODO: Access token endpoint
 Error:
-  type: object
-  properties:
-    detail:
-      type: string
-    status:
-      type: integer
-    title:
-      type: string
-    type:
-      type: string
-
-AuthError:
   type: object
   properties:
     error:

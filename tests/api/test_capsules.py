@@ -71,7 +71,7 @@ class TestCapsules:
             patch("api.capsules.check_owners_on_keycloak", side_effect=KeycloakUserNotFound("barfoo")):
 
             res = testapp.post_json(api_version + "/capsules", self._capsule_input, status=400).json
-            assert "barfoo" in res["detail"]
+            assert "barfoo" in res["error_description"]
 
     def test_create_illegal_name(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
@@ -79,7 +79,7 @@ class TestCapsules:
             patch("api.capsules.check_owners_on_keycloak"):
 
             res = testapp.post_json(api_version + "/capsules", self._capsule_input_illegal, status=400).json
-            assert "illegal" in res["detail"]
+            assert "illegal" in res["error_description"]
 
     def test_create_duplicated_name(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
@@ -92,7 +92,7 @@ class TestCapsules:
 
             # Atempt to recreate
             res = testapp.post_json(api_version + "/capsules", self._capsule_input, status=400).json
-            assert "already exists" in res["detail"]
+            assert "already exists" in res["error_description"]
 
     def test_create_bad_json_missing_name(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
@@ -102,7 +102,7 @@ class TestCapsules:
             temp_input = dict(self._capsule_input)
             temp_input.pop("name")
             res = testapp.post_json(api_version + "/capsules", temp_input, status=400).json
-            assert "'name' is a required property" in res["detail"]
+            assert "'name' is a required property" in res["error_description"]
 
     def test_create_bad_json_missing_owners(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
@@ -112,7 +112,7 @@ class TestCapsules:
             temp_input = dict(self._capsule_input)
             temp_input.pop("owners")
             res = testapp.post_json(api_version + "/capsules", temp_input, status=400).json
-            assert "'owners' is a required property" in res["detail"]
+            assert "'owners' is a required property" in res["error_description"]
 
     # Response 401:
     def test_create_with_no_token(self, testapp, db):
@@ -147,7 +147,7 @@ class TestCapsules:
             patch("utils.check_user_role", return_value=db.user1):
 
             res = testapp.get(api_version + "/capsules/ffffffff-ffff-ffff-ffff-ffffffffffff", status=404).json
-            assert "The requested capsule 'ffffffff-ffff-ffff-ffff-ffffffffffff' has not been found." in res["detail"]
+            assert "The requested capsule 'ffffffff-ffff-ffff-ffff-ffffffffffff' has not been found." in res["error_description"]
 
     # Response 403:
     def test_get_capsule_raise_bad_owner(self, testapp, db):
@@ -155,7 +155,7 @@ class TestCapsules:
             patch("utils.check_user_role", side_effect=Forbidden):
 
             res = testapp.get(api_version + "/capsules/ffffffff-ffff-ffff-ffff-ffffffffffff", status=403).json
-            assert "You don't have the permission to access the requested resource." in res["detail"]
+            assert "You don't have the permission to access the requested resource." in res["error_description"]
 
     # Response 200:
     def test_get_capsule(self, testapp, db):
@@ -186,7 +186,7 @@ class TestCapsules:
 
             # No more capsule
             res = testapp.get(api_version + "/capsules/" + capsule_id, status=404).json
-            assert "The requested capsule '" + capsule_id + "' has not been found." in res["detail"]
+            assert "The requested capsule '" + capsule_id + "' has not been found." in res["error_description"]
 
     # Response 400:
     def test_delete_bad_capsule(self, testapp, db):
@@ -194,7 +194,7 @@ class TestCapsules:
             patch("utils.check_user_role", return_value=db.superadmin_user):
 
             res = testapp.delete(api_version + '/capsules/XYZ', status=400).json
-            assert "The browser (or proxy) sent a request that this server could not understand." in res["detail"]
+            assert "The browser (or proxy) sent a request that this server could not understand." in res["error_description"]
 
     # Response 401:
     def test_delete_unauthenticated(self, testapp, db):
@@ -211,5 +211,5 @@ class TestCapsules:
 
             # Delete this capsule
             res = testapp.delete(api_version + "/capsules/" + capsule_id, status=403).json
-            assert "You don't have the permission to access the requested resource." in res["detail"]
+            assert "You don't have the permission to access the requested resource." in res["error_description"]
     #################################

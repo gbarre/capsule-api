@@ -54,6 +54,10 @@ paths:
     $ref: ./paths/capsule/addons.yaml
   /capsules/{capsule_id}/addons/{addon_id}:
     $ref: ./paths/capsule/addon-by-id.yaml
+  /capsules/{capsule_id}/sshkeys:
+    $ref: ./paths/capsule/sshkeys.yaml
+  /capsules/{capsule_id}/sshkeys/{sshkey_id}:
+    $ref: ./paths/capsule/sshkey-by-id.yaml
 
   /runtimes:
     $ref: ./paths/runtimes.yaml

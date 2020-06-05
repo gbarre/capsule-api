@@ -111,7 +111,7 @@ class TestSshKeys:
             patch("utils.check_user_role", return_value=db.fake_user):
 
             res = testapp.delete(api_version + '/sshkeys/' + bad_id, status=400).json
-            assert "The browser (or proxy) sent a request that this server could not understand." in res["detail"]
+            assert "The browser (or proxy) sent a request that this server could not understand." in res["error_description"]
 
     # Response 401:
     def test_delete_unauthenticated(self, testapp, db):
@@ -129,5 +129,5 @@ class TestSshKeys:
 
             # Delete this sshkey
             res = testapp.delete(api_version + "/sshkeys/" + sshkey_id, status=403).json
-            assert "You don't have the permission to access the requested resource." in res["detail"]
+            assert "You don't have the permission to access the requested resource." in res["error_description"]
     #################################

@@ -42,7 +42,7 @@ class TestUsers:
             patch("utils.check_user_role", return_value=db.admin_user):
 
             res = testapp.get(api_version + "/users/XYZ", status=404).json
-            assert "The requested user 'XYZ' has not been found." in res["detail"]
+            assert "The requested user 'XYZ' has not been found." in res["error_description"]
 
     # Response 403:
     def test_create_raises_on_invalid_role(self, testapp, db):
@@ -51,7 +51,7 @@ class TestUsers:
 
             user_id = db.user1.name
             res = testapp.get(api_version + "/users/" + user_id, status=403).json
-            assert "You don't have the permission to access the requested resource." in res["detail"]
+            assert "You don't have the permission to access the requested resource." in res["error_description"]
 
     # Response 401:
     def test_get_with_no_token(self, testapp, db):

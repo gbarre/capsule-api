@@ -38,8 +38,10 @@ def create_app(config=ProdConfig):
     connex_app.add_api('openapi.json', strict_validation=True, validate_responses=True)
     for error_code in werkzeug.exceptions.default_exceptions:
         connex_app.add_error_handler(error_code, render_exception)
+    connex_app.add_error_handler(connexion.exceptions.ProblemException, render_exception)
 
     # Get the underlying Flask app instance
+
     app = connex_app.app
     app.config.from_object(config)
 

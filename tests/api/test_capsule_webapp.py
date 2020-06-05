@@ -99,7 +99,7 @@ class TestCapsuleWebapp:
             new_webapp = self.build_webapp(db)
 
             res = testapp.post_json(api_version + '/capsules/' + capsule_id + '/webapp', new_webapp, status=409).json
-            assert "This capsule already has a webapp." in res["detail"]
+            assert "This capsule already has a webapp." in res["error_description"]
 
     # Response 201:
     @pytest.mark.filterwarnings("ignore:.*Content-Type header found in a 204 response.*:Warning")
@@ -134,7 +134,7 @@ class TestCapsuleWebapp:
             patch("utils.check_user_role", return_value=db.user3):
 
             res = testapp.get(api_version + "/capsules/" + capsule_id + "/webapp", status=403).json
-            assert "You don't have the permission to access the requested resource." in res["detail"]
+            assert "You don't have the permission to access the requested resource." in res["error_description"]
 
     # Response 404:
     @pytest.mark.filterwarnings("ignore:.*Content-Type header found in a 204 response.*:Warning")
@@ -225,7 +225,7 @@ class TestCapsuleWebapp:
             new_webapp = self.build_webapp(db)
 
             res = testapp.put_json(api_version + "/capsules/" + capsule_id + "/webapp", new_webapp, status=403).json
-            assert "You don't have the permission to access the requested resource." in res["detail"]
+            assert "You don't have the permission to access the requested resource." in res["error_description"]
 
     ################################################
 
@@ -257,7 +257,7 @@ class TestCapsuleWebapp:
             patch("utils.check_user_role", return_value=db.user3):
 
             res = testapp.delete(api_version + "/capsules/" + capsule_id + "/webapp", status=403).json
-            assert "You don't have the permission to access the requested resource." in res["detail"]
+            assert "You don't have the permission to access the requested resource." in res["error_description"]
 
     # Response 404:
     def test_delete_not_found_capsule_id(self, testapp, db):
@@ -278,6 +278,6 @@ class TestCapsuleWebapp:
 
             # Try to delete an unexisting webapp
             res = testapp.delete(api_version + "/capsules/" + capsule_id + "/webapp", status=404).json
-            assert "This capsule does not have webapp." in res["detail"]
+            assert "This capsule does not have webapp." in res["error_description"]
     ################################################
 

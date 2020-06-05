@@ -58,7 +58,7 @@ class TestRuntimes:
             temp_input = dict(self._runtime_input)
             temp_input.pop("name")
             res = testapp.post_json(api_version + "/runtimes", temp_input, status=400).json
-            assert "'name' is a required property" in res["detail"]
+            assert "'name' is a required property" in res["error_description"]
 
     def test_create_bad_json_missing_runtime_type(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
@@ -67,7 +67,7 @@ class TestRuntimes:
             temp_input = dict(self._runtime_input)
             temp_input.pop("runtime_type")
             res = testapp.post_json(api_version + "/runtimes", temp_input, status=400).json
-            assert "'runtime_type' is a required property" in res["detail"]
+            assert "'runtime_type' is a required property" in res["error_description"]
 
     def test_create_bad_json_missing_description(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
@@ -76,7 +76,7 @@ class TestRuntimes:
             temp_input = dict(self._runtime_input)
             temp_input.pop("desc")
             res = testapp.post_json(api_version + "/runtimes", temp_input, status=400).json
-            assert "'desc' is a required property" in res["detail"]
+            assert "'desc' is a required property" in res["error_description"]
 
     def test_create_bad_json_missing_runtime_familly(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
@@ -85,7 +85,7 @@ class TestRuntimes:
             temp_input = dict(self._runtime_input)
             temp_input.pop("fam")
             res = testapp.post_json(api_version + "/runtimes", temp_input, status=400).json
-            assert "'fam' is a required property" in res["detail"]
+            assert "'fam' is a required property" in res["error_description"]
 
     # Response 401:
     def test_create_with_no_token(self, testapp, db):
@@ -128,7 +128,7 @@ class TestRuntimes:
 
             # Get the runtime id
             res = testapp.get(api_version + "/runtimes/" + unexisting_id, status=404).json
-            assert "The requested runtime '" + unexisting_id + "' has not been found." in res["detail"]
+            assert "The requested runtime '" + unexisting_id + "' has not been found." in res["error_description"]
     #################################
 
     #################################
@@ -177,7 +177,7 @@ class TestRuntimes:
 
             # Delete this runtime
             res = testapp.put_json(api_version + "/runtimes/" + runtime_id, self._runtime_input, status=403).json
-            assert "You don't have the permission to access the requested resource." in res["detail"]
+            assert "You don't have the permission to access the requested resource." in res["error_description"]
     #################################
 
     #################################
@@ -197,7 +197,7 @@ class TestRuntimes:
 
             # No more runtime
             res = testapp.get(api_version + "/runtimes/" + runtime_id, status=404).json
-            assert "The requested runtime '" + runtime_id + "' has not been found." in res["detail"]
+            assert "The requested runtime '" + runtime_id + "' has not been found." in res["error_description"]
 
     # Response 401
     def test_delete_unauthenticated(self, testapp, db):
@@ -213,5 +213,5 @@ class TestRuntimes:
 
             # Delete this runtime
             res = testapp.delete(api_version + "/runtimes/" + runtime_id, status=403).json
-            assert "You don't have the permission to access the requested resource." in res["detail"]
+            assert "You don't have the permission to access the requested resource." in res["error_description"]
     #################################

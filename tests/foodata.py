@@ -111,6 +111,12 @@ class DBFooData:
                 "/x0SXuXFz9zFHPO3Ivko1VFdBXaqeb8wOluUjmOxJdDcg3Uqswc5Z08KU+9r jane@doe",
         )
 
+        self.sshkey3 = SSHKey(
+            public_key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQCqGKukO1De7zhZj6+H0qtjTkVxwTCpvKe4eCZ0FPqri"\
+                "0cb2JZfXJ/DgYSF6vUpwmJG8wVQZKjeGcjDOL5UlsuusFncCzWBQ7RKNUSesmQRMSGkVb1/3j+skZ6UtW"\
+                "+5u09lHNsj6tQ51s1SPrCBkedbNf0Tp0GbMJDyR4e9T04ZZw== phpseclib-generated-key"
+        )
+
         self.apptoken1 = AppToken(app="My super app", token="KDCte1raIV-ItPQf-sf_tapY4q-kLmvlcJ9yUKPlqbo")
 
         # Users.
@@ -135,7 +141,10 @@ class DBFooData:
             webapp = self.webapp1,
             addons = [
                 self.addon1,
-            ]
+            ],
+            authorized_keys=[
+                self.sshkey3,
+            ],
         )
 
         array_obj = []

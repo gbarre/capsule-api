@@ -44,7 +44,7 @@ class TestCapsuleOwners:
             patch("utils.check_user_role", return_value=db.user3):
 
             res = testapp.get(api_version + "/capsules/" + capsule_id + "/owners", status=403).json
-            assert "You don't have the permission to access the requested resource." in res["detail"]
+            assert "You don't have the permission to access the requested resource." in res["error_description"]
 
     # Response 404:
     def test_get_bad_id(self, testapp, db):
@@ -52,7 +52,7 @@ class TestCapsuleOwners:
             patch("utils.check_user_role", return_value=db.user1):
 
             res = testapp.get(api_version + "/capsules/" + unexisting_id + "/owners", status=404).json
-            assert "The requested capsule '" + unexisting_id + "' has not been found." in res["detail"]
+            assert "The requested capsule '" + unexisting_id + "' has not been found." in res["error_description"]
 
     # Response 200:
     def test_get(self, testapp, db):
@@ -81,7 +81,7 @@ class TestCapsuleOwners:
             patch("utils.check_user_role", return_value=db.user1):
 
             res = testapp.patch_json(api_version + "/capsules/" + capsule_id + "/owners", self._bad_owner_input, status=400).json
-            assert "The key newOwner is required." in res["detail"]
+            assert "The key newOwner is required." in res["error_description"]
 
     # Response 401:
     def test_patch_unauthorized(self, testapp, db):
@@ -95,7 +95,7 @@ class TestCapsuleOwners:
             patch("utils.check_user_role", return_value=db.user3):
 
             res = testapp.patch_json(api_version + "/capsules/" + capsule_id + "/owners", self._owners_input, status=403).json
-            assert "You don't have the permission to access the requested resource." in res["detail"]
+            assert "You don't have the permission to access the requested resource." in res["error_description"]
 
     # Response 404:
     def test_patch_not_found_capsule_id(self, testapp, db):
@@ -157,7 +157,7 @@ class TestCapsuleOwners:
             patch("utils.check_user_role", return_value=db.user3):
 
             res = testapp.delete(api_version + "/capsules/" + capsule_id + "/owners/" + db.user1.name, status=403).json
-            assert "You don't have the permission to access the requested resource." in res["detail"]
+            assert "You don't have the permission to access the requested resource." in res["error_description"]
 
     # Response 404:
     def test_delete_not_found_capsule_id(self, testapp, db):

@@ -154,7 +154,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/AuthError"
+              "$ref": "#/components/schemas/Error"
             }
           }
         }
@@ -182,23 +182,6 @@
     },
     "schemas": {
       "Error": {
-        "type": "object",
-        "properties": {
-          "detail": {
-            "type": "string"
-          },
-          "status": {
-            "type": "integer"
-          },
-          "title": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
-          }
-        }
-      },
-      "AuthError": {
         "type": "object",
         "properties": {
           "error": {
@@ -1633,6 +1616,94 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/capsules/{capsule_id}/sshkeys": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "description": "Add a public sshkey to a capsule.\n",
+        "summary": "Add a public sshkey to a capsule",
+        "operationId": "api.capsules.sshkeys.post",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/capsule_id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SSHKeyList"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "SSHKey added to the capsule",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Capsule"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "description": "SSHKey already exists for this capsule",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/capsules/{capsule_id}/sshkeys/{sshkey_id}": {
+      "delete": {
+        "tags": [
+          "user"
+        ],
+        "description": "Deletes a public key.\n",
+        "summary": "Delete a public key",
+        "operationId": "api.capsules.sshkeys.delete",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/capsule_id"
+          },
+          {
+            "$ref": "#/components/parameters/sshkey_id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful deletion"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
           }
         }
       }
