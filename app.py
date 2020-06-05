@@ -44,5 +44,4 @@ def create_app(config=ProdConfig):
     migrate.init_app(app, db)
     ma.init_app(app)
     oidc.init_app(app)
-    nats.init_app(app)
     return connex_app

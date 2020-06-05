@@ -1,4 +1,4 @@
-from app import oidc
+from app import oidc, nats
 from exceptions import KeycloakUserNotFound
 from tests.utils import *
 from unittest.mock import patch
@@ -81,15 +81,11 @@ class TestCapsules:
             res = testapp.post_json(api_version + "/capsules", self._capsule_input_illegal, status=400).json
             assert "illegal" in res["detail"]
 
-            new_capsule = dict(self._capsule_input)
-            new_capsule["owners"].append("")
-            res = testapp.post_json(api_version + "/capsules", new_capsule, status=400).json
-            assert "Owner cannot be empty string." in res["detail"]
-
     def test_create_duplicated_name(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=db.admin_user), \
-            patch("api.capsules.check_owners_on_keycloak"):
+            patch("api.capsules.check_owners_on_keycloak"), \
+            patch.object(nats, "publish_capsule"):
 
             # Create first caps
             testapp.post_json(api_version + "/capsules", self._capsule_input, status=201).json
@@ -133,9 +129,12 @@ class TestCapsules:
     def test_create(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=db.admin_user), \
-            patch("api.capsules.check_owners_on_keycloak"):
+            patch("api.capsules.check_owners_on_keycloak"), \
+            patch.object(nats, "publish_capsule") as publish_method:
+
 
             res = testapp.post_json(api_version + "/capsules", self._capsule_input, status=201).json
+            publish_method.assert_called_once_with(res)
             assert dict_contains(res, self._capsule_input)
     #################################
 

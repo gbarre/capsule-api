@@ -58,3 +58,9 @@ class NATS(object):
     def _publish(self, subject, json_payload):
         logger.debug(f"payload {json_payload} published on {subject}.")
         self.client.publish(subject, payload=json.dumps(json_payload))
+
+
+def create_nats_listener(app):
+    nats.init_app(app)
+    nats_listener = NATSListener()
+    return nats_listener

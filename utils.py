@@ -24,7 +24,7 @@ def is_valid_capsule_name(name):
     # WARNING: a capsule name will be the name of a namespace in k8s.
     # https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
     pattern = re.compile('^[a-z0-9][-a-z0-9]*[a-z0-9]$')
-    
+
     if pattern.match(name):
         return True
     else:
@@ -52,6 +52,8 @@ def check_owners_on_keycloak(usernames):
     access_token = token_res['access_token']
 
     for username in usernames:
+        if username == "":
+            raise KeycloakUserNotFound("empty username")
         res = requests.get(f'{admin_uri}/users?username={username}',
                            headers={
                                'Accept': 'application/json',
@@ -116,8 +118,7 @@ def check_user_role(min_role=RoleEnum.admin):
     else:  # Keycloak auth
         kc_user_id = g.oidc_token_info['sub']
         try:
-            kc_user = get_user_from_keycloak(kc_user_id)
-            name = kc_user['username']
+            name = get_user_from_keycloak(kc_user_id)
         except KeycloakIdNotFound as e:
             raise BadRequest(description=f'{e.missing_id} is an invalid id.')
 
@@ -129,7 +130,7 @@ def check_user_role(min_role=RoleEnum.admin):
 
     return user
 
-def get_user_from_keycloak(id):
+def get_user_from_keycloak(id, by_name=False):
     global OIDC_CONFIG
 
     if OIDC_CONFIG is None:
@@ -154,10 +155,11 @@ def get_user_from_keycloak(id):
                             'Accept': 'application/json',
                             'Authorization': f'Bearer {access_token}',
                         }).json()
-    if not res:
+
+    if "username" not in res:
         raise KeycloakIdNotFound(id)
 
-    return res
+    return res["username"]
 
 def build_query_filters(model_class, filters):
     query = []
