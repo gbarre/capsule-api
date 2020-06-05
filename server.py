@@ -3,7 +3,7 @@ Main module of the server file
 """
 
 from app import create_app
-from nats import create_nats_listener
+from nats.listener import create_nats_listener
 from config import LocalConfig
 # TODO: Move CORS in app.py
 from flask_cors import CORS

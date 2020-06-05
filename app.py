@@ -5,8 +5,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_marshmallow import Marshmallow
 from flask_oidc import OpenIDConnect
-from nats import NATS
 from config import ProdConfig
+from nats import NATS
 
 
 basedir = os.path.abspath(os.path.dirname(__file__))

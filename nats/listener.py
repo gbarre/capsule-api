@@ -5,8 +5,8 @@ import logging
 from models import Capsule
 from models import capsule_output_schema
 from sqlalchemy import orm, create_engine
-from nats import logger
 from app import nats
+from nats import logger
 
 
 # TODO: Configuration must be unified
@@ -44,3 +44,9 @@ class NATSListener(threading.Thread):
     def run(self):
         logger.info('NATS listener waiting for incoming messages.')
         nats.client.wait()
+
+
+def create_nats_listener(app):
+    nats.init_app(app)
+    nats_listener = NATSListener()
+    return nats_listener
