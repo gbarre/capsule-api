@@ -38,13 +38,15 @@ get:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              id:
-                type: string
-                readOnly: true
-              app:
-                type: string
+            type: array
+            items:
+              type: object
+              properties:
+                id:
+                  type: string
+                  readOnly: true
+                app:
+                  type: string
             example:
             - id: b4c75c57-3cf6-4d6c-a5bb-05102151a4c8
               app: My super app

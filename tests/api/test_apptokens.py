@@ -2,8 +2,8 @@ from app import oidc
 from tests.utils import *
 from unittest.mock import patch
 from werkzeug.exceptions import Forbidden
-from models import RoleEnum, apptokens_schema
-# import json
+from models import RoleEnum, apptoken_schema
+import json
 import pytest
 
 class TestAppToken:
@@ -17,7 +17,7 @@ class TestAppToken:
     @staticmethod
     def build_output(db):
         apptoken = db.apptoken1
-        return apptokens_schema.dumps(db.apptoken1).data
+        return [json.loads(apptoken_schema.dumps(db.apptoken1).data)]
 
     ################################################
     #### Testing POST /apptokens
@@ -61,7 +61,7 @@ class TestAppToken:
             patch("utils.check_user_role", return_value=db.admin_user):
 
             res = testapp.get(api_version + "/apptokens", status=200).json
-            assert dict_contains(res, apptokens_output)
+            assert dict_contains(apptokens_output, res)
 
     def test_get(self, testapp, db):
         apptokens_output = self.build_output(db)
@@ -69,7 +69,7 @@ class TestAppToken:
             patch("utils.check_user_role", return_value=db.user3):
 
             res = testapp.get(api_version + "/apptokens", status=200).json
-            assert dict_contains(res[0], apptokens_output[0])
+            assert dict_contains(apptokens_output[0], res[0])
 
     # Response 401:
     def test_get_unauthenticated(self, testapp, db):
@@ -87,7 +87,8 @@ class TestAppToken:
     ################################################
     #### Testing DELETE /apptokens/{tId}
     ################################################
-    # Response 204:@pytest.mark.filterwarnings("ignore:.*Content-Type header found in a 204 response.*:Warning")
+    # Response 204:
+    @pytest.mark.filterwarnings("ignore:.*Content-Type header found in a 204 response.*:Warning")
     def test_delete_apptoken(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=db.user3):

@@ -21,7 +21,10 @@ def search(offset, limit, filters, user):
     if not results:
         raise NotFound(description="No apptoken have been found.")
 
-    return apptokens_schema.dump(results).data
+    apptokens_data = apptokens_schema.dump(results).data
+    for apptoken_data in apptokens_data:
+        apptoken_data.pop('token')
+    return apptokens_data
 
 
 # POST /apptokens
