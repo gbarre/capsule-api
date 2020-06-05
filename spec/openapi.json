@@ -1940,7 +1940,7 @@
         }
       }
     },
-    "/apptoken": {
+    "/apptokens": {
       "post": {
         "tags": [
           "user"
@@ -2034,7 +2034,7 @@
         }
       }
     },
-    "/apptoken/{apptoken_id}": {
+    "/apptokens/{apptoken_id}": {
       "delete": {
         "tags": [
           "user"

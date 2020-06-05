@@ -2,10 +2,10 @@ import json
 import requests
 import re
 from models import RoleEnum, Runtime
-from models import User, Capsule
+from models import User, Capsule, AppToken
 from flask import current_app, g, request
 from exceptions import KeycloakUserNotFound, KeycloakIdNotFound
-from werkzeug.exceptions import BadRequest, Forbidden, NotFound
+from werkzeug.exceptions import BadRequest, Forbidden, NotFound, Unauthorized
 from functools import wraps
 from app import oidc
 from inspect import signature
@@ -15,7 +15,20 @@ from sqlalchemy.util import symbol
 
 OIDC_CONFIG = None
 
-REGEX_CAPSULE_NAME = re.compile('^[a-z][-a-z0-9]+$')
+
+def is_valid_capsule_name(name):
+
+    if len(name) > 64:
+        return False
+
+    # WARNING: a capsule name will be the name of a namespace in k8s.
+    # https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+    pattern = re.compile('^[a-z0-9][-a-z0-9]*[a-z0-9]$')
+    
+    if pattern.match(name):
+        return True
+    else:
+        return False
 
 
 def check_owners_on_keycloak(usernames):
@@ -52,10 +65,6 @@ def oidc_require_role(min_role):
 
     def decorator(view_func):
 
-        # if access token:
-        #   trouver user => return user dans kwargs
-        # else:
-
         @wraps(view_func)
         @require_auth
         def wrapper(*args, **kwargs):
@@ -77,9 +86,11 @@ def require_auth(view_func):
     def wrapper(*args, **kwargs):
         if 'X-Capsule-Application' in request.headers and request.headers['X-Capsule-Application'].startswith('Bearer '):
             token = request.headers['X-Capsule-Application'].split(None, 1)[1].strip()
-            validity = (token in ('user1', 'user2', 'admin1', 'superadmin1')) # TODO: Absolutety change token validation process (check in db, etc.)
+            # validity = (token in ('user1', 'user2', 'admin1', 'superadmin1')) # TODO: Absolutety change token validation process (check in db, etc.)
+            (validity, username) = check_apptoken(token)
             if validity:
-                g.capsule_app_token = token
+                # g.capsule_app_token = token
+                g.capsule_app_token = username
                 return view_func(*args, **kwargs)
             else:
                 response_body = {'error': 'invalid_token', 'error_description': 'Token required but invalid'}
@@ -88,6 +99,15 @@ def require_auth(view_func):
             return oidc.accept_token(require_token=True, render_errors=False)(view_func)(*args, **kwargs)
 
     return wrapper
+
+
+def check_apptoken(token):
+    apptoken = AppToken.query.filter_by(token=token).first()
+    if apptoken is None:
+        raise Unauthorized(description="Token is not valid.")
+    else:
+        username = apptoken.user.name
+        return (True, username)
 
 
 def check_user_role(min_role=RoleEnum.admin):

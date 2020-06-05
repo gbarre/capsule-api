@@ -404,7 +404,7 @@ class AppToken(db.Model):
                    default=uuid.uuid4, primary_key=True)
     app = db.Column(db.String(256), nullable=False)
     owner_id = db.Column(GUID, db.ForeignKey('users.id'))
-    token = db.Column(db.String(256), nullable=False)
+    token = db.Column(db.String(256), nullable=False, unique=True)
     created_at = db.Column(
         db.DateTime, default=datetime.utcnow
     )
@@ -645,8 +645,7 @@ class AppTokenSchema(ma.SQLAlchemyAutoSchema):
         super().__init__(strict=True, **kwargs)
 
     class Meta:
-        model = User
-        include_fk = True
+        model = AppToken
         sqla_session = db.session
 
     id = ma.auto_field(dump_only=True)

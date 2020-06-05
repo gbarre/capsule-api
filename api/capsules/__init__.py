@@ -1,16 +1,16 @@
 import json
+import nats
 from flask import request
 from models import RoleEnum
 from models import SSHKey, User
 from models import Capsule, capsule_output_schema, capsules_output_schema
 from models import capsule_input_schema
 from models import capsules_users_table, capsules_verbose_schema
-from app import db, oidc, nats
+from app import db, oidc
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 from sqlalchemy import inspect
-from utils import check_owners_on_keycloak, oidc_require_role, REGEX_CAPSULE_NAME, build_query_filters
+from utils import check_owners_on_keycloak, oidc_require_role, is_valid_capsule_name, build_query_filters
 from exceptions import KeycloakUserNotFound
-from pynats import NATSClient
 
 
 # GET /capsules
@@ -18,6 +18,7 @@ from pynats import NATSClient
 def search(offset, limit, filters, verbose, user):
     # TODO: verbose mode
     # TODO: pagination hyperlinks (next, previous, etc.)
+    # TODO: filters semms to failed : http://localhost:5000/v1/capsules?filters[name]=first-test-caps
     # NOTE: https://stackoverflow.com/questions/6474989/sqlalchemy-filter-by-membership-in-at-least-one-many-to-many-related-table
 
     try:
@@ -51,6 +52,8 @@ def post():
 
     # Get existent users, create the others
     for i, owner in enumerate(data['owners']):
+        if len(owner) == 0:
+            raise BadRequest("Owner cannot be empty string.")
         user = User.query.filter_by(name=owner).one_or_none()
         if user is None:  # User does not exist in DB
             data['owners'][i] = User(name=owner, role=RoleEnum.user)
@@ -68,8 +71,12 @@ def post():
 
     capsule_name = data['name']
 
-    if not REGEX_CAPSULE_NAME.match(capsule_name):
-        raise BadRequest(description=f'The capsule name "{capsule_name}" contains illegal charaters.')
+    # https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-label-names
+    if not is_valid_capsule_name(capsule_name):
+        msg = f'The capsule name "{capsule_name}" is invalid: only lowercase alphanumeric characters '\
+               'or "-" are allowed, the first and the last characters must be alphanumeric, '\
+               'the name must have at least 2 characters and less than 64 characters.'
+        raise BadRequest(description=msg)
 
     caps = Capsule.query.filter_by(name=capsule_name).limit(1).one_or_none()
     if caps is not None:

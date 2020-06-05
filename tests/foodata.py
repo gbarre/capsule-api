@@ -111,6 +111,8 @@ class DBFooData:
                 "/x0SXuXFz9zFHPO3Ivko1VFdBXaqeb8wOluUjmOxJdDcg3Uqswc5Z08KU+9r jane@doe",
         )
 
+        self.apptoken1 = AppToken(app="My super app", token="KDCte1raIV-ItPQf-sf_tapY4q-kLmvlcJ9yUKPlqbo")
+
         # Users.
         self.admin_user = User(name="admin_user", role=RoleEnum.admin)
         self.superadmin_user = User(name="superadmin_user", role=RoleEnum.superadmin)
@@ -121,6 +123,8 @@ class DBFooData:
 
         self.user1.public_keys.append(self.sshkey1)
         self.user2.public_keys.append(self.sshkey2)
+
+        self.user3.apptokens.append(self.apptoken1)
 
         self.capsule1 = Capsule(
             name="test-default-capsule",
