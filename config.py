@@ -47,4 +47,5 @@ class LocalConfig(Config):
         port=30306,
         db=os.environ.get('MYSQL_DATABASE'),
     )
-    NATS_URI = 'nats://localhost:4222'
+    # NATS_URI = 'nats://localhost:4222'
+    NATS_URI = 'nats://demo.nats.io:4222'

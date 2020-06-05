@@ -2,11 +2,13 @@ import os
 import json
 import threading
 import logging
+import sqlalchemy
 from models import Capsule
+from models import WebApp
 from models import capsule_output_schema
+from models import webapp_schema
 from sqlalchemy import orm, create_engine
 from app import nats
-from nats import logger
 
 
 # TODO: Configuration must be unified
@@ -25,24 +27,45 @@ class NATSListener(threading.Thread):
     def __init__(self):
         super().__init__(daemon=True)
         # TODO: make subscriptions
-        nats.subscribe('capsule-api', callback=self.get_capsule)
-        logger.info('NATS listener initialized.')
+        nats.subscribe(nats.SUBJECT, callback=self.listen)
+        nats.logger.info('NATS listener initialized.')
 
     @staticmethod
-    def get_capsule(msg):
-        print(msg)
-        print(f'RECEIVED {msg.payload.decode()}')
+    def listen(msg):
+        # TODO: implements nats listening protocol
+        origin_subject = msg.subject
+        payload = json.loads(msg.payload)
 
-        capsule = session.query(Capsule).get(msg.payload.decode())
-        # ==> Capsule.query.get(msg.payload.decode())
+        if 'state' not in payload:
+            nats.publish_error(origin_subject, 'invalid', 'state is missing.')
+            return
 
-        print(capsule)
+        reqtype, obj = payload['state'].split(':', 1)
+        if reqtype == 'request':
+            if 'id' not in payload:
+                nats.publish_error(origin_subject, 'invalid', 'id is missing.')
+                return
 
-        capsule_data = capsule_output_schema.dump(capsule).data
-        nats.publish_capsule(capsule_data)
+            id = payload['id']
+            try:
+                if obj == 'capsule':
+                    capsule = session.query(Capsule).get(id)
+                    capsule_data = capsule_output_schema.dump(capsule).data
+                    nats.publish(origin_subject, capsule_data)
+                    return
+                elif obj == 'webapp':
+                    webapp = session.query(WebApp).get(id)
+                    webapp_data = webapp_schema.dump(webapp).data
+                    nats.publish(origin_subject, webapp_data)
+                    return
+            except:
+                nats.publish_error(origin_subject, 'not found', f'{obj} {id} has not been found.')
+                return
+        
+        nats.publish_error(origin_subject, 'invalid', 'nothing to be done.')
 
     def run(self):
-        logger.info('NATS listener waiting for incoming messages.')
+        nats.logger.info('NATS listener waiting for incoming messages.')
         nats.client.wait()
 
 

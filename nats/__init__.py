@@ -3,9 +3,6 @@ import logging
 from pynats import NATSClient
 
 
-logger = logging.getLogger(__name__)
-
-
 class NATSNoEchoClient(NATSClient):
     # HACK: We need to mask this method in order to disable the echo
     def _send_connect_command(self):
@@ -30,8 +27,9 @@ class NATSNoEchoClient(NATSClient):
 
 class NATS(object):
     client = None
+    logger = None
 
-    CAPSULE_SUBJECT = 'capsule'
+    SUBJECT = 'capsule.*'
 
     def __init__(self, app=None):
         if app is not None:
@@ -46,15 +44,32 @@ class NATS(object):
             url=app.config['NATS_URI'],
             name=app.config['APP_NAME'],
         )
+        self.logger = logging.getLogger('NATS')
+        # TODO set level depending on the DEBUG key of app.config
+        self.logger.setLevel(logging.DEBUG)
+
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(formatter)
+
+        self.logger.addHandler(console_handler)
         self.client.connect()
 
     def subscribe(self, subject, *, callback):
-        logger.debug(f"subscribed to {subject}.")
+        self.logger.debug(f"subscribed to {subject}.")
         self.client.subscribe(subject, callback=callback)
 
     def publish_capsule(self, json_payload):
-        self._publish(self.CAPSULE_SUBJECT, json_payload)
+        self.publish(self.SUBJECT, json_payload)
 
-    def _publish(self, subject, json_payload):
-        logger.debug(f"payload {json_payload} published on {subject}.")
+    def publish_error(self, subject, code, description):
+        self.logger.error(f"{subject}: {code}: {description}")
+        self.publish(subject, {
+            'error': code,
+            'error_description': description,
+        })
+
+    def publish(self, subject, json_payload):
+        self.logger.debug(f"payload {json_payload} published on {subject}.")
         self.client.publish(subject, payload=json.dumps(json_payload))
