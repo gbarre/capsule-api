@@ -1,15 +1,14 @@
 import json
-import nats
 from flask import request
 from models import RoleEnum
 from models import SSHKey, User
 from models import Capsule, capsule_output_schema, capsules_output_schema
 from models import capsule_input_schema
 from models import capsules_users_table, capsules_verbose_schema
-from app import db, oidc
+from app import db, oidc, nats
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 from sqlalchemy import inspect
-from utils import check_owners_on_keycloak, oidc_require_role, is_valid_capsule_name, build_query_filters
+from utils import check_owners_on_keycloak, get_user_from_keycloak, oidc_require_role, is_valid_capsule_name, build_query_filters
 from exceptions import KeycloakUserNotFound
 
 
@@ -52,8 +51,6 @@ def post():
 
     # Get existent users, create the others
     for i, owner in enumerate(data['owners']):
-        if len(owner) == 0:
-            raise BadRequest("Owner cannot be empty string.")
         user = User.query.filter_by(name=owner).one_or_none()
         if user is None:  # User does not exist in DB
             data['owners'][i] = User(name=owner, role=RoleEnum.user)
@@ -88,7 +85,7 @@ def post():
 
     result = capsule_output_schema.dump(Capsule.query.get(capsule.id)).data
 
-    nats.client.publish('driver', payload=str(capsule.id))
+    nats.publish_capsule(result)
 
     return result, 201, {
         'Location': f'{request.base_url}/{capsule.id}',

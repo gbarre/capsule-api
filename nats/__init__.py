@@ -1,8 +1,12 @@
 import json
+import logging
 from pynats import NATSClient
 
 
-class NATSCustomClient(NATSClient):
+logger = logging.getLogger(__name__)
+
+
+class NATSNoEchoClient(NATSClient):
     # HACK: We need to mask this method in order to disable the echo
     def _send_connect_command(self):
         options = {
@@ -12,7 +16,7 @@ class NATSCustomClient(NATSClient):
             "version": self._conn_options["version"],
             "verbose": self._conn_options["verbose"],
             "pedantic": self._conn_options["pedantic"],
-            "echo": self._conn_options["echo"],
+            "echo": False,  # added by the method masking
         }
 
         if self._conn_options["username"] and self._conn_options["password"]:
@@ -24,24 +28,33 @@ class NATSCustomClient(NATSClient):
         self._send(b"CONNECT", json.dumps(options))
 
 
-# TODO: SSL
 class NATS(object):
+    client = None
+
+    CAPSULE_SUBJECT = 'capsule'
+
     def __init__(self, app=None):
-        self.client = None
         if app is not None:
             self.init_app(app)
 
-    # FIXME: exceptions at the end
     def __del__(self):
         if self.client is not None:
             self.client.close()
 
     def init_app(self, app):
-        self.client = NATSClient(
+        self.client = NATSNoEchoClient(
             url=app.config['NATS_URI'],
             name=app.config['APP_NAME'],
-            verbose=True,
         )
-        self.client._conn_options['echo'] = False
         self.client.connect()
-        app.extensions['nats'] = self
+
+    def subscribe(self, subject, *, callback):
+        logger.debug(f"subscribed to {subject}.")
+        self.client.subscribe(subject, callback=callback)
+
+    def publish_capsule(self, json_payload):
+        self._publish(self.CAPSULE_SUBJECT, json_payload)
+
+    def _publish(self, subject, json_payload):
+        logger.debug(f"payload {json_payload} published on {subject}.")
+        self.client.publish(subject, payload=json.dumps(json_payload))
