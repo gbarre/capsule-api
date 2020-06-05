@@ -100,8 +100,8 @@ class TestCapsuleAddons:
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=db.user1):
 
-            # Remove all existing addons (TODO)
-            #testapp.delete(api_version + '/capsules/' + capsule_id + '/addons/{aId}', status=204)
+            # Remove all existing addons
+            testapp.delete(api_version + '/capsules/' + capsule_id + '/addons/' + str(db.addon1.id), status=204)
 
             testapp.get(api_version + "/capsules/" + capsule_id + "/addons", status=404)
 

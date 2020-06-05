@@ -81,6 +81,11 @@ class TestCapsules:
             res = testapp.post_json(api_version + "/capsules", self._capsule_input_illegal, status=400).json
             assert "illegal" in res["detail"]
 
+            new_capsule = dict(self._capsule_input)
+            new_capsule["owners"].append("")
+            res = testapp.post_json(api_version + "/capsules", new_capsule, status=400).json
+            assert "Owner cannot be empty string." in res["detail"]
+
     def test_create_duplicated_name(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", return_value=db.admin_user), \

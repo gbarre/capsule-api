@@ -37,7 +37,7 @@ def post(user):
 
     result = SSHKey.query.get(sshkey.id)
     return sshkey_schema.dump(result).data, 201, {
-        'Location': f'{request.base_url}/{sshkey.id}',
+        'Location': f'{request.base_url}/sshkeys/{sshkey.id}',
     }
 
 # /DELETE /sshkeys/{skId}
