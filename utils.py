@@ -163,9 +163,19 @@ def get_user_from_keycloak(id, by_name=False):
 
 def build_query_filters(model_class, filters):
     query = []
+    # For instance, with http://localhost:5000/v1/capsules?filters[name]=first-test-caps&filters[owners]=user1,user2:
+    #
+    #   model_class = Capsule
+    #   filters = [
+    #       "name": "first-test-caps",
+    #       "owners": "user1,user2"
+    #   ]
 
     for filter, value in filters.items():
+        # filter = "name"
+        # value = "first-test-caps"
         field = getattr(model_class, filter)
+        # filed = Capsule.name
         if field is None:
             continue
 
@@ -173,6 +183,7 @@ def build_query_filters(model_class, filters):
         if hasattr(field.property, 'direction') \
             and field.property.direction in (symbol('ONETOMANY'), symbol('MANYTOMANY')):
             value_class = field.property.entity.mapper.entity
+            # value_class = User
 
             if hasattr(value_class, '__default_filter__'):
                 property_to_filter = value_class.__default_filter__
@@ -180,6 +191,7 @@ def build_query_filters(model_class, filters):
                 property_to_filter = 'id'
 
             value_class_property = getattr(value_class, property_to_filter)
+            # value_class_property = User.name
             if ',' in value:
                 values = value.split(',')
                 for v in values:
@@ -190,4 +202,7 @@ def build_query_filters(model_class, filters):
             else:
                 # For instance with "owners" filter: query.append(Capsule.owners.any(User.id == user.id))
                 query.append(field.any(value_class_property == value))
+        else:
+            # query.append(Capsule.name == "first-test-caps"))
+            query.append(field == value)
     return query
