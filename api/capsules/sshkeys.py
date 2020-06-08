@@ -48,6 +48,7 @@ def post(capsule_id, user):
 # /DELETE /capsules/{cId}/sshkeys/{skId}
 @oidc_require_role(min_role=RoleEnum.user)
 def delete(capsule_id, sshkey_id, user):
+    capsule = _get_capsule(capsule_id, user)
     try:
         sshkey = SSHKey.query.get(sshkey_id)
     except:
@@ -55,6 +56,9 @@ def delete(capsule_id, sshkey_id, user):
 
     if sshkey is None:
         raise NotFound(description=f"The requested sshkey '{sshkey_id}' has not been found.")
+
+    if sshkey not in capsule.authorized_keys:
+        raise BadRequest
 
     db.session.delete(sshkey)
     db.session.commit()

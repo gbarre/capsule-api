@@ -93,7 +93,7 @@ class TestCapsuleSshKeys:
             patch("utils.check_user_role", return_value=db.admin_user):
 
             # Get sshkey id
-            sshkey = db.sshkey1
+            sshkey = db.sshkey3
             sshkey_id = str(sshkey.id)
 
             # Delete this sshkey
@@ -108,7 +108,7 @@ class TestCapsuleSshKeys:
     def test_delete_bad_sshkey(self, testapp, db):
         capsule_id = str(db.capsule1.id)
         with patch.object(oidc, 'validate_token', return_value=True), \
-            patch("utils.check_user_role", return_value=db.fake_user):
+            patch("utils.check_user_role", return_value=db.user1):
 
             res = testapp.delete(api_version + "/capsules/" + capsule_id + "/sshkeys/" + bad_id, status=400).json
             assert "The browser (or proxy) sent a request that this server could not understand." in res["error_description"]
