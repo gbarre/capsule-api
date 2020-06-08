@@ -17,7 +17,6 @@ from exceptions import KeycloakUserNotFound
 def search(offset, limit, filters, verbose, user):
     # TODO: verbose mode
     # TODO: pagination hyperlinks (next, previous, etc.)
-    # TODO: filters semms to failed : http://localhost:5000/v1/capsules?filters[name]=first-test-caps
     # NOTE: https://stackoverflow.com/questions/6474989/sqlalchemy-filter-by-membership-in-at-least-one-many-to-many-related-table
 
     try:
@@ -88,7 +87,7 @@ def post():
     nats.publish_capsule(result)
 
     return result, 201, {
-        'Location': f'{request.base_url}/{capsule.id}',
+        'Location': f'{request.base_url}/capsules/{capsule.id}',
     }
 
 

@@ -62,12 +62,6 @@ def delete(apptoken_id, user):
     if apptoken is None:
         raise NotFound(description=f"The requested apptoken '{apptoken_id}' has not been found.")
 
-    print(type(user.id))
-    print(user.id)
-    print(type(apptoken.owner_id))
-    print(apptoken.owner_id)
-    print(user.role)
-
     if (user.id != apptoken.owner_id) and (user.role < RoleEnum.admin):
         raise Forbidden
 

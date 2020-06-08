@@ -30,8 +30,6 @@ class TestRuntimes:
             patch("utils.check_user_role", return_value=db.fake_user):
 
             res = testapp.get(api_version + '/runtimes', status=200).json
-            import pprint
-            pprint.pprint(runtime_output)
             assert dict_contains(res, runtime_output)
 
     # Response 401:
@@ -175,7 +173,6 @@ class TestRuntimes:
         with patch.object(oidc, "validate_token", return_value=True), \
             patch("utils.check_user_role", side_effect=Forbidden):
 
-            # Delete this runtime
             res = testapp.put_json(api_version + "/runtimes/" + runtime_id, self._runtime_input, status=403).json
             assert "You don't have the permission to access the requested resource." in res["error_description"]
     #################################
