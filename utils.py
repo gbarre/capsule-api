@@ -11,6 +11,7 @@ from app import oidc
 from inspect import signature
 from marshmallow import fields
 from sqlalchemy.util import symbol
+from hashlib import sha512
 
 
 OIDC_CONFIG = None
@@ -88,10 +89,8 @@ def require_auth(view_func):
     def wrapper(*args, **kwargs):
         if 'X-Capsule-Application' in request.headers and request.headers['X-Capsule-Application'].startswith('Bearer '):
             token = request.headers['X-Capsule-Application'].split(None, 1)[1].strip()
-            # validity = (token in ('user1', 'user2', 'admin1', 'superadmin1')) # TODO: Absolutety change token validation process (check in db, etc.)
             (validity, username) = check_apptoken(token)
             if validity:
-                # g.capsule_app_token = token
                 g.capsule_app_token = username
                 return view_func(*args, **kwargs)
             else:
@@ -104,7 +103,8 @@ def require_auth(view_func):
 
 
 def check_apptoken(token):
-    apptoken = AppToken.query.filter_by(token=token).first()
+    hashed_token = sha512(token.encode('ascii')).hexdigest()
+    apptoken = AppToken.query.filter_by(token=hashed_token).first()
     if apptoken is None:
         raise Unauthorized(description="Token is not valid.")
     else:

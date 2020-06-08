@@ -4,6 +4,7 @@ from app import db
 from utils import oidc_require_role
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 from secrets import token_urlsafe
+from hashlib import sha512
 
 
 # GET /apptokens
@@ -32,17 +33,20 @@ def search(offset, limit, filters, user):
 def post(user):
     apptoken_data = request.get_json()
 
-    app = apptoken_data["app"]
+    app = apptoken_data["app"].strip()
     if len(app) < 5:
         raise BadRequest(description="'app' length must be 5 at least.")
     token = token_urlsafe(32)
+    hashed_token = sha512(token.encode('ascii')).hexdigest()
 
-    apptoken = AppToken(app=app, owner_id=user.id, token=token)
+    apptoken = AppToken(app=app, owner_id=user.id, token=hashed_token)
     db.session.add(apptoken)
     db.session.commit()
 
     result = AppToken.query.get(apptoken.id)
-    return apptoken_schema.dump(result).data, 201, {
+    result_data = apptoken_schema.dump(result).data
+    result_data["token"] = token
+    return result_data, 201, {
         'Location': f'{request.base_url}/apptokens/{apptoken.id}',
     }
 
