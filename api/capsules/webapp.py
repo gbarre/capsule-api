@@ -44,7 +44,12 @@ def post(capsule_id, user, webapp_data=None):
     if webapp_data is None:
         webapp_data = request.get_json()
 
-    runtime = Runtime.query.get(webapp_data["runtime_id"])
+    runtime_id = webapp_data["runtime_id"]
+    runtime = Runtime.query.get(runtime_id)
+
+    if runtime is None:
+        raise BadRequest(description=f"The runtime_id '{runtime_id}' does not exist.")
+
     if runtime.runtime_type is not RuntimeTypeEnum.webapp:
         raise BadRequest(description=f"The runtime_id '{runtime.id}' has not type 'webapp'.")
 

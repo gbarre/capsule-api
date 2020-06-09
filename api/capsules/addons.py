@@ -39,7 +39,12 @@ def post(capsule_id, user, addon_data=None):
     if addon_data is None:
         addon_data = request.get_json()
 
-    runtime = Runtime.query.get(addon_data["runtime_id"])
+    runtime_id = addon_data["runtime_id"]
+    runtime = Runtime.query.get(runtime_id)
+
+    if runtime is None:
+        raise BadRequest(description=f"The runtime_id '{runtime_id}' does not exist.")
+
     if runtime.runtime_type is not RuntimeTypeEnum.addon:
         raise BadRequest(description=f"The runtime_id '{runtime.id}' has not type 'addon'.")
 
@@ -73,8 +78,8 @@ def search(capsule_id, user, offset, limit, filters):
     capsule = _get_capsule(capsule_id, user)
 
     try:
-        query = build_query_filters(Capsule, filters)
-        query.append(Capsule.id == capsule_id)
+        query = build_query_filters(AddOn, filters)
+        query.append(AddOn.capsule_id == capsule_id)
         results = AddOn.query.filter(*query).limit(limit).offset(offset).all()
     except:
         raise BadRequest
