@@ -84,7 +84,8 @@ def search(capsule_id, user, offset, limit, filters):
 
     results = addons_schema.dump(results).data
     for result in results:
-        result["env"] = ast.literal_eval(result["env"])
+        if 'env' in result:
+            result["env"] = ast.literal_eval(result["env"])
 
     return results
 
@@ -106,7 +107,8 @@ def get(capsule_id, addon_id, user):
         raise Forbidden
 
     result = addon_schema.dump(result).data
-    result["env"] = ast.literal_eval(result["env"])
+    if 'env' in result:
+        result["env"] = ast.literal_eval(result["env"])
 
     return result, 200, {
         'Location': f'{request.base_url}/capsules/{capsule.id}/addons/{addon_id}',
