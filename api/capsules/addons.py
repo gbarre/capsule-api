@@ -84,7 +84,7 @@ def search(capsule_id, user, offset, limit, filters):
 
     results = addons_schema.dump(results).data
     for result in results:
-        if 'env' in result:
+        if result['env'] is not None:
             result["env"] = ast.literal_eval(result["env"])
 
     return results
@@ -107,7 +107,7 @@ def get(capsule_id, addon_id, user):
         raise Forbidden
 
     result = addon_schema.dump(result).data
-    if 'env' in result:
+    if result['env'] is not None:
         result["env"] = ast.literal_eval(result["env"])
 
     return result, 200, {

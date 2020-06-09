@@ -169,6 +169,7 @@ WebApp:
       example:
         HTTP_PROXY: http://proxy:3128/
         HTTPS_PROXY: https://proxy:3128/
+      default: {}
     opts:
       type: array
       items:
@@ -247,6 +248,7 @@ AddOn:
       example:
         HTTP_PROXY: http://proxy:3128/
         HTTPS_PROXY: https://proxy:3128/
+      default: {}
     opts:
       type: array
       items:
