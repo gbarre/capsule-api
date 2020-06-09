@@ -51,4 +51,6 @@ get:
           schema:
             type: array
             items:
-              $ref: "../components/schemas.yaml#/Capsule"
+              oneOf:
+                - $ref: "../components/schemas.yaml#/Capsule"
+                - $ref: "../components/schemas.yaml#/CapsuleVerbose"

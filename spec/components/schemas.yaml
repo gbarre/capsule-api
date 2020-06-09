@@ -218,6 +218,95 @@ WebApp:
     - fqdns
     - runtime_id
 
+WebAppInVerbose:
+  type: object
+  properties:
+    id:
+      type: string
+      readOnly: true
+      example: d41ea210-742a-410c-a971-3978143eab80
+    tls_redirect_https:
+      type: boolean
+      default: true
+    tls_crt:
+      type: string
+      writeOnly: true
+    tls_key:
+      type: string
+      format: password
+      writeOnly: true
+    fqdns:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            format: hostname
+            pattern: '^(?!:\/\/)([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-][a-zA-Z0-9-]+\.[a-zA-Z]{2,6}?$'
+          alias:
+            type: boolean
+      example:
+        - name: main.fqdn.ac-versailles.fr
+          alias: false
+        - name: secondary.fqdn.ac-versailles.fr
+          alias: true
+      description: first FQDN is the main one
+    runtime_id:
+      type: string
+      example: e48e31e2-e271-4a2c-aee4-e73caa8aa615
+    env:
+      type: object
+      description: Dict of environment variables
+      example:
+        HTTP_PROXY: http://proxy:3128/
+        HTTPS_PROXY: https://proxy:3128/
+      default: {}
+    opts:
+      type: array
+      items:
+        type: object
+        properties:
+          tag:
+            type: string
+            example: PHP
+          field_name:
+            type: string
+            example: worker
+          value:
+            type: string # can be any value
+            example: "42"
+      default: []
+    quota:
+      description: quota obtained from the capsule declaration
+      type: object
+      properties:
+        volume_size:
+          type: integer
+          #format: GB
+          readOnly: true
+          example: "20"
+        memory_max:
+          type: integer
+          #format: GB
+          readOnly: true
+          example: "4"
+        cpu_max:
+          type: number
+          readOnly: true
+          example: "2.5"
+      readOnly: true
+    created_at:
+      type: string
+      format: date-time
+      readOnly: true
+      example : "2017-07-21T17:32:28Z"
+    updated_at:
+      type: string
+      format: date-time
+      readOnly: true
+      example : "2020-03-17T15:32:28Z"
+
 AddOn:
   type: object
   properties:
@@ -363,7 +452,7 @@ CapsuleVerbose:
       uniqueItems: true
       minItems: 1
     webapp:
-      $ref: "./schemas.yaml#/WebApp"
+      $ref: "./schemas.yaml#/WebAppInVerbose"
     addons:
       type: array
       items:

@@ -6,6 +6,7 @@ get:
   operationId: api.capsules.get
   parameters:
     - $ref: "../components/parameters.yaml#/capsule_id"
+    - $ref: "../components/parameters.yaml#/verbose"
   responses:
     "404":
       $ref: "../components/responses.yaml#/NotFound"
@@ -16,7 +17,9 @@ get:
       content:
         application/json:
           schema:
-            $ref: "../components/schemas.yaml#/Capsule"
+            oneOf:
+              - $ref: "../components/schemas.yaml#/Capsule"
+              - $ref: "../components/schemas.yaml#/CapsuleVerbose"
 
 delete:
   tags: [superadmin]

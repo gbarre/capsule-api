@@ -8,6 +8,7 @@ from sqlalchemy.orm import backref
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.types import TypeDecorator, CHAR
 from sqlalchemy.dialects.postgresql import UUID
+from ast import literal_eval
 
 
 class GUID(TypeDecorator):
@@ -419,14 +420,26 @@ class RuntimeSchema(ma.SQLAlchemyAutoSchema):
 
     class Meta:
         model = Runtime
+        include_relationships = True
+        include_fk = True
         sqla_session = db.session
 
     id = ma.auto_field(dump_only=True)
 
     runtime_type = EnumField(RuntimeTypeEnum, by_value=True)
 
-    webapps = fields.Nested('WebAppSchema', default=[], many=True)
-    addons = fields.Nested('AddOnSchema', default=[], many=True)
+    # webapps = fields.Nested(
+    #     'WebAppSchema',
+    #     default=[],
+    #     many=True,
+    #     only=('capsule_id', 'id'),
+    # )
+    # addons = fields.Nested(
+    #     'AddOnSchema',
+    #     default=[],
+    #     many=True,
+    #     only=('capsule_id', 'id'),
+    # )
     available_opts = fields.Nested(
         'AvailableOptionSchema', default=[], many=True, exclude=('available_option_id',))
     created_at = ma.auto_field(dump_only=True)
@@ -609,16 +622,44 @@ class CapsuleSchemaVerbose(ma.SQLAlchemyAutoSchema):
         "AddOnSchema",
         default=[],
         many=True,
+        exclude=('created_at', 'updated_at')
     )
     webapp = fields.Nested(
         "WebAppSchema",
-        default=None,
+        default={},
         many=False,
+        exclude=('created_at', 'updated_at')
     )
-    owners = fields.List(fields.String())
-    authorized_keys = fields.List(fields.String())
+    owners = fields.Nested(
+        "UserSchema",
+        default=[],
+        many=True,
+        exclude=('created_at', 'updated_at')
+    )
+    authorized_keys = fields.Nested(
+        "SSHKeySchema",
+        default=[],
+        many=True,
+        only=('id', 'public_key'),
+    )
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
+
+    @post_dump()
+    def __post_dump(self, data):
+        if data['webapp'] is not None:
+            if data['webapp']['env'] is not None:
+                data['webapp']['env'] = literal_eval(data['webapp']['env'])
+            else:
+                data['webapp']['env'] = dict()
+        else:
+            data['webapp'] = {}
+        for addon in data['addons']:
+            if addon['env'] is not None:
+                addon['env'] = literal_eval(addon['env'])
+            else:
+                addon['env'] = dict()
+
 
 
 class UserSchema(ma.SQLAlchemyAutoSchema):
@@ -656,6 +697,7 @@ class AppTokenSchema(ma.SQLAlchemyAutoSchema):
 capsule_input_schema = CapsuleInputSchema()
 capsule_output_schema = CapsuleOutputSchema()
 capsules_output_schema = CapsuleOutputSchema(many=True)
+capsule_verbose_schema = CapsuleSchemaVerbose()
 capsules_verbose_schema = CapsuleSchemaVerbose(many=True)
 runtime_schema = RuntimeSchema()
 runtimes_schema = RuntimeSchema(many=True)

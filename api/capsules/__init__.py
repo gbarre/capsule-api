@@ -4,7 +4,7 @@ from models import RoleEnum
 from models import SSHKey, User
 from models import Capsule, capsule_output_schema, capsules_output_schema
 from models import capsule_input_schema
-from models import capsules_users_table, capsules_verbose_schema
+from models import capsules_users_table, capsules_verbose_schema, capsule_verbose_schema
 from app import db, oidc, nats
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 from sqlalchemy import inspect
@@ -15,7 +15,6 @@ from exceptions import KeycloakUserNotFound
 # GET /capsules
 @oidc_require_role(min_role=RoleEnum.user)
 def search(offset, limit, filters, verbose, user):
-    # TODO: verbose mode
     # TODO: pagination hyperlinks (next, previous, etc.)
     # NOTE: https://stackoverflow.com/questions/6474989/sqlalchemy-filter-by-membership-in-at-least-one-many-to-many-related-table
 
@@ -93,7 +92,7 @@ def post():
 
 # GET /capsules/{cID}
 @oidc_require_role(min_role=RoleEnum.user)
-def get(capsule_id, user):
+def get(capsule_id, verbose, user):
     try:
         capsule = Capsule.query.get(capsule_id)
     except:
@@ -106,7 +105,10 @@ def get(capsule_id, user):
     if (user.role is RoleEnum.user) and (user.name not in owners):
         raise Forbidden
 
-    return capsule_output_schema.dump(capsule).data
+    if verbose is True:
+        return capsule_verbose_schema.dump(capsule).data
+    else:
+        return capsule_output_schema.dump(capsule).data
 
 
 @oidc_require_role(min_role=RoleEnum.superadmin)
