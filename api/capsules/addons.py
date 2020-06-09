@@ -86,6 +86,8 @@ def search(capsule_id, user, offset, limit, filters):
     for result in results:
         if result['env'] is not None:
             result["env"] = ast.literal_eval(result["env"])
+        else:
+            result['env'] = dict()
 
     return results
 
@@ -109,6 +111,8 @@ def get(capsule_id, addon_id, user):
     result = addon_schema.dump(result).data
     if result['env'] is not None:
         result["env"] = ast.literal_eval(result["env"])
+    else:
+        result['env'] = dict()
 
     return result, 200, {
         'Location': f'{request.base_url}/capsules/{capsule.id}/addons/{addon_id}',
