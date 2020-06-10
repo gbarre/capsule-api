@@ -5,6 +5,7 @@ from utils import oidc_require_role
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 from secrets import token_urlsafe
 from hashlib import sha512
+from sqlalchemy.exc import StatementError, InvalidRequestError
 
 
 # GET /apptokens
@@ -15,10 +16,9 @@ def search(offset, limit, filters, user):
         if user.role < RoleEnum.admin:
             query.append(AppToken.user == user)
         results = AppToken.query.filter(*query)\
-            .limit(limit).offset(offset).all()
-    except Exception as e:
-        raise e
-        raise BadRequest
+            .filter_by(**filters).limit(limit).offset(offset).all()
+    except InvalidRequestError as e:
+        raise BadRequest(description=str(e))
 
     if not results:
         raise NotFound(description="No apptoken have been found.")
@@ -57,8 +57,8 @@ def post(user):
 def delete(apptoken_id, user):
     try:
         apptoken = AppToken.query.get(apptoken_id)
-    except:
-        raise BadRequest
+    except StatementError as e:
+        raise BadRequest(description=str(e))
 
     if apptoken is None:
         raise NotFound(description=f"The requested apptoken '{apptoken_id}' "

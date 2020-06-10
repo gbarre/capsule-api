@@ -9,6 +9,7 @@ from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 from utils import check_owners_on_keycloak, oidc_require_role
 from utils import is_valid_capsule_name, build_query_filters
 from exceptions import KeycloakUserNotFound
+from sqlalchemy.exc import StatementError
 
 
 # GET /capsules
@@ -22,8 +23,8 @@ def search(offset, limit, filters, verbose, user):
             query.append(Capsule.owners.any(User.name == user.name))
         results = Capsule.query.filter(*query)\
             .limit(limit).offset(offset).all()
-    except:
-        raise BadRequest
+    except AttributeError as e:
+        raise BadRequest(description=str(e))
 
     if not results:
         raise NotFound(description="No capsules have been found.")
@@ -100,8 +101,8 @@ def post():
 def get(capsule_id, verbose, user):
     try:
         capsule = Capsule.query.get(capsule_id)
-    except:
-        raise BadRequest
+    except StatementError as e:
+        raise BadRequest(description=str(e))
 
     if capsule is None:
         raise NotFound(description=f"The requested capsule '{capsule_id}' "
@@ -121,8 +122,8 @@ def get(capsule_id, verbose, user):
 def delete(capsule_id):
     try:
         capsule = Capsule.query.get(capsule_id)
-    except:
-        raise BadRequest
+    except StatementError as e:
+        raise BadRequest(description=str(e))
 
     if capsule is None:
         raise NotFound(description=f"The requested capsule '{capsule_id}' "

@@ -57,7 +57,7 @@ class NATSListener(threading.Thread):
                     webapp_data = webapp_schema.dump(webapp).data
                     nats.publish(origin_subject, webapp_data)
                     return
-            except:
+            except Exception:
                 nats.publish_error(
                     origin_subject,
                     'not found',

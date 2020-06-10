@@ -3,19 +3,16 @@ from models import RoleEnum, SSHKey, sshkey_schema, sshkeys_schema
 from app import db
 from utils import oidc_require_role
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden
+from sqlalchemy.exc import StatementError
 
 
 # /GET /sshkeys
 @oidc_require_role(min_role=RoleEnum.user)
 def search(offset, limit, user):
-    try:
-        query = []
-        if user.role < RoleEnum.admin:
-            query.append(SSHKey.owner == user)
-        results = SSHKey.query.filter(*query).limit(limit).offset(offset).all()
-    except Exception as e:
-        raise e
-        raise BadRequest
+    query = []
+    if user.role < RoleEnum.admin:
+        query.append(SSHKey.owner == user)
+    results = SSHKey.query.filter(*query).limit(limit).offset(offset).all()
 
     if not results:
         raise NotFound(description="No sshkeys have been found.")
@@ -46,8 +43,8 @@ def post(user):
 def delete(sshkey_id, user):
     try:
         sshkey = SSHKey.query.get(sshkey_id)
-    except:
-        raise BadRequest
+    except StatementError as e:
+        raise BadRequest(description=str(e))
 
     if sshkey is None:
         raise NotFound(description=f"The requested sshkey '{sshkey_id}' "

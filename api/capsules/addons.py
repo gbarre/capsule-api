@@ -9,13 +9,14 @@ from models import Runtime, RuntimeTypeEnum
 from app import db
 from utils import oidc_require_role, build_query_filters
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden
+from sqlalchemy.exc import StatementError
 
 
 def _get_capsule(capsule_id, user):
     try:
         capsule = Capsule.query.get(capsule_id)
-    except:
-        raise BadRequest
+    except StatementError as e:
+        raise BadRequest(description=str(e))
 
     if capsule is None:
         raise NotFound(description=f"The requested capsule '{capsule_id}' "
@@ -84,8 +85,8 @@ def search(capsule_id, user, offset, limit, filters):
         query = build_query_filters(AddOn, filters)
         query.append(AddOn.capsule_id == capsule_id)
         results = AddOn.query.filter(*query).limit(limit).offset(offset).all()
-    except:
-        raise BadRequest
+    except AttributeError as e:
+        raise BadRequest(description=str(e))
 
     if not results:
         raise NotFound(description="No addons have been found.")
@@ -107,8 +108,8 @@ def get(capsule_id, addon_id, user):
 
     try:
         result = AddOn.query.get(addon_id)
-    except:
-        raise BadRequest
+    except StatementError as e:
+        raise BadRequest(description=str(e))
 
     if not result:
         raise NotFound(description=f"The requested addon '{addon_id}' "
@@ -137,8 +138,8 @@ def put(capsule_id, addon_id, user):
 
     try:
         addon = AddOn.query.get(addon_id)
-    except:
-        raise BadRequest
+    except StatementError as e:
+        raise BadRequest(description=str(e))
 
     if not addon:
         raise NotFound(description=f"The requested addon '{addon_id}' "

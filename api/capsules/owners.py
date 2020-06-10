@@ -5,19 +5,26 @@ from app import db
 from utils import oidc_require_role, check_owners_on_keycloak
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden, Conflict
 from exceptions import KeycloakUserNotFound
+from sqlalchemy.exc import StatementError
+
+
+def _get_capsule(capsule_id, user):
+    try:
+        capsule = Capsule.query.get(capsule_id)
+    except StatementError as e:
+        raise BadRequest(description=str(e))
+
+    if capsule is None:
+        raise NotFound(description=f"The requested capsule '{capsule_id}' "
+                       "has not been found.")
+
+    return capsule
 
 
 # /GET /capsules/{cId}/owners
 @oidc_require_role(min_role=RoleEnum.user)
 def search(capsule_id, offset, limit, filters, user):
-    try:
-        capsule = Capsule.query.get(capsule_id)
-    except:
-        raise BadRequest
-
-    if capsule is None:
-        raise NotFound(description=f"The requested capsule '{capsule_id}' "
-                       "has not been found.")
+    capsule = _get_capsule(capsule_id, user)
 
     owners = []
     user_is_owner = False
@@ -36,15 +43,7 @@ def search(capsule_id, offset, limit, filters, user):
 # /PATCH /capsules/{cId}/owners
 @oidc_require_role(min_role=RoleEnum.user)
 def patch(capsule_id, user):
-    try:
-        capsule = Capsule.query.get(capsule_id)
-    except:
-        raise BadRequest
-
-    if capsule is None:
-        raise NotFound(description=f"The requested capsule '{capsule_id}' "
-                       "has not been found.")
-
+    capsule = _get_capsule(capsule_id, user)
     owner_data = request.get_json()
 
     if "newOwner" not in owner_data:
@@ -88,15 +87,7 @@ def delete(capsule_id, user_id, user):
     if user_id == user.name:
         raise Conflict
 
-    try:
-        capsule = Capsule.query.get(capsule_id)
-    except:
-        raise BadRequest
-
-    if capsule is None:
-        raise NotFound(description=f"The requested capsule '{capsule_id}' "
-                       "has not been found.")
-
+    capsule = _get_capsule(capsule_id, user)
     user_is_owner = False
     for owner in capsule.owners:
         if user.name == owner.name:

@@ -6,7 +6,6 @@ get:
   parameters:
     - $ref: "../components/parameters.yaml#/offset"
     - $ref: "../components/parameters.yaml#/limit"
-    - $ref: "../components/parameters.yaml#/filters"
   responses:
     "404":
       $ref: "../components/responses.yaml#/NotFound"

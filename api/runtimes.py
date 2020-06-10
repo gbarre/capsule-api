@@ -5,6 +5,7 @@ from models import Runtime, runtime_schema, runtimes_schema
 from models import RoleEnum
 from models import AvailableOption
 from utils import oidc_require_role, build_query_filters
+from sqlalchemy.exc import StatementError
 
 
 # GET /runtimes
@@ -14,8 +15,8 @@ def search(offset, limit, filters):
         query = build_query_filters(Runtime, filters)
         results = Runtime.query.filter(*query)\
             .limit(limit).offset(offset).all()
-    except:
-        raise BadRequest
+    except AttributeError as e:
+        raise BadRequest(description=str(e))
 
     if not results:
         raise NotFound(description="No runtimes have been found.")
@@ -52,8 +53,8 @@ def post(runtime=None):
 def get(runtime_id):
     try:
         runtime = Runtime.query.get(runtime_id)
-    except:
-        raise BadRequest
+    except StatementError as e:
+        raise BadRequest(description=str(e))
 
     if runtime is None:
         raise NotFound(description=f"The requested runtime '{runtime_id}' "
@@ -70,8 +71,8 @@ def put(runtime_id):
 
     try:
         runtime = Runtime.query.get(runtime_id)
-    except:
-        raise BadRequest
+    except StatementError as e:
+        raise BadRequest(description=str(e))
 
     if runtime is None:
         return post(runtime=runtime)
@@ -97,8 +98,8 @@ def put(runtime_id):
 def delete(runtime_id):
     try:
         runtime = Runtime.query.get(runtime_id)
-    except:
-        raise BadRequest
+    except StatementError as e:
+        raise BadRequest(description=str(e))
 
     if runtime is None:
         raise NotFound(description=f"The requested runtime '{runtime_id}' "

@@ -3,13 +3,14 @@ from models import RoleEnum, Capsule, SSHKey, capsule_output_schema
 from app import db
 from utils import oidc_require_role
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden, Conflict
+from sqlalchemy.exc import StatementError
 
 
 def _get_capsule(capsule_id, user):
     try:
         capsule = Capsule.query.get(capsule_id)
-    except:
-        raise BadRequest
+    except StatementError as e:
+        raise BadRequest(description=str(e))
 
     if capsule is None:
         raise NotFound(description=f"The requested capsule '{capsule_id}' "
@@ -55,8 +56,8 @@ def delete(capsule_id, sshkey_id, user):
     capsule = _get_capsule(capsule_id, user)
     try:
         sshkey = SSHKey.query.get(sshkey_id)
-    except:
-        raise BadRequest
+    except StatementError as e:
+        raise BadRequest(description=str(e))
 
     if sshkey is None:
         raise NotFound(description=f"The requested sshkey '{sshkey_id}' "

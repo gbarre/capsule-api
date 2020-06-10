@@ -2,6 +2,7 @@ from models import RoleEnum
 from models import User, user_schema, users_schema
 from utils import oidc_require_role
 from werkzeug.exceptions import NotFound, BadRequest
+from sqlalchemy.exc import InvalidRequestError
 
 
 # GET /users
@@ -10,8 +11,8 @@ def search(offset, limit, filters):
     try:
         results = User.query.filter_by(**filters)\
             .limit(limit).offset(offset).all()
-    except:
-        raise BadRequest
+    except InvalidRequestError as e:
+        raise BadRequest(description=str(e))
 
     if not results:
         raise NotFound(description="No users have been found.")
@@ -22,10 +23,7 @@ def search(offset, limit, filters):
 # GET /users/{uId}
 @oidc_require_role(min_role=RoleEnum.admin)
 def get(user_id):
-    try:
-        user = User.query.filter_by(name=user_id).first()
-    except:
-        raise BadRequest
+    user = User.query.filter_by(name=user_id).first()
 
     if user is None:
         raise NotFound(description=f"The requested user '{user_id}' "
