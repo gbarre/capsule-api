@@ -85,7 +85,6 @@ class TestCapsuleSshKeys:
     #### Testing DELETE /capsules/{cId}/sshkeys/{kId}
     #############################################################
     # Response 204:
-    # FIXME: how to remove the header "Content-Type" in the a DELETE request only?
     @pytest.mark.filterwarnings("ignore:.*Content-Type header found in a 204 response.*:Warning")
     def test_delete_sshkey(self, testapp, db):
         capsule_id = str(db.capsule1.id)

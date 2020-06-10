@@ -5,6 +5,7 @@ from unittest.mock import patch
 from werkzeug.exceptions import Forbidden
 from models import RoleEnum, runtime_schema
 import pytest
+from pprint import pprint
 
 
 class TestRuntimes:
@@ -15,7 +16,6 @@ class TestRuntimes:
         "fam": "test",
     }
 
-    # _runtime_output = foodata.runtime1
 
     #################################
     #### Testing GET /runtimes

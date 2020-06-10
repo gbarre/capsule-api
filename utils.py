@@ -114,7 +114,7 @@ def check_apptoken(token):
 
 def check_user_role(min_role=RoleEnum.admin):
     if hasattr(g, 'capsule_app_token'):  # Get user name from application token
-        name = g.capsule_app_token  # TODO: Change the way to get user name from token
+        name = g.capsule_app_token
     else:  # Keycloak auth
         kc_user_id = g.oidc_token_info['sub']
         try:

@@ -445,6 +445,11 @@ class RuntimeSchema(ma.SQLAlchemyAutoSchema):
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
 
+    @post_dump()
+    def __post_dump(self, data):
+        data['webapps'] = list(map(str, data['webapps']))
+        data['addons'] = list(map(str, data['addons']))
+
 
 class AvailableOptionSchema(ma.SQLAlchemyAutoSchema):
     def __init__(self, **kwargs):
