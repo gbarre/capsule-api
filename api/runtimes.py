@@ -1,10 +1,9 @@
 from flask import request
-from app import db, oidc
+from app import db
 from werkzeug.exceptions import NotFound, BadRequest
 from models import Runtime, runtime_schema, runtimes_schema
 from models import RoleEnum
-from models import AvailableOption, AvailableOptionValidationRule
-import json
+from models import AvailableOption
 from utils import oidc_require_role, build_query_filters
 
 
@@ -13,9 +12,10 @@ from utils import oidc_require_role, build_query_filters
 def search(offset, limit, filters):
     try:
         query = build_query_filters(Runtime, filters)
-        results = Runtime.query.filter(*query).limit(limit).offset(offset).all()
+        results = Runtime.query.filter(*query)\
+            .limit(limit).offset(offset).all()
     except:
-       raise BadRequest
+        raise BadRequest
 
     if not results:
         raise NotFound(description="No runtimes have been found.")
@@ -56,7 +56,8 @@ def get(runtime_id):
         raise BadRequest
 
     if runtime is None:
-        raise NotFound(description=f"The requested runtime '{runtime_id}' has not been found.")
+        raise NotFound(description=f"The requested runtime '{runtime_id}' "
+                       "has not been found.")
 
     return runtime_schema.dump(runtime).data
 
@@ -100,7 +101,8 @@ def delete(runtime_id):
         raise BadRequest
 
     if runtime is None:
-        raise NotFound(description=f"The requested runtime '{runtime_id}' has not been found.")
+        raise NotFound(description=f"The requested runtime '{runtime_id}' "
+                       "has not been found.")
 
     db.session.delete(runtime)
     db.session.commit()

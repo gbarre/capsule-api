@@ -1,8 +1,6 @@
 import os
 import json
 import threading
-import logging
-import sqlalchemy
 from models import Capsule
 from models import WebApp
 from models import capsule_output_schema
@@ -12,7 +10,8 @@ from app import nats
 
 
 # TODO: Configuration must be unified
-session_factory = orm.sessionmaker(bind=create_engine('{driver}://{user}:{passw}@{host}:{port}/{db}'.format(
+session_factory = orm.sessionmaker(
+    bind=create_engine('{driver}://{user}:{passw}@{host}:{port}/{db}'.format(
         driver='mysql+pymysql',
         user='root',
         passw=os.environ.get('MYSQL_ROOT_PASSWORD'),
@@ -59,9 +58,12 @@ class NATSListener(threading.Thread):
                     nats.publish(origin_subject, webapp_data)
                     return
             except:
-                nats.publish_error(origin_subject, 'not found', f'{obj} {id} has not been found.')
+                nats.publish_error(
+                    origin_subject,
+                    'not found',
+                    f'{obj} {id} has not been found.')
                 return
-        
+
         nats.publish_error(origin_subject, 'invalid', 'nothing to be done.')
 
     def run(self):

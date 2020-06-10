@@ -14,7 +14,8 @@ def search(offset, limit, filters, user):
         query = []
         if user.role < RoleEnum.admin:
             query.append(AppToken.user == user)
-        results = AppToken.query.filter(*query).limit(limit).offset(offset).all()
+        results = AppToken.query.filter(*query)\
+            .limit(limit).offset(offset).all()
     except Exception as e:
         raise e
         raise BadRequest
@@ -60,7 +61,8 @@ def delete(apptoken_id, user):
         raise BadRequest
 
     if apptoken is None:
-        raise NotFound(description=f"The requested apptoken '{apptoken_id}' has not been found.")
+        raise NotFound(description=f"The requested apptoken '{apptoken_id}' "
+                       "has not been found.")
 
     if (user.id != apptoken.owner_id) and (user.role < RoleEnum.admin):
         raise Forbidden

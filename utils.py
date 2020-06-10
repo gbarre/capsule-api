@@ -1,15 +1,14 @@
 import json
 import requests
 import re
-from models import RoleEnum, Runtime
-from models import User, Capsule, AppToken
+from models import RoleEnum
+from models import User, AppToken
 from flask import current_app, g, request
 from exceptions import KeycloakUserNotFound, KeycloakIdNotFound
-from werkzeug.exceptions import BadRequest, Forbidden, NotFound, Unauthorized
+from werkzeug.exceptions import BadRequest, Forbidden, Unauthorized
 from functools import wraps
 from app import oidc
 from inspect import signature
-from marshmallow import fields
 from sqlalchemy.util import symbol
 from hashlib import sha512
 
@@ -39,7 +38,7 @@ def check_owners_on_keycloak(usernames):
         with open(current_app.config['OIDC_CLIENT_SECRETS']) as json_file:
             OIDC_CONFIG = json.load(json_file)
 
-    issuer = OIDC_CONFIG['web']['issuer']
+    # issuer = OIDC_CONFIG['web']['issuer']
     token_uri = OIDC_CONFIG['web']['token_uri']
     admin_uri = OIDC_CONFIG['web']['admin_uri']
     client_id = OIDC_CONFIG['web']['client_id']
@@ -87,17 +86,26 @@ def oidc_require_role(min_role):
 
 def require_auth(view_func):
     def wrapper(*args, **kwargs):
-        if 'X-Capsule-Application' in request.headers and request.headers['X-Capsule-Application'].startswith('Bearer '):
-            token = request.headers['X-Capsule-Application'].split(None, 1)[1].strip()
+        if 'X-Capsule-Application' in request.headers and \
+                request.headers['X-Capsule-Application'].startswith('Bearer '):
+            token = request.headers['X-Capsule-Application']\
+                .split(None, 1)[1].strip()
             (validity, username) = check_apptoken(token)
             if validity:
                 g.capsule_app_token = username
                 return view_func(*args, **kwargs)
             else:
-                response_body = {'error': 'invalid_token', 'error_description': 'Token required but invalid'}
-                return response_body, 401, {'WWW-X-Capsule-Application': 'Bearer'}
+                response_body = {
+                    'error': 'invalid_token',
+                    'error_description': 'Token required but invalid',
+                }
+                return response_body, 401,\
+                    {'WWW-X-Capsule-Application': 'Bearer'}
         else:  # Fallback on Keycloak auth
-            return oidc.accept_token(require_token=True, render_errors=False)(view_func)(*args, **kwargs)
+            return oidc.accept_token(
+                require_token=True,
+                render_errors=False
+            )(view_func)(*args, **kwargs)
 
     return wrapper
 
@@ -125,10 +133,11 @@ def check_user_role(min_role=RoleEnum.admin):
     # Look for user role
     user = User.query.filter_by(name=name).one_or_none()
 
-    if (user is None) or (user.role < min_role) :
+    if (user is None) or (user.role < min_role):
         raise Forbidden
 
     return user
+
 
 def get_user_from_keycloak(id, by_name=False):
     global OIDC_CONFIG
@@ -137,7 +146,7 @@ def get_user_from_keycloak(id, by_name=False):
         with open(current_app.config['OIDC_CLIENT_SECRETS']) as json_file:
             OIDC_CONFIG = json.load(json_file)
 
-    issuer = OIDC_CONFIG['web']['issuer']
+    # issuer = OIDC_CONFIG['web']['issuer']
     token_uri = OIDC_CONFIG['web']['token_uri']
     admin_uri = OIDC_CONFIG['web']['admin_uri']
     client_id = OIDC_CONFIG['web']['client_id']
@@ -150,20 +159,21 @@ def get_user_from_keycloak(id, by_name=False):
     }).json()
     access_token = token_res['access_token']
 
-    res = requests.get(f'{admin_uri}/users/{id}',
-                        headers={
-                            'Accept': 'application/json',
-                            'Authorization': f'Bearer {access_token}',
-                        }).json()
+    res = requests.get(f'{admin_uri}/users/{id}', headers={
+        'Accept': 'application/json',
+        'Authorization': f'Bearer {access_token}',
+    }).json()
 
     if "username" not in res:
         raise KeycloakIdNotFound(id)
 
     return res["username"]
 
+
 def build_query_filters(model_class, filters):
     query = []
-    # For instance, with http://localhost:5000/v1/capsules?filters[name]=first-test-caps&filters[owners]=user1,user2:
+    # For instance, with
+    # http://localhost:5000/v1/capsules?filters[name]=first-test-caps&filters[owners]=user1,user2:
     #
     #   model_class = Capsule
     #   filters = [
@@ -181,7 +191,8 @@ def build_query_filters(model_class, filters):
 
         # If the property to filter on is a collection
         if hasattr(field.property, 'direction') \
-            and field.property.direction in (symbol('ONETOMANY'), symbol('MANYTOMANY')):
+                and field.property.direction in \
+                (symbol('ONETOMANY'), symbol('MANYTOMANY')):
             value_class = field.property.entity.mapper.entity
             # value_class = User
 
@@ -200,7 +211,8 @@ def build_query_filters(model_class, filters):
                 values = value.split('|')
                 query.append(field.any(value_class_property.in_(values)))
             else:
-                # For instance with "owners" filter: query.append(Capsule.owners.any(User.id == user.id))
+                # For instance with "owners" filter:
+                # query.append(Capsule.owners.any(User.id == user.id))
                 query.append(field.any(value_class_property == value))
         else:
             # query.append(Capsule.name == "first-test-caps"))

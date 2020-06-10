@@ -1,6 +1,6 @@
 from flask import request
 from models import RoleEnum, SSHKey, sshkey_schema, sshkeys_schema
-from app import db, oidc
+from app import db
 from utils import oidc_require_role
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 
@@ -40,6 +40,7 @@ def post(user):
         'Location': f'{request.base_url}/sshkeys/{sshkey.id}',
     }
 
+
 # /DELETE /sshkeys/{skId}
 @oidc_require_role(min_role=RoleEnum.user)
 def delete(sshkey_id, user):
@@ -49,7 +50,8 @@ def delete(sshkey_id, user):
         raise BadRequest
 
     if sshkey is None:
-        raise NotFound(description=f"The requested sshkey '{sshkey_id}' has not been found.")
+        raise NotFound(description=f"The requested sshkey '{sshkey_id}' "
+                       "has not been found.")
 
     if (user.id is not sshkey.user_id) and (user.role < RoleEnum.admin):
         raise Forbidden

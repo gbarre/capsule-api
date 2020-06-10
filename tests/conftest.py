@@ -3,7 +3,6 @@ import webtest
 from app import create_app
 from app import db as _db
 from config import TestConfig
-from models import *
 from tests.foodata import DBFooData
 
 

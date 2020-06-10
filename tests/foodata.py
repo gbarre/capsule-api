@@ -1,4 +1,7 @@
-from models import *
+from models import RuntimeTypeEnum, RoleEnum, OptionValueTypeEnum, FQDN
+from models import ValidationRuleEnum, User, Runtime
+from models import AvailableOption, AvailableOptionValidationRule, Option
+from models import AddOn, WebApp, SSHKey, Capsule, AppToken
 
 
 class DBFooData:
@@ -70,7 +73,8 @@ class DBFooData:
         )
 
         self.webapp1 = WebApp(
-            env='{"HTTP_PROXY": "http://proxy:3128/", "HTTPS_PROXY": "https://proxy:3128/"}',
+            env='{"HTTP_PROXY": "http://proxy:3128/",'
+                '"HTTPS_PROXY": "https://proxy:3128/"}',
             fqdns=[
                 self.fqdn1,
                 self.fqdn2,
@@ -88,7 +92,8 @@ class DBFooData:
 
         self.addon1 = AddOn(
             description="Service de base de données pour ma capsule",
-            env='{"HTTP_PROXY": "http://proxy:3128/", "HTTPS_PROXY": "https://proxy:3128/"}',
+            env='{"HTTP_PROXY": "http://proxy:3128/", '
+                '"HTTPS_PROXY": "https://proxy:3128/"}',
             name="MySQL-1",
             opts=[],
             # "runtime_id": "10f6e1d7-2976-43e4-a4a5-bab833cb3241",
@@ -96,36 +101,52 @@ class DBFooData:
         )
 
         self.sshkey1 = SSHKey(
-            public_key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCt+vNHscC4LbZY/YQP0hcV4QrwRlhqrcuhAvZZERmp"\
-                "NLLOWK4Neaa7ywikVGOOVcY+q3XRHPNZTVkEZhwm0F+/87LJpNhxhZu4BdJ2mfIwx0JS5gRflfeUxxLJ"\
-                "AwLXQZpcO7GRdz/w12EgBohHNbxJyKwL7DSFAnaZ08/tlsjoNRlo1k4NHFf5Xf8K3M1ZlXeSxNV9nlpX"\
-                "tD6tbVVJn18tDCZgSqH64m1+iVb05sB2htifgkBB+fCElRV/v7Eylc5Zu1EMTlrHmeHB3Yf8DpRMkwYH"\
-                "e4j+yDutLvhhZzGmrnNGcD8zZkE1pwKivjwBKee4Bee8NzVR7vMary2GkqY1 john@doe",
+            public_key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCt+vNHscC4LbZY/"
+                       "YQP0hcV4QrwRlhqrcuhAvZZERmpNLLOWK4Neaa7ywikVGOOVcY+q3"
+                       "XRHPNZTVkEZhwm0F+/87LJpNhxhZu4BdJ2mfIwx0JS5gRflfeUxxL"
+                       "JAwLXQZpcO7GRdz/w12EgBohHNbxJyKwL7DSFAnaZ08/tlsjoNRlo"
+                       "1k4NHFf5Xf8K3M1ZlXeSxNV9nlpXtD6tbVVJn18tDCZgSqH64m1+i"
+                       "Vb05sB2htifgkBB+fCElRV/v7Eylc5Zu1EMTlrHmeHB3Yf8DpRMkw"
+                       "YHe4j+yDutLvhhZzGmrnNGcD8zZkE1pwKivjwBKee4Bee8NzVR7vM"
+                       "ary2GkqY1 john@doe",
         )
 
         self.sshkey2 = SSHKey(
-            public_key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqDWN5ay+bKoNg/+DbugWvLjY6q+ODdelRkZTakj7U"\
-                "Nq+a40Vm+HHRT2tuoB1NxeR87UieJt9IxWiiTasb/Ss+OgcAn5l8kvQvRQe+dp10qbeQHzkrgjpsFj49"\
-                "YDOVKRTrqm5X721TnpqAo2RjqGBeEU+y9REfXPNPMUsni3w/h/BQqJi/e2CRBRdgbi/3bO0Xf0Pt0bc/"\
-                "9jjF6vulqzttdbxowbee8bJlPyz/LnNcTGDdmw2PNQFwe0ZuhHsFzSLX4acM3je0+xcdlq0+Gq8nU5jz"\
-                "/x0SXuXFz9zFHPO3Ivko1VFdBXaqeb8wOluUjmOxJdDcg3Uqswc5Z08KU+9r jane@doe",
+            public_key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqDWN5ay+bKoNg/"
+                       "+DbugWvLjY6q+ODdelRkZTakj7UNq+a40Vm+HHRT2tuoB1NxeR87U"
+                       "ieJt9IxWiiTasb/Ss+OgcAn5l8kvQvRQe+dp10qbeQHzkrgjpsFj4"
+                       "9YDOVKRTrqm5X721TnpqAo2RjqGBeEU+y9REfXPNPMUsni3w/h/BQ"
+                       "qJi/e2CRBRdgbi/3bO0Xf0Pt0bc/9jjF6vulqzttdbxowbee8bJlP"
+                       "yz/LnNcTGDdmw2PNQFwe0ZuhHsFzSLX4acM3je0+xcdlq0+Gq8nU5"
+                       "jz/x0SXuXFz9zFHPO3Ivko1VFdBXaqeb8wOluUjmOxJdDcg3Uqswc"
+                       "5Z08KU+9r jane@doe",
         )
 
         self.sshkey3 = SSHKey(
-            public_key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQCqGKukO1De7zhZj6+H0qtjTkVxwTCpvKe4eCZ0FPqri"\
-                "0cb2JZfXJ/DgYSF6vUpwmJG8wVQZKjeGcjDOL5UlsuusFncCzWBQ7RKNUSesmQRMSGkVb1/3j+skZ6UtW"\
-                "+5u09lHNsj6tQ51s1SPrCBkedbNf0Tp0GbMJDyR4e9T04ZZw== phpseclib-generated-key"
+            public_key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQCqGKukO1De7zhZj"
+                       "6+H0qtjTkVxwTCpvKe4eCZ0FPqri0cb2JZfXJ/DgYSF6vUpwmJG8w"
+                       "VQZKjeGcjDOL5UlsuusFncCzWBQ7RKNUSesmQRMSGkVb1/3j+skZ6"
+                       "UtW+5u09lHNsj6tQ51s1SPrCBkedbNf0Tp0GbMJDyR4e9T04ZZw=="
+                       " phpseclib-generated-key"
         )
 
-        self.apptoken1 = AppToken(app="My super app", token="KDCte1raIV-ItPQf-sf_tapY4q-kLmvlcJ9yUKPlqbo")
+        self.apptoken1 = AppToken(
+            app="My super app",
+            token="KDCte1raIV-ItPQf-sf_tapY4q-kLmvlcJ9yUKPlqbo")
 
         # Users.
-        self.admin_user = User(name="admin_user", role=RoleEnum.admin)
-        self.superadmin_user = User(name="superadmin_user", role=RoleEnum.superadmin)
-        self.fake_user = User(name="fake_user", role=RoleEnum.user)
-        self.user1 = User(name="user1", role=RoleEnum.user)
-        self.user2 = User(name="user2", role=RoleEnum.user)
-        self.user3 = User(name="user3", role=RoleEnum.user)
+        self.admin_user = User(
+            name="admin_user", role=RoleEnum.admin)
+        self.superadmin_user = User(
+            name="superadmin_user", role=RoleEnum.superadmin)
+        self.fake_user = User(
+            name="fake_user", role=RoleEnum.user)
+        self.user1 = User(
+            name="user1", role=RoleEnum.user)
+        self.user2 = User(
+            name="user2", role=RoleEnum.user)
+        self.user3 = User(
+            name="user3", role=RoleEnum.user)
 
         self.user1.public_keys.append(self.sshkey1)
         self.user2.public_keys.append(self.sshkey2)
@@ -138,8 +159,8 @@ class DBFooData:
                 self.user1,
                 self.user2,
             ],
-            webapp = self.webapp1,
-            addons = [
+            webapp=self.webapp1,
+            addons=[
                 self.addon1,
             ],
             authorized_keys=[

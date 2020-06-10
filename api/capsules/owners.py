@@ -1,7 +1,7 @@
 from flask import request
 from models import RoleEnum
 from models import Capsule, User, user_schema, capsule_output_schema
-from app import db, oidc
+from app import db
 from utils import oidc_require_role, check_owners_on_keycloak
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden, Conflict
 from exceptions import KeycloakUserNotFound
@@ -16,7 +16,8 @@ def search(capsule_id, offset, limit, filters, user):
         raise BadRequest
 
     if capsule is None:
-        raise NotFound(description=f"The requested capsule '{capsule_id}' has not been found.")
+        raise NotFound(description=f"The requested capsule '{capsule_id}' "
+                       "has not been found.")
 
     owners = []
     user_is_owner = False
@@ -27,7 +28,7 @@ def search(capsule_id, offset, limit, filters, user):
         owners.append(user_json)
 
     if (not user_is_owner) and (user.role == RoleEnum.user):
-        raise Forbidden("You don't have the permission to access the requested resource.")
+        raise Forbidden
 
     return owners
 
@@ -41,7 +42,8 @@ def patch(capsule_id, user):
         raise BadRequest
 
     if capsule is None:
-        raise NotFound(description=f"The requested capsule '{capsule_id}' has not been found.")
+        raise NotFound(description=f"The requested capsule '{capsule_id}' "
+                       "has not been found.")
 
     owner_data = request.get_json()
 
@@ -57,7 +59,7 @@ def patch(capsule_id, user):
             raise Conflict
 
     if (not user_is_owner) and (user.role == RoleEnum.user):
-        raise Forbidden("You don't have the permission to access the requested resource.")
+        raise Forbidden
 
     try:  # Check if owners exist on Keycloak
         check_owners_on_keycloak([new_owner])
@@ -92,7 +94,8 @@ def delete(capsule_id, user_id, user):
         raise BadRequest
 
     if capsule is None:
-        raise NotFound(description=f"The requested capsule '{capsule_id}' has not been found.")
+        raise NotFound(description=f"The requested capsule '{capsule_id}' "
+                       "has not been found.")
 
     user_is_owner = False
     for owner in capsule.owners:
@@ -100,7 +103,7 @@ def delete(capsule_id, user_id, user):
             user_is_owner = True
 
     if (not user_is_owner) and (user.role == RoleEnum.user):
-        raise Forbidden("You don't have the permission to access the requested resource.")
+        raise Forbidden()
 
     try:  # Check if owners exist on Keycloak
         check_owners_on_keycloak([user_id])
@@ -109,7 +112,7 @@ def delete(capsule_id, user_id, user):
 
     user = User.query.filter_by(name=user_id).one_or_none()
     if user is None:
-        raise NotFound(description=f'{e.missing_username} is an invalid user.')
+        raise NotFound(description=f'{user} is an invalid user.')
 
     capsule.owners.remove(user)
     db.session.commit()

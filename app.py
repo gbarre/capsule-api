@@ -1,6 +1,5 @@
 import os
 import connexion
-import logging
 import werkzeug
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -35,10 +34,17 @@ def create_app(config=ProdConfig):
         __name__, specification_dir=os.path.join(basedir, 'spec'))
 
     # Read the swagger.yml file to configure the endpoints
-    connex_app.add_api('openapi.json', strict_validation=True, validate_responses=True)
+    connex_app.add_api(
+        'openapi.json',
+        strict_validation=True,
+        validate_responses=True
+    )
     for error_code in werkzeug.exceptions.default_exceptions:
         connex_app.add_error_handler(error_code, render_exception)
-    connex_app.add_error_handler(connexion.exceptions.ProblemException, render_exception)
+    connex_app.add_error_handler(
+        connexion.exceptions.ProblemException,
+        render_exception
+    )
 
     # Get the underlying Flask app instance
 

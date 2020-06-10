@@ -1,14 +1,13 @@
-import json
 from flask import request
 from models import RoleEnum
 from models import SSHKey, User
 from models import Capsule, capsule_output_schema, capsules_output_schema
 from models import capsule_input_schema
-from models import capsules_users_table, capsules_verbose_schema, capsule_verbose_schema
-from app import db, oidc, nats
+from models import capsules_verbose_schema, capsule_verbose_schema
+from app import db, nats
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden
-from sqlalchemy import inspect
-from utils import check_owners_on_keycloak, get_user_from_keycloak, oidc_require_role, is_valid_capsule_name, build_query_filters
+from utils import check_owners_on_keycloak, oidc_require_role
+from utils import is_valid_capsule_name, build_query_filters
 from exceptions import KeycloakUserNotFound
 
 
@@ -16,13 +15,13 @@ from exceptions import KeycloakUserNotFound
 @oidc_require_role(min_role=RoleEnum.user)
 def search(offset, limit, filters, verbose, user):
     # TODO: pagination hyperlinks (next, previous, etc.)
-    # NOTE: https://stackoverflow.com/questions/6474989/sqlalchemy-filter-by-membership-in-at-least-one-many-to-many-related-table
-
     try:
+        # https://stackoverflow.com/questions/6474989/sqlalchemy-filter-by-membership-in-at-least-one-many-to-many-related-table
         query = build_query_filters(Capsule, filters)
         if user.role < RoleEnum.admin:
             query.append(Capsule.owners.any(User.name == user.name))
-        results = Capsule.query.filter(*query).limit(limit).offset(offset).all()
+        results = Capsule.query.filter(*query)\
+            .limit(limit).offset(offset).all()
     except:
         raise BadRequest
 
@@ -36,7 +35,9 @@ def search(offset, limit, filters, verbose, user):
 
 
 # POST /capsules
-#@oidc.accept_token(require_token=True, render_errors=False)
+# TIPS : use the 2 lines above to create user in DB at first launch.
+# from app import oidc
+# @oidc.accept_token(require_token=True, render_errors=False)
 @oidc_require_role(min_role=RoleEnum.admin)
 def post():
     capsule_data = request.get_json()
@@ -45,7 +46,9 @@ def post():
     try:  # Check if owners exist on Keycloak
         check_owners_on_keycloak(data['owners'])
     except KeycloakUserNotFound as e:
-        raise BadRequest(description=f'{e.missing_username} is an invalid user.')
+        raise BadRequest(
+            description=f'{e.missing_username} is an invalid user.'
+        )
 
     # Get existent users, create the others
     for i, owner in enumerate(data['owners']):
@@ -58,7 +61,8 @@ def post():
     # Get existent ssh keys, create the others
     if 'authorized_keys' in data:
         for i, public_key in enumerate(data['authorized_keys']):
-            sshkey = SSHKey.query.filter_by(public_key=public_key).one_or_none()
+            sshkey = SSHKey.query\
+                .filter_by(public_key=public_key).one_or_none()
             if sshkey is None:
                 data['authorized_keys'][i] = SSHKey(public_key=public_key)
             else:
@@ -68,9 +72,10 @@ def post():
 
     # https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-label-names
     if not is_valid_capsule_name(capsule_name):
-        msg = f'The capsule name "{capsule_name}" is invalid: only lowercase alphanumeric characters '\
-               'or "-" are allowed, the first and the last characters must be alphanumeric, '\
-               'the name must have at least 2 characters and less than 64 characters.'
+        msg = f'The capsule name "{capsule_name}" is invalid: only lowercase '\
+            'alphanumeric characters or "-" are allowed, the first and the '\
+            'last characters must be alphanumeric, the name must have at '\
+            'least 2 characters and less than 64 characters.'
         raise BadRequest(description=msg)
 
     caps = Capsule.query.filter_by(name=capsule_name).limit(1).one_or_none()
@@ -99,7 +104,8 @@ def get(capsule_id, verbose, user):
         raise BadRequest
 
     if capsule is None:
-        raise NotFound(description=f"The requested capsule '{capsule_id}' has not been found.")
+        raise NotFound(description=f"The requested capsule '{capsule_id}' "
+                       "has not been found.")
 
     owners = capsule_output_schema.dump(capsule).data['owners']
     if (user.role is RoleEnum.user) and (user.name not in owners):
@@ -119,7 +125,8 @@ def delete(capsule_id):
         raise BadRequest
 
     if capsule is None:
-        raise NotFound(description=f"The requested capsule '{capsule_id}' has not been found.")
+        raise NotFound(description=f"The requested capsule '{capsule_id}' "
+                       "has not been found.")
 
     db.session.delete(capsule)
     db.session.commit()

@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime
 from app import db, ma
-from marshmallow import fields, pre_load, post_dump
+from marshmallow import fields, post_dump
 from marshmallow_enum import EnumField
 from sqlalchemy.orm import backref
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -110,7 +110,7 @@ class User(db.Model):
 
     id = db.Column(GUID, nullable=False,
                    unique=True, primary_key=True, default=uuid.uuid4)
-    name = db.Column(db.String(32), nullable=False, unique=True) # LDAP UID
+    name = db.Column(db.String(32), nullable=False, unique=True)  # LDAP UID
     public_keys = db.relationship(
         "SSHKey",
         backref="owner",
@@ -200,7 +200,10 @@ class AvailableOption(db.Model):
                     validation_rule = AvailableOptionValidationRule(**rule)
                     validation_rules.append(validation_rule)
                 opt.pop("validation_rules")
-                available_opt = AvailableOption(**opt, validation_rules=validation_rules)
+                available_opt = AvailableOption(
+                    **opt,
+                    validation_rules=validation_rules
+                )
             else:
                 available_opt = AvailableOption(**opt)
             available_opts.append(available_opt)
@@ -441,7 +444,11 @@ class RuntimeSchema(ma.SQLAlchemyAutoSchema):
     #     only=('capsule_id', 'id'),
     # )
     available_opts = fields.Nested(
-        'AvailableOptionSchema', default=[], many=True, exclude=('available_option_id',))
+        'AvailableOptionSchema',
+        default=[],
+        many=True,
+        exclude=('available_option_id',)
+    )
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
 
@@ -463,7 +470,11 @@ class AvailableOptionSchema(ma.SQLAlchemyAutoSchema):
     value_type = EnumField(OptionValueTypeEnum, by_value=True)
 
     validation_rules = fields.Nested(
-        'AvailableOptionValidationRuleSchema', default=[], many=True, exclude=('validation_rule_id',))
+        'AvailableOptionValidationRuleSchema',
+        default=[],
+        many=True,
+        exclude=('validation_rule_id',)
+    )
 
 
 class AvailableOptionValidationRuleSchema(ma.SQLAlchemyAutoSchema):
@@ -475,7 +486,6 @@ class AvailableOptionValidationRuleSchema(ma.SQLAlchemyAutoSchema):
         sqla_session = db.session
 
     type = EnumField(ValidationRuleEnum, by_value=True)
-
 
 
 class WebAppSchema(ma.SQLAlchemyAutoSchema):
@@ -666,7 +676,6 @@ class CapsuleSchemaVerbose(ma.SQLAlchemyAutoSchema):
                 addon['env'] = dict()
 
 
-
 class UserSchema(ma.SQLAlchemyAutoSchema):
     def __init__(self, **kwargs):
         super().__init__(strict=True, **kwargs)
@@ -685,6 +694,7 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
     role = EnumField(RoleEnum, by_value=True)
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
+
 
 class AppTokenSchema(ma.SQLAlchemyAutoSchema):
     def __init__(self, **kwargs):

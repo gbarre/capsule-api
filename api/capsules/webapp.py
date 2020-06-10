@@ -1,7 +1,7 @@
 from flask import request
 import ast
 from models import RoleEnum
-from models import Capsule, User
+from models import Capsule
 from models import WebApp, webapp_schema
 from models import FQDN, Option
 from models import Runtime, RuntimeTypeEnum
@@ -17,7 +17,8 @@ def _get_capsule(capsule_id, user):
         raise BadRequest
 
     if capsule is None:
-        raise NotFound(description=f"The requested capsule '{capsule_id}' has not been found.")
+        raise NotFound(description=f"The requested capsule '{capsule_id}' "
+                       "has not been found.")
 
     user_is_owner = False
     for owner in capsule.owners:
@@ -25,7 +26,7 @@ def _get_capsule(capsule_id, user):
             user_is_owner = True
 
     if (not user_is_owner) and (user.role == RoleEnum.user):
-        raise Forbidden("You don't have the permission to access the requested resource.")
+        raise Forbidden
 
     return capsule
 
@@ -48,10 +49,12 @@ def post(capsule_id, user, webapp_data=None):
     runtime = Runtime.query.get(runtime_id)
 
     if runtime is None:
-        raise BadRequest(description=f"The runtime_id '{runtime_id}' does not exist.")
+        raise BadRequest(description=f"The runtime_id '{runtime_id}' "
+                         "does not exist.")
 
     if runtime.runtime_type is not RuntimeTypeEnum.webapp:
-        raise BadRequest(description=f"The runtime_id '{runtime.id}' has not type 'webapp'.")
+        raise BadRequest(description=f"The runtime_id '{runtime.id}' "
+                         "has not type 'webapp'.")
 
     if "env" in webapp_data:
         webapp_data["env"] = str(webapp_data["env"])
@@ -97,6 +100,7 @@ def get(capsule_id, user):
     return result_json, 200, {
         'Location': f'{request.base_url}/{capsule.id}/webapp',
     }
+
 
 # /PUT /capsules/{cId}/webapp
 @oidc_require_role(min_role=RoleEnum.user)

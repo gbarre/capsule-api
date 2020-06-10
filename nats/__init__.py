@@ -48,7 +48,8 @@ class NATS(object):
         # TODO set level depending on the DEBUG key of app.config
         self.logger.setLevel(logging.DEBUG)
 
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        formatter = logging\
+            .Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(formatter)

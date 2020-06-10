@@ -2,13 +2,13 @@ from flask import request
 import ast
 import json
 from models import RoleEnum
-from models import Capsule, User
+from models import Capsule
 from models import AddOn, addon_schema, addons_schema
 from models import Option
 from models import Runtime, RuntimeTypeEnum
 from app import db
 from utils import oidc_require_role, build_query_filters
-from werkzeug.exceptions import NotFound, BadRequest, Forbidden, Conflict
+from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 
 
 def _get_capsule(capsule_id, user):
@@ -18,7 +18,8 @@ def _get_capsule(capsule_id, user):
         raise BadRequest
 
     if capsule is None:
-        raise NotFound(description=f"The requested capsule '{capsule_id}' has not been found.")
+        raise NotFound(description=f"The requested capsule '{capsule_id}' "
+                       "has not been found.")
 
     user_is_owner = False
     for owner in capsule.owners:
@@ -26,7 +27,7 @@ def _get_capsule(capsule_id, user):
             user_is_owner = True
 
     if (not user_is_owner) and (user.role == RoleEnum.user):
-        raise Forbidden("You don't have the permission to access the requested resource.")
+        raise Forbidden
 
     return capsule
 
@@ -43,10 +44,12 @@ def post(capsule_id, user, addon_data=None):
     runtime = Runtime.query.get(runtime_id)
 
     if runtime is None:
-        raise BadRequest(description=f"The runtime_id '{runtime_id}' does not exist.")
+        raise BadRequest(description=f"The runtime_id '{runtime_id}' "
+                         "does not exist.")
 
     if runtime.runtime_type is not RuntimeTypeEnum.addon:
-        raise BadRequest(description=f"The runtime_id '{runtime.id}' has not type 'addon'.")
+        raise BadRequest(description=f"The runtime_id '{runtime.id}' "
+                         "has not type 'addon'.")
 
     if "env" in addon_data:
         addon_data["env"] = json.dumps(addon_data["env"])
@@ -64,18 +67,18 @@ def post(capsule_id, user, addon_data=None):
     db.session.add(addon)
     db.session.commit()
 
-    result = AddOn.query.get(addon.id)
     result_json = addon_schema.dump(addon).data
     result_json["env"] = json.loads(result_json["env"])
     return result_json, 201, {
-        'Location': f'{request.base_url}/capsules/{capsule_id}/addons/{addon.id}',
+        'Location':
+            f'{request.base_url}/capsules/{capsule_id}/addons/{addon.id}',
     }
 
 
 # GET /capsules/{cID}/addons
 @oidc_require_role(min_role=RoleEnum.user)
 def search(capsule_id, user, offset, limit, filters):
-    capsule = _get_capsule(capsule_id, user)
+    _get_capsule(capsule_id, user)
 
     try:
         query = build_query_filters(AddOn, filters)
@@ -108,7 +111,8 @@ def get(capsule_id, addon_id, user):
         raise BadRequest
 
     if not result:
-        raise NotFound(description=f"The requested addon '{addon_id}' has not been found.")
+        raise NotFound(description=f"The requested addon '{addon_id}' "
+                       "has not been found.")
 
     if str(result.capsule.id) != capsule_id:
         raise Forbidden
@@ -120,14 +124,15 @@ def get(capsule_id, addon_id, user):
         result['env'] = dict()
 
     return result, 200, {
-        'Location': f'{request.base_url}/capsules/{capsule.id}/addons/{addon_id}',
+        'Location':
+        f'{request.base_url}/capsules/{capsule.id}/addons/{addon_id}',
     }
 
 
 # PUT /capsules/{cID}/addons/{aID}
 @oidc_require_role(min_role=RoleEnum.user)
 def put(capsule_id, addon_id, user):
-    capsule = _get_capsule(capsule_id, user)
+    _get_capsule(capsule_id, user)
     addon_data = request.get_json()
 
     try:
@@ -136,7 +141,8 @@ def put(capsule_id, addon_id, user):
         raise BadRequest
 
     if not addon:
-        raise NotFound(description=f"The requested addon '{addon_id}' has not been found.")
+        raise NotFound(description=f"The requested addon '{addon_id}' "
+                       "has not been found.")
 
     if str(addon.capsule.id) != capsule_id:
         raise Forbidden
@@ -156,14 +162,15 @@ def put(capsule_id, addon_id, user):
 
     return get(capsule_id, addon_id)
 
+
 # DELETE /capsules/{cID}/addons/{aID}
 @oidc_require_role(min_role=RoleEnum.user)
 def delete(capsule_id, addon_id, user):
-    capsule = _get_capsule(capsule_id, user)
+    _get_capsule(capsule_id, user)
 
     addon = AddOn.query.get(addon_id)
     if not addon:
-        raise NotFound(description="This addon is not present in this capsule.")
+        raise NotFound(description="This addon is not present in this capsule")
 
     if str(addon.capsule.id) != capsule_id:
         raise Forbidden
