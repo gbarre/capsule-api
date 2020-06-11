@@ -3,7 +3,7 @@ import json
 import threading
 from models import Capsule
 from models import WebApp
-from models import capsule_output_schema
+from models import capsule_verbose_schema
 from models import webapp_schema
 from sqlalchemy import orm, create_engine
 from app import nats
@@ -48,6 +48,18 @@ class NATSListener(threading.Thread):
                 'invalid',
                 error_msg)
             return
+
+        data_json = json_msg['data']
+        if "capsule-name" in data_json:
+            capsule = session.query(Capsule)\
+                .filter_by(name=data_json['capsule-name']).first()
+        else:
+            capsule = session.query(Capsule).get(data_json['capsule-id'])
+
+        capsule_data = capsule_verbose_schema.dump(capsule).data
+        nats.publish(origin_subject, capsule_data)
+        return
+
 
         # if 'state' not in json_msg:
         #     nats.publish_error(origin_subject, 'invalid', 'state is missing.')
