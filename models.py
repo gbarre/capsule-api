@@ -9,6 +9,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.types import TypeDecorator, CHAR
 from sqlalchemy.dialects.postgresql import UUID
 from ast import literal_eval
+from pprint import pprint
 
 
 class GUID(TypeDecorator):
@@ -454,8 +455,10 @@ class RuntimeSchema(ma.SQLAlchemyAutoSchema):
 
     @post_dump()
     def __post_dump(self, data):
-        data['webapps'] = list(map(str, data['webapps']))
-        data['addons'] = list(map(str, data['addons']))
+        if 'webapps' in data:
+            data['webapps'] = list(map(str, data['webapps']))
+        if 'addons' in data:
+            data['addons'] = list(map(str, data['addons']))
 
 
 class AvailableOptionSchema(ma.SQLAlchemyAutoSchema):
@@ -588,8 +591,10 @@ class CapsuleInputSchema(ma.SQLAlchemyAutoSchema):
     # https://stackoverflow.com/questions/56779627/serialize-uuids-with-marshmallow-sqlalchemy
     @post_dump()
     def __post_dump(self, data):
-        data['webapp'] = str(data['webapp'])
-        data['addons'] = list(map(str, data['addons']))
+        if 'webapp' in data:
+            data['webapp'] = str(data['webapp'])
+        if 'addons' in data:
+            data['addons'] = list(map(str, data['addons']))
 
 
 class CapsuleOutputSchema(ma.SQLAlchemyAutoSchema):
@@ -617,8 +622,10 @@ class CapsuleOutputSchema(ma.SQLAlchemyAutoSchema):
     # https://stackoverflow.com/questions/56779627/serialize-uuids-with-marshmallow-sqlalchemy
     @post_dump()
     def __post_dump(self, data):
-        data['webapp'] = str(data['webapp'])
-        data['addons'] = list(map(str, data['addons']))
+        if 'webapp' in data:
+            data['webapp'] = str(data['webapp'])
+        if 'addons' in data:
+            data['addons'] = list(map(str, data['addons']))
 
 
 class CapsuleSchemaVerbose(ma.SQLAlchemyAutoSchema):
@@ -662,18 +669,20 @@ class CapsuleSchemaVerbose(ma.SQLAlchemyAutoSchema):
 
     @post_dump()
     def __post_dump(self, data):
-        if data['webapp'] is not None:
-            if data['webapp']['env'] is not None:
+        if ('webapp' in data) and (data['webapp'] is not None):
+            if ('env' in data["webapp"]) \
+                and (data['webapp']['env'] is not None):
                 data['webapp']['env'] = literal_eval(data['webapp']['env'])
             else:
                 data['webapp']['env'] = dict()
         else:
             data['webapp'] = {}
-        for addon in data['addons']:
-            if addon['env'] is not None:
-                addon['env'] = literal_eval(addon['env'])
-            else:
-                addon['env'] = dict()
+        if 'addons' in data:
+            for addon in data['addons']:
+                if ('env' in addon) and (addon['env'] is not None):
+                    addon['env'] = literal_eval(addon['env'])
+                else:
+                    addon['env'] = dict()
 
 
 class UserSchema(ma.SQLAlchemyAutoSchema):
