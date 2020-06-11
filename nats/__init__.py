@@ -29,7 +29,7 @@ class NATS(object):
     client = None
     logger = None
 
-    SUBJECT = 'capsule.*'
+    SUBJECT = 'capsule.>'
 
     def __init__(self, app=None):
         if app is not None:

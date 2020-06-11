@@ -9,7 +9,6 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.types import TypeDecorator, CHAR
 from sqlalchemy.dialects.postgresql import UUID
 from ast import literal_eval
-from pprint import pprint
 
 
 class GUID(TypeDecorator):
@@ -671,7 +670,7 @@ class CapsuleSchemaVerbose(ma.SQLAlchemyAutoSchema):
     def __post_dump(self, data):
         if ('webapp' in data) and (data['webapp'] is not None):
             if ('env' in data["webapp"]) \
-                and (data['webapp']['env'] is not None):
+                    and (data['webapp']['env'] is not None):
                 data['webapp']['env'] = literal_eval(data['webapp']['env'])
             else:
                 data['webapp']['env'] = dict()

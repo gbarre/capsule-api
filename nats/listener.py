@@ -1,13 +1,13 @@
 import os
 import json
 import threading
-from models import Capsule
-from models import WebApp
 from models import capsule_verbose_schema
-from models import webapp_schema
+from models import WebApp, webapp_schema
+from models import AddOn, addon_schema
 from sqlalchemy import orm, create_engine
 from app import nats
 from json.decoder import JSONDecodeError
+from ast import literal_eval
 
 
 # TODO: Configuration must be unified
@@ -37,7 +37,6 @@ class NATSListener(threading.Thread):
 
         # TODO: implements nats listening protocol
         origin_subject = msg.subject
-        #payload = json.loads(msg.payload)
         json_msg = msg.json
 
         is_json_valid, error_msg = msg.is_json_valid()
@@ -50,47 +49,81 @@ class NATSListener(threading.Thread):
             return
 
         data_json = json_msg['data']
-        if "capsule-name" in data_json:
-            capsule = session.query(Capsule)\
-                .filter_by(name=data_json['capsule-name']).first()
+        query_id = data_json['id']
+
+        if "capsule.webapp" in msg.subject:
+            try:
+                # get capsule from the webapp id
+                webapp = session.query(WebApp).get(query_id)
+                webapp_data = webapp_schema.dump(webapp).data
+                webapp_data["env"] = literal_eval(webapp_data["env"])
+
+                capsule = webapp.capsule
+                capsule_data = capsule_verbose_schema.dump(capsule).data
+
+                # build data to publish
+                data = {
+                    "authorized_keys": [],  # to build
+                    "capsule-id": str(capsule.id),
+                    "name": capsule.name,
+                    "owners": [],  # to build
+                    "webapp": webapp_data,
+                }
+            except Exception:
+                nats.publish_error(
+                    origin_subject,
+                    'not found',
+                    f"webapp '{query_id}' has not been found.")
+                return
+
+            # continue building data
+            for sshkey in capsule_data['authorized_keys']:
+                data['authorized_keys'].append(sshkey['public_key'])
+
+            for owner in capsule_data['owners']:
+                for sshkey in owner['public_keys']:
+                    data['authorized_keys'].append(sshkey['public_key'])
+                data['owners'].append(owner['name'])
+
+            # publish data
+            nats.publish(origin_subject, data)
+
+        elif "capsule.addon" in msg.subject:
+            try:
+                # get capsule from the addon id
+                addon = session.query(AddOn).get(query_id)
+                addon_data = addon_schema.dump(addon).data
+                addon_data["env"] = literal_eval(addon_data["env"])
+                addon_data.pop('capsule_id')
+
+                capsule = addon.capsule
+                capsule_data = capsule_verbose_schema.dump(capsule).data
+
+                # build data to publish
+                data = {
+                    "capsule-id": str(capsule.id),
+                    "name": capsule.name,
+                    "owners": [],  # to build
+                    "addon": addon_data,
+                }
+            except Exception:
+                nats.publish_error(
+                    origin_subject,
+                    'not found',
+                    f"addon '{query_id}' has not been found.")
+                return
+
+            for owner in capsule_data['owners']:
+                data['owners'].append(owner['name'])
+
+            # publish data
+            nats.publish(origin_subject, data)
         else:
-            capsule = session.query(Capsule).get(data_json['capsule-id'])
-
-        capsule_data = capsule_verbose_schema.dump(capsule).data
-        nats.publish(origin_subject, capsule_data)
-        return
-
-
-        # if 'state' not in json_msg:
-        #     nats.publish_error(origin_subject, 'invalid', 'state is missing.')
-        #     return
-
-        # reqtype, obj = json_msg['state'].split(':', 1)
-        # if reqtype == 'request':
-        #     if 'id' not in json_msg:
-        #         nats.publish_error(origin_subject, 'invalid', 'id is missing.')
-        #         return
-
-        #     id = json_msg['id']
-        #     try:
-        #         if obj == 'capsule':
-        #             capsule = session.query(Capsule).get(id)
-        #             capsule_data = capsule_output_schema.dump(capsule).data
-        #             nats.publish(origin_subject, capsule_data)
-        #             return
-        #         elif obj == 'webapp':
-        #             webapp = session.query(WebApp).get(id)
-        #             webapp_data = webapp_schema.dump(webapp).data
-        #             nats.publish(origin_subject, webapp_data)
-        #             return
-        #     except Exception:
-        #         nats.publish_error(
-        #             origin_subject,
-        #             'not found',
-        #             f'{obj} {id} has not been found.')
-        #         return
-
-        nats.publish_error(origin_subject, 'invalid', 'nothing to be done.')
+            nats.publish_error(
+                origin_subject,
+                'invalid',
+                'nothing to be done.'
+            )
 
     def run(self):
         nats.logger.info('NATS listener waiting for incoming messages.')
@@ -124,11 +157,12 @@ class NATSDriverMsg:
         for field in __class__.required_fields:
             if field not in self.json:
                 return (False, f'Key "{field}" is required in JSON')
-        if not(isinstance(self.json['data'], dict) \
-           and 'capsule-id' in self.json['data']):
-            return (False, 'Data value must be an object '\
-                            'with the key "capsule-id"')
+        if not(isinstance(self.json['data'], dict)
+           and 'id' in self.json['data']):
+            return (False, 'Data value must be an object '
+                           'with the key "id"')
         return (True, None)
+
 
 def create_nats_listener(app):
     nats.init_app(app)
