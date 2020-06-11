@@ -8,6 +8,10 @@ from sqlalchemy import orm, create_engine
 from app import nats
 from json.decoder import JSONDecodeError
 from ast import literal_eval
+from Crypto.PublicKey import RSA
+from Crypto.Signature.PKCS1_v1_5 import PKCS115_SigScheme
+from Crypto.Hash import SHA256
+import base64
 
 
 # TODO: Configuration must be unified
@@ -37,18 +41,12 @@ class NATSListener(threading.Thread):
 
         # TODO: implements nats listening protocol
         origin_subject = msg.subject
-        json_msg = msg.json
 
-        is_json_valid, error_msg = msg.is_json_valid()
-
-        if not is_json_valid:
-            nats.publish_error(
-                msg.subject,
-                'invalid',
-                error_msg)
+        if not msg.is_msg_valid:
+            nats.logger.debug(f"Message on subject {origin_subject} discarded because {msg.error}: {msg.payload}")
             return
 
-        data_json = json_msg['data']
+        data_json = msg.json['data']
         query_id = data_json['id']
 
         if "capsule.webapp" in msg.subject:
@@ -70,10 +68,11 @@ class NATSListener(threading.Thread):
                     "webapp": webapp_data,
                 }
             except Exception:
-                nats.publish_error(
-                    origin_subject,
-                    'not found',
-                    f"webapp '{query_id}' has not been found.")
+                # TODO: send deleted message
+                # nats.publish_error(
+                #     origin_subject,
+                #     'not found',
+                #     f"webapp '{query_id}' has not been found.")
                 return
 
             # continue building data
@@ -107,10 +106,11 @@ class NATSListener(threading.Thread):
                     "addon": addon_data,
                 }
             except Exception:
-                nats.publish_error(
-                    origin_subject,
-                    'not found',
-                    f"addon '{query_id}' has not been found.")
+                # TODO: send deleted message
+                # nats.publish_error(
+                #     origin_subject,
+                #     'not found',
+                #     f"addon '{query_id}' has not been found.")
                 return
 
             for owner in capsule_data['owners']:
@@ -137,31 +137,97 @@ class NATSDriverMsg:
         'to',
         'message',
         'data',
-        'timestamp',
-        'signature'
+        'time',
     ]
 
     def __init__(self, nats_msg):
         self.subject = nats_msg.subject
         self.payload = nats_msg.payload
+        # print(self.payload)
+        self._is_msg_valid()
+
+    def _is_msg_valid(self):
+
+        self.is_msg_valid = True
+        self.error = None
+
+        index = self.payload.find(b'^')
+
+        if index < 0:
+            self.is_msg_valid = False
+            self.error = 'Message is not well signed'
+            return
+
+        self.signature = self.payload[:index]
+        self.json_bytes = self.payload[index+1:]
+
         try:
-            self.json = json.loads(self.payload)
+            self.json = json.loads(self.json_bytes)
         except JSONDecodeError:
             self.json = None
+            self.is_msg_valid = False
+            self.error = 'Invalid JSON structure'
+            return
 
-    def is_json_valid(self):
-        if self.json is None:
-            return (False, 'Invalid JSON structure')
+        # TODO: import public_key from config
+        public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCZE2XzAAHwtcG4tWn"\
+                     "bnmtu4N5AQOJGwcQ6q1T24tepHTBFTZub2gr0MUYeRQq46tZjnVYAch"\
+                     "oG5CsrVns9wAIgLku9XqwQFaCftG+Jwn3HlXImS4hq9w9MhXjXakbyG"\
+                     "N+ghrMECxjQQPfnrKNLZHLm5Dwwcr38V/Go97s/zhZ7+G9cSgIY1NvK"\
+                     "bImueOneOoA2xMjJC5NO3DQc+1VAAP+2D0ikzNCKfO7dWnornwUcYHD"\
+                     "GtsgDRAkkBvxAlhcA0hFOciWkGwEogLcy3dEsAvTTWQO2w5qBDnWqEn"\
+                     "kojCMPxI15MhrR3mbc4bny+H8pVQ/00bSBWRJZeOlCNU9CHP6od9thy"\
+                     "3CMQM5xka0aHfi0O38QLOtEEm+h+A1LONb8hMGgNznw2TXHcZCrIvDk"\
+                     "KnWXYhTPzJslNonf9pYIfqyqdjZPPvQVLZL9xt/UdGnNVojoy+RQEYP"\
+                     "xX4r9rteY8XTkVKHZHLn0pCfAqwbF6hAwmAQy1AX9sFdlWT5G757KMM"\
+                     "s= olecam@macbook-pro-1.home"
+
+        pubkey = RSA.importKey(public_key)
+        verifier = PKCS115_SigScheme(pubkey)
+
+        signature = base64.b64decode(self.signature)
+        hashed_json = SHA256.new(self.json_bytes)
+
+        if not verifier.verify(hashed_json, signature):
+            self.is_msg_valid = False
+            self.error = 'Invalid signature'
+            return
+
         if not isinstance(self.json, dict):
-            return (False, 'JSON must be an object')
+            self.is_msg_valid = False
+            self.error = 'JSON must be an object'
+            return
+
         for field in __class__.required_fields:
             if field not in self.json:
-                return (False, f'Key "{field}" is required in JSON')
+                self.is_msg_valid = False
+                self.error = f'Key "{field}" is required in JSON'
+                return
+
         if not(isinstance(self.json['data'], dict)
            and 'id' in self.json['data']):
-            return (False, 'Data value must be an object '
-                           'with the key "id"')
-        return (True, None)
+                self.is_msg_valid = False
+                self.error = 'Data value must be an object with the key "id"'
+                return
+
+    def create_response(self):
+        # {
+        #     "from": "api",
+        #     "to": "k8s",
+        #     "message": "absent", # (or present)
+        #     "data": {
+        #         "id": "652eaa13-adae-4717-b79a-06a99ac407ed",
+        #     },
+        #     "timestamp": XXX
+        # }
+        json = {
+            "from": "api",
+            "to": self.json['data']['from'],
+            #TODO : complete
+        }
+
+
+        return
 
 
 def create_nats_listener(app):
