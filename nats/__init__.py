@@ -64,13 +64,6 @@ class NATS(object):
     def publish_capsule(self, json_payload):
         self.publish(self.SUBJECT, json_payload)
 
-    def publish_error(self, subject, code, description):
-        self.logger.error(f"{subject}: {code}: {description}")
-        self.publish(subject, {
-            'error': code,
-            'error_description': description,
-        })
-
-    def publish(self, subject, json_payload):
-        self.logger.debug(f"payload {json_payload} published on {subject}.")
-        self.client.publish(subject, payload=json.dumps(json_payload))
+    def publish(self, subject, signed_payload):
+        self.logger.debug(f"payload {signed_payload} published on {subject}.")
+        self.client.publish(subject, payload=signed_payload)
