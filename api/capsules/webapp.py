@@ -79,7 +79,7 @@ def post(capsule_id, user, webapp_data=None):
 
     result = WebApp.query.get(capsule.webapp_id)
     result_json = webapp_schema.dump(result).data
-    if result['env'] is not None:
+    if result_json['env'] is not None:
         result_json["env"] = literal_eval(result_json["env"])
 
     return result_json, 201, {
@@ -97,7 +97,7 @@ def get(capsule_id, user):
 
     result = WebApp.query.get(capsule.webapp_id)
     result_json = webapp_schema.dump(result).data
-    if result['env'] is not None:
+    if result_json['env'] is not None:
         result_json["env"] = literal_eval(result_json["env"])
 
     return result_json, 200, {
