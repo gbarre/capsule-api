@@ -187,3 +187,12 @@ FLASK_APP=server.py python -m flask db upgrade
 # Run the server.
 python server.py
 ```
+
+## Requirements
+
+To run the full stack, you need to install :
+
+- docker
+- python3.6 (or higher)
+- python3.6-dev
+- jq

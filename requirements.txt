@@ -21,6 +21,7 @@ marshmallow-sqlalchemy==0.22.0
 nats-python==0.7.0
 openapi-spec-validator==0.2.4
 pathlib==1.0.1
+pycrypto==2.6.1
 pymysql==0.9.3
 python-dotenv==0.13.0
 PyYAML==5.3.1
