@@ -4,6 +4,7 @@ from app import db
 from utils import oidc_require_role
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden, Conflict
 from sqlalchemy.exc import StatementError
+from pprint import pprint
 
 
 def _get_capsule(capsule_id, user):
@@ -39,7 +40,7 @@ def post(capsule_id, user):
                 raise Conflict(description="'public_key' already exist "
                                "for this capsule")
 
-        sshkey = SSHKey(public_key=public_key, user_id=user.id)
+        sshkey = SSHKey(public_key=public_key)
         capsule.authorized_keys.append(sshkey)
 
     db.session.commit()
@@ -65,7 +66,11 @@ def delete(capsule_id, sshkey_id, user):
 
     if sshkey not in capsule.authorized_keys:
         raise BadRequest
+    elif (sshkey.user_id is not None) or (len(sshkey.capsules) > 1):
+        # sshkey is linked to a user or in other(s) capsule(s)
+        capsule.authorized_keys.remove(sshkey)
+    else:  # sshkey is juste present for this capsule
+        db.session.delete(sshkey)
 
-    db.session.delete(sshkey)
     db.session.commit()
     return None, 204
