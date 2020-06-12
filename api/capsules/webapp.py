@@ -81,6 +81,8 @@ def post(capsule_id, user, webapp_data=None):
     result_json = webapp_schema.dump(result).data
     if result_json['env'] is not None:
         result_json["env"] = literal_eval(result_json["env"])
+    else:
+        result_json["env"] = {}
 
     return result_json, 201, {
         'Location': f'{request.base_url}/{capsule.id}/webapp',
@@ -99,6 +101,8 @@ def get(capsule_id, user):
     result_json = webapp_schema.dump(result).data
     if result_json['env'] is not None:
         result_json["env"] = literal_eval(result_json["env"])
+    else:
+        result_json["env"] = {}
 
     return result_json, 200, {
         'Location': f'{request.base_url}/{capsule.id}/webapp',
