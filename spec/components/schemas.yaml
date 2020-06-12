@@ -133,6 +133,10 @@ WebApp:
       type: string
       readOnly: true
       example: d41ea210-742a-410c-a971-3978143eab80
+    uid:
+      type: integer
+      readOnly: true
+      example: 5001
     tls_redirect_https:
       type: boolean
       default: true
@@ -225,6 +229,10 @@ WebAppInVerbose:
       type: string
       readOnly: true
       example: d41ea210-742a-410c-a971-3978143eab80
+    uid:
+      type: integer
+      readOnly: true
+      example: 5001
     tls_redirect_https:
       type: boolean
       default: true
