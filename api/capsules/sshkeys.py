@@ -4,7 +4,6 @@ from app import db
 from utils import oidc_require_role
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden, Conflict
 from sqlalchemy.exc import StatementError
-from pprint import pprint
 
 
 def _get_capsule(capsule_id, user):
