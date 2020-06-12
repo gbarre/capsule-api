@@ -1,5 +1,5 @@
 from flask import request
-import ast
+from ast import literal_eval
 from models import RoleEnum
 from models import Capsule
 from models import WebApp, webapp_schema
@@ -79,7 +79,8 @@ def post(capsule_id, user, webapp_data=None):
 
     result = WebApp.query.get(capsule.webapp_id)
     result_json = webapp_schema.dump(result).data
-    result_json["env"] = ast.literal_eval(result_json["env"])
+    if 'env' in result_json:
+        result_json["env"] = literal_eval(result_json["env"])
 
     return result_json, 201, {
         'Location': f'{request.base_url}/{capsule.id}/webapp',
@@ -96,7 +97,8 @@ def get(capsule_id, user):
 
     result = WebApp.query.get(capsule.webapp_id)
     result_json = webapp_schema.dump(result).data
-    result_json["env"] = ast.literal_eval(result_json["env"])
+    if 'env' in result_json:
+        result_json["env"] = literal_eval(result_json["env"])
 
     return result_json, 200, {
         'Location': f'{request.base_url}/{capsule.id}/webapp',
