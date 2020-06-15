@@ -1,56 +1,43 @@
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
-# TODO: Decide the way that we want to configure
-#       the application (INI, ENV, YAML, etc.)
+import yaml
 
 
-class Config(object):
-    """Global cofnguration object."""
-    APP_NAME = 'capsule-api'
-    DEBUG = False
-    SQLALCHEMY_ECHO = False
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SECRET_KEY = 'SomethingNotEntirelySecret'
+class YamlConfig:
 
-    # OIDC
-    OIDC_CLIENT_SECRETS = 'client_secrets.json'
-    OIDC_ID_TOKEN_COOKIE_SECURE = False
-    OIDC_REQUIRE_VERIFIED_EMAIL = False
-    OIDC_USER_INFO_ENABLED = True
-    OIDC_OPENID_REALM = 'flask-demo'
-    OIDC_SCOPES = ['openid', 'email', 'profile']
-    OIDC_INTROSPECTION_AUTH_METHOD = 'client_secret_post'
+    def __init__(self, config_file):
+        try:
+            with open(config_file) as f:
+                config = yaml.full_load(f)
+        except FileNotFoundError:
+            config = None
 
+        # TOOD: KeyError to manage.
+        self.APP_NAME = config['api']['app_name']
+        self.HOST = config['api']['host']
+        self.PRIVATE_KEY = config['api']['rsa_private_key']
+        self.NATS_URI = config['api']['nats']['uri']
+        self.DEBUG = config['api']['debug']
+        self.SECRET_KEY = config['api']['secret_key']
+        self.ENV = config['api']['env']
+        self.SQLALCHEMY_ECHO = config['api']['sqlalchemy']['echo']
+        self.SQLALCHEMY_TRACK_MODIFICATIONS = config['api']['sqlalchemy']['track_modifications']
 
-class ProdConfig(Config):
-    # FIXME: Fix production configuration
-    ENV = 'production'
+        # OIDC
+        # TODO: get client secrets config in the same YAML file with overriding
+        #  of the method load_secrets from the class OpenIDConnect.
+        self.OIDC_CLIENT_SECRETS = config['api']['oidc']['client_secrets']
+        self.OIDC_ID_TOKEN_COOKIE_SECURE = config['api']['oidc']['id_token_cookie_secure']
+        self.OIDC_REQUIRE_VERIFIED_EMAIL = config['api']['oidc']['require_verified_email']
+        self.OIDC_USER_INFO_ENABLED = config['api']['oidc']['user_info_enabled']
+        self.OIDC_OPENID_REALM = config['api']['oidc']['openid_realm']
+        self.OIDC_SCOPES = config['api']['oidc']['scopes']
+        self.OIDC_INTROSPECTION_AUTH_METHOD = config['api']['oidc']['introspection_auth_method']
 
+        # Database
+        self.SQLALCHEMY_DATABASE_URI = config['api']['database_uri']
 
-class TestConfig(Config):
-    # FIXME: Fix test configuration
-    ENV = 'test'
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///test_capsule.db'
-    OIDC_CLIENT_SECRETS = 'client_secrets.json.sample'
-    NATS_URI = 'nats://localhost:4222'
+        # Drivers
+        self.DRIVERS = config['drivers']
 
-
-class LocalConfig(Config):
-    ENV = 'development'
-    DEBUG = True
-    SQLALCHEMY_ECHO = True
-    SQLALCHEMY_TRACK_MODIFICATIONS = True
-    SQLALCHEMY_DATABASE_URI = '{driver}://{user}:{passw}@{host}:{port}/{db}'\
-        .format(
-            driver='mysql+pymysql',
-            user='root',
-            passw=os.environ.get('MYSQL_ROOT_PASSWORD'),
-            host='localhost',
-            port=30306,
-            db=os.environ.get('MYSQL_DATABASE'),
-        )
-    # NATS_URI = 'nats://localhost:4222'
-    NATS_URI = 'nats://demo.nats.io:4222'
+    def get_pubkey_from_driver(self, drivername):
+        # TODO: Catch KeyError.
+        return self.DRIVERS[drivername]['rsa_public_key']

@@ -2,13 +2,14 @@ import pytest
 import webtest
 from app import create_app
 from app import db as _db
-from config import TestConfig
+from config import YamlConfig
 from tests.foodata import DBFooData
 
 
 @pytest.fixture(scope='function')
 def app():
-    connex_app = create_app(TestConfig)
+    yamlconfig = YamlConfig('./config-test.yml')
+    connex_app = create_app(yamlconfig)
     return connex_app.app
 
 

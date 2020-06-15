@@ -1,4 +1,4 @@
-import os
+# import os
 import json
 import threading
 from models import capsule_verbose_schema
@@ -16,37 +16,31 @@ import base64
 import datetime
 
 
-# TODO: Configuration must be unified
-session_factory = orm.sessionmaker(
-    bind=create_engine('{driver}://{user}:{passw}@{host}:{port}/{db}'.format(
-        driver='mysql+pymysql',
-        user='root',
-        passw=os.environ.get('MYSQL_ROOT_PASSWORD'),
-        host='localhost',
-        port=30306,
-        db=os.environ.get('MYSQL_DATABASE'),
-    )))
-session = orm.scoped_session(session_factory)
-
-
 class NATSListener(threading.Thread):
-    def __init__(self):
+
+    def __init__(self, config):
         super().__init__(daemon=True)
         # TODO: make subscriptions
         nats.subscribe(nats.SUBJECT, callback=self.listen)
         nats.logger.info('NATS listener initialized.')
+        self.init_session(config.SQLALCHEMY_DATABASE_URI)
+        __class__.config = config
+
+    def init_session(self, uri):
+        session_factory = orm.sessionmaker(bind=create_engine(uri))
+        __class__.session = orm.scoped_session(session_factory)
 
     @staticmethod
     def listen(msg):
 
-        msg = NATSDriverMsg(msg)
+        msg = NATSDriverMsg(msg, __class__.config)
 
         origin_subject = msg.subject
 
         if not msg.is_msg_valid:
             nats.logger.debug(
                 f"Message on subject {origin_subject} "
-                "discarded because {msg.error}: {msg.payload}")
+                f"discarded because {msg.error}: {msg.payload}")
             return
 
         data_json = msg.json['data']
@@ -54,7 +48,7 @@ class NATSListener(threading.Thread):
 
         if "capsule.webapp" in msg.subject:
             try:
-                webapp = session.query(WebApp).get(query_id)
+                webapp = __class__.session.query(WebApp).get(query_id)
             except StatementError:
                 msg.publish_response(data=None)
                 return
@@ -97,7 +91,7 @@ class NATSListener(threading.Thread):
 
         elif "capsule.addon" in msg.subject:
             try:
-                addon = session.query(AddOn).get(query_id)
+                addon = __class__.session.query(AddOn).get(query_id)
             except StatementError:
                 msg.publish_response(data=None)
                 return
@@ -148,9 +142,10 @@ class NATSDriverMsg:
     _state_answer = "?status"
     _delimiter = b"^"
 
-    def __init__(self, nats_msg):
+    def __init__(self, nats_msg, config):
         self.subject = nats_msg.subject
         self.payload = nats_msg.payload
+        self.config = config
         self._is_msg_valid()
 
     def _is_msg_valid(self):
@@ -176,19 +171,20 @@ class NATSDriverMsg:
             self.error = 'Invalid JSON structure'
             return
 
-        # TODO: import public_key from config
-        # WARNING: This public key is an example
-        public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCZE2XzAAHwtcG4tWn"\
-                     "bnmtu4N5AQOJGwcQ6q1T24tepHTBFTZub2gr0MUYeRQq46tZjnVYAch"\
-                     "oG5CsrVns9wAIgLku9XqwQFaCftG+Jwn3HlXImS4hq9w9MhXjXakbyG"\
-                     "N+ghrMECxjQQPfnrKNLZHLm5Dwwcr38V/Go97s/zhZ7+G9cSgIY1NvK"\
-                     "bImueOneOoA2xMjJC5NO3DQc+1VAAP+2D0ikzNCKfO7dWnornwUcYHD"\
-                     "GtsgDRAkkBvxAlhcA0hFOciWkGwEogLcy3dEsAvTTWQO2w5qBDnWqEn"\
-                     "kojCMPxI15MhrR3mbc4bny+H8pVQ/00bSBWRJZeOlCNU9CHP6od9thy"\
-                     "3CMQM5xka0aHfi0O38QLOtEEm+h+A1LONb8hMGgNznw2TXHcZCrIvDk"\
-                     "KnWXYhTPzJslNonf9pYIfqyqdjZPPvQVLZL9xt/UdGnNVojoy+RQEYP"\
-                     "xX4r9rteY8XTkVKHZHLn0pCfAqwbF6hAwmAQy1AX9sFdlWT5G757KMM"\
-                     "s= olecam@macbook-pro-1.home"
+        if not isinstance(self.json, dict):
+            self.is_msg_valid = False
+            self.error = 'JSON must be an object'
+            return
+
+        for field in __class__._required_fields:
+            if field not in self.json:
+                self.is_msg_valid = False
+                self.error = f'Key "{field}" is required in JSON'
+                return
+
+        driver = self.json['from']
+        # TODO: KeyError with unknown driver in config.
+        public_key = self.config.get_pubkey_from_driver(driver)
 
         pubkey = RSA.importKey(public_key)
         verifier = PKCS115_SigScheme(pubkey)
@@ -200,17 +196,6 @@ class NATSDriverMsg:
             self.is_msg_valid = False
             self.error = 'Invalid signature'
             return
-
-        if not isinstance(self.json, dict):
-            self.is_msg_valid = False
-            self.error = 'JSON must be an object'
-            return
-
-        for field in __class__._required_fields:
-            if field not in self.json:
-                self.is_msg_valid = False
-                self.error = f'Key "{field}" is required in JSON'
-                return
 
         if self.json["state"] != __class__._state_answer:
             self.is_msg_valid = False
@@ -242,47 +227,7 @@ class NATSDriverMsg:
             "time": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
 
-        # TODO: private must be provided from config.
-        # WARNING: This private key is an example
-        private_key = """-----BEGIN RSA PRIVATE KEY-----
-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
------END RSA PRIVATE KEY-----"""
+        private_key = self.config.PRIVATE_KEY
 
         json_bytes = bytes(json.dumps(res), 'utf-8')
         json_hash = SHA256.new(json_bytes)
@@ -293,7 +238,7 @@ b4h8/l1WOckrAcgdLn1EbYJzEeqglH1uy4DKYYR3ACde0KpAZHD9
         self.response = encoded_signature + __class__._delimiter + json_bytes
 
 
-def create_nats_listener(app):
+def create_nats_listener(app, config):
     nats.init_app(app)
-    nats_listener = NATSListener()
+    nats_listener = NATSListener(config)
     return nats_listener

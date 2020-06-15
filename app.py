@@ -5,7 +5,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_marshmallow import Marshmallow
 from flask_oidc import OpenIDConnect
-from config import ProdConfig
 from exceptions import render_exception
 from nats import NATS
 
@@ -28,7 +27,7 @@ oidc = OpenIDConnect()
 nats = NATS()
 
 
-def create_app(config=ProdConfig):
+def create_app(config):
     # Create the connexion application instance
     connex_app = connexion.App(
         __name__, specification_dir=os.path.join(basedir, 'spec'))
