@@ -80,7 +80,7 @@ class NATSListener(threading.Thread):
                 "id": query_id,
                 "name": capsule.name,
                 "runtime_id": webapp_data['runtime_id'],
-                "uid": webapp_data['uid'],
+                "uid": capsule.uid,
             }
             for k in ['tls_crt', 'tls_key', 'tls_redirect_https']:
                 if k in webapp_data:

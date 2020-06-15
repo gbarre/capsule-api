@@ -8,7 +8,7 @@ from sqlalchemy.exc import StatementError
 
 def _get_capsule(capsule_id, user):
     try:
-        capsule = Capsule.query.get(capsule_id)
+        capsule = Capsule.query.filter_by(id=capsule_id).first()
     except StatementError as e:
         raise BadRequest(description=str(e))
 
@@ -44,7 +44,7 @@ def post(capsule_id, user):
 
     db.session.commit()
 
-    result = capsule.query.get(capsule.id)
+    result = Capsule.query.filter_by(id=capsule_id).first()
     return capsule_output_schema.dump(result).data, 201, {
         'Location': f'{request.base_url}/capsules/{capsule.id}',
     }

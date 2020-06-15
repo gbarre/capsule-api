@@ -354,11 +354,6 @@
             "readOnly": true,
             "example": "d41ea210-742a-410c-a971-3978143eab80"
           },
-          "uid": {
-            "type": "integer",
-            "readOnly": true,
-            "example": 5001
-          },
           "tls_redirect_https": {
             "type": "boolean",
             "default": true
@@ -480,11 +475,6 @@
             "type": "string",
             "readOnly": true,
             "example": "d41ea210-742a-410c-a971-3978143eab80"
-          },
-          "uid": {
-            "type": "integer",
-            "readOnly": true,
-            "example": 5001
           },
           "tls_redirect_https": {
             "type": "boolean",
@@ -700,6 +690,11 @@
             "example": "695d0f1a-beb2-4145-828d-0f7f0fcc6696",
             "readOnly": true
           },
+          "uid": {
+            "type": "integer",
+            "readOnly": true,
+            "example": 5001
+          },
           "name": {
             "type": "string",
             "example": "lyc-vernes-osny"
@@ -764,6 +759,11 @@
             "type": "string",
             "example": "695d0f1a-beb2-4145-828d-0f7f0fcc6696",
             "readOnly": true
+          },
+          "uid": {
+            "type": "integer",
+            "readOnly": true,
+            "example": 5001
           },
           "name": {
             "type": "string",

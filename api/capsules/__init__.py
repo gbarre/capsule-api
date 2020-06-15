@@ -87,9 +87,11 @@ def post():
     db.session.add(capsule)
     db.session.commit()
 
-    result = capsule_output_schema.dump(Capsule.query.get(capsule.id)).data
+    caps = Capsule.query.filter_by(id=capsule.id).first()
+    result = capsule_output_schema.dump(caps).data
 
-    nats.publish_capsule(result)
+    # TODO: Publish signed message to nats
+    # nats.publish_capsule(result)
 
     return result, 201, {
         'Location': f'{request.base_url}/capsules/{capsule.id}',
@@ -100,7 +102,7 @@ def post():
 @oidc_require_role(min_role=RoleEnum.user)
 def get(capsule_id, verbose, user):
     try:
-        capsule = Capsule.query.get(capsule_id)
+        capsule = Capsule.query.filter_by(id=capsule_id).first()
     except StatementError as e:
         raise BadRequest(description=str(e))
 
@@ -121,7 +123,7 @@ def get(capsule_id, verbose, user):
 @oidc_require_role(min_role=RoleEnum.superadmin)
 def delete(capsule_id):
     try:
-        capsule = Capsule.query.get(capsule_id)
+        capsule = Capsule.query.filter_by(id=capsule_id).first()
     except StatementError as e:
         raise BadRequest(description=str(e))
 

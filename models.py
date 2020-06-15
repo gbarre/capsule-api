@@ -252,12 +252,6 @@ class WebApp(db.Model):
     __tablename__ = "webapps"
     id = db.Column(GUID, nullable=False, unique=True,
                    default=uuid.uuid4, primary_key=True)
-    uid = db.Column(
-                    db.Integer,
-                    db.Sequence('webapp_uid_seq', start=5001, increment=1),
-                    nullable=False,
-                    unique=True,
-                )
     runtime_id = db.Column(GUID, db.ForeignKey('runtimes.id'))
     tls_redirect_https = db.Column(db.Boolean, default=True)
     tls_crt = db.Column(db.Text)
@@ -364,7 +358,9 @@ class SSHKey(db.Model):
 class Capsule(db.Model):
     __tablename__ = "capsules"
     id = db.Column(GUID, nullable=False, unique=True,
-                   default=uuid.uuid4, primary_key=True)
+                   default=uuid.uuid4)
+    uid = db.Column(db.Integer, primary_key=True,
+                    unique=True, autoincrement=True)
     name = db.Column(db.String(256), nullable=False, unique=True)
     webapp_id = db.Column(GUID, db.ForeignKey(
         'webapps.id'), nullable=True)
@@ -508,7 +504,6 @@ class WebAppSchema(ma.SQLAlchemyAutoSchema):
         sqla_session = db.session
 
     id = ma.auto_field(dump_only=True)
-    uid = ma.auto_field(dump_only=True)
     fqdns = fields.Nested("FQDNSchema", default=[], many=True, exclude=('id',))
     opts = fields.Nested(
         "OptionSchema",
@@ -589,6 +584,7 @@ class CapsuleInputSchema(ma.SQLAlchemyAutoSchema):
         sqla_session = db.session
 
     id = ma.auto_field(dump_only=True)
+    uid = ma.auto_field(dump_only=True)
     owners = fields.List(fields.String())
     authorized_keys = fields.List(fields.String())
     created_at = ma.auto_field(dump_only=True)
@@ -615,6 +611,7 @@ class CapsuleOutputSchema(ma.SQLAlchemyAutoSchema):
         sqla_session = db.session
 
     id = ma.auto_field(dump_only=True)
+    uid = ma.auto_field(dump_only=True)
     owners = fields.List(fields.String())
     authorized_keys = fields.Nested(
         "SSHKeySchema",
@@ -646,6 +643,7 @@ class CapsuleSchemaVerbose(ma.SQLAlchemyAutoSchema):
         sqla_session = db.session
 
     id = ma.auto_field(dump_only=True)
+    uid = ma.auto_field(dump_only=True)
     addons = fields.Nested(
         "AddOnSchema",
         default=[],
