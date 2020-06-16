@@ -571,6 +571,31 @@ class WebAppSchema(ma.SQLAlchemyAutoSchema):
     updated_at = ma.auto_field(dump_only=True)
 
 
+class WebAppNatsSchema(ma.SQLAlchemyAutoSchema):
+    def __init__(self, **kwargs):
+        super().__init__(strict=True, **kwargs)
+
+    class Meta:
+        model = WebApp
+        # include_relationships = True
+        include_fk = True
+        # exclude = ('runtime',)
+        sqla_session = db.session
+
+    id = ma.auto_field(dump_only=True)
+    fqdns = fields.Nested("FQDNSchema", default=[], many=True, exclude=('id',))
+    opts = fields.Nested(
+        "OptionSchema",
+        default=[],
+        many=True,
+        only=('tag', 'field_name', 'value'),
+    )
+    # tls_crt = ma.auto_field(load_only=True)
+    # tls_key = ma.auto_field(load_only=True)
+    created_at = ma.auto_field(dump_only=True)
+    updated_at = ma.auto_field(dump_only=True)
+
+
 class AddOnSchema(ma.SQLAlchemyAutoSchema):
     def __init__(self, **kwargs):
         super().__init__(strict=True, **kwargs)
@@ -788,6 +813,7 @@ sshkeys_schema = SSHKeySchema(many=True)
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
 webapp_schema = WebAppSchema()
+webapp_nats_schema = WebAppNatsSchema()
 addon_schema = AddOnSchema()
 addons_schema = AddOnSchema(many=True)
 apptoken_schema = AppTokenSchema()

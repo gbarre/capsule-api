@@ -2,7 +2,7 @@
 import json
 import threading
 from models import capsule_verbose_schema
-from models import WebApp, webapp_schema
+from models import WebApp, webapp_nats_schema
 from models import AddOn, addon_schema
 from sqlalchemy import orm, create_engine
 from sqlalchemy.exc import StatementError
@@ -59,7 +59,7 @@ class NATSListener(threading.Thread):
                 msg.publish_response(data=None)
                 return
 
-            webapp_data = webapp_schema.dump(webapp).data
+            webapp_data = webapp_nats_schema.dump(webapp).data
             capsule_data = capsule_verbose_schema.dump(capsule).data
 
             if 'env' in webapp_data:
