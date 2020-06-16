@@ -1,0 +1,36 @@
+---
+api:
+  host: api.domain.tld
+  app_name: 'capsule-api'
+  debug: false
+  sqlalchemy:
+    echo: false
+    track_modifications: false
+  secret_key: 'somesecretormaybenot'
+  oidc:
+    client_secrets: 'client_secrets.json.sample'
+    id_token_cookie_secure: false
+    require_verified_email: false
+    user_info_enabled: true
+    openid_realm: 'flask-demo'
+    scopes: ['openid', 'email', 'profile']
+    introspection_auth_method: 'client_secret_post'
+  env: 'development'
+  database_uri: 'sqlite:///test_capsule.db'
+  nats:
+    uri: 'nats://localhost:4222'
+  rsa_private_key: |
+    -----BEGIN RSA PRIVATE KEY-----
+    unused for tests
+    -----END RSA PRIVATE KEY-----
+  # rsa_public_key: |
+  #   -----BEGIN PUBLIC KEY-----
+  #   unused for tests
+  #   -----END PUBLIC KEY-----
+
+drivers:
+  - name: 'k8s'
+    rsa_private_key: |
+      -----BEGIN PUBLIC KEY-----
+      unused for tests
+      -----END PUBLIC KEY-----
