@@ -16,7 +16,7 @@ class TestCapsuleSshKeys:
         "Z4zk6exxbxcanJnz2fHahom8GE57l9khYgm3WLGi+v3ofb6ZsT6BrR8eX"
         "Rpb6wJ6HcghGRwWg7+M6IMqZdprvzGomc7UO3fPmQXf3KF9ZlelNCBscz"
         "D4qrYshiScVqmWmo2jePTDESWaaP3jlqz7EkvfxukAuTm2spohtmVs+iw"
-        "xOTvEwP3o7ucfp/o7QRYPqL/OPXAN8pjzf8zZ2",
+        "xOTvEwP3o7ucfp/o7QRYPqL/OPXAN8pjzf8zZ2 toto@input",
     ]
 
     _sshkey_bad_input = {

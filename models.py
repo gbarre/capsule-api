@@ -9,6 +9,8 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.types import TypeDecorator, CHAR
 from sqlalchemy.dialects.postgresql import UUID
 from ast import literal_eval
+from werkzeug.exceptions import BadRequest
+import re
 
 
 class GUID(TypeDecorator):
@@ -102,6 +104,7 @@ class ValidationRuleEnum(str, enum.Enum):
     eq = "eq"
     neq = "neq"
     format = "format"  # check file format
+    into = "into"
 
 
 class User(db.Model):
@@ -298,9 +301,60 @@ class Option(db.Model):
         return self.webapp_id or self.addon_id
 
     @staticmethod
-    def create(opts):
+    def create(opts, runtime_id):
         opts_array = []
         for opt in opts:
+            opt_tag = opt['tag']
+            opt_name = opt['field_name']
+            opt_value = opt['value']
+
+            available_opt = AvailableOption.query\
+                .filter_by(
+                    runtime_id=runtime_id,
+                    tag=opt_tag,
+                    field_name=opt_name
+                ).first()
+            if available_opt is None:
+                raise BadRequest(description="This option is not available: "
+                                 f"field_name='{opt_name}', tag='{opt_tag}'")
+
+            # TODO: check that value match with validation_rule (if exists)
+            rules = AvailableOptionValidationRule.query\
+                .filter_by(available_option_id=available_opt.id).all()
+
+            if rules is not None:
+                for rule in rules:
+                    if rule.type == ValidationRuleEnum.regex:
+                        regex = re.compile(rule.arg)
+                        if regex.match(opt_value) is None:
+                            raise BadRequest(description=f"'{opt_name}' must "
+                                             f"match python regex {rule.arg}")
+                    elif rule.type == ValidationRuleEnum.min\
+                            and opt_value < rule.arg:
+                        raise BadRequest(description=f"'{opt_name}' cannot be "
+                                         f"less than {rule.arg}")
+                    elif rule.type == ValidationRuleEnum.max\
+                            and opt_value > rule.arg:
+                        raise BadRequest(description=f"'{opt_name}' cannot be "
+                                         f"greater than {rule.arg}")
+                    elif rule.type == ValidationRuleEnum.eq\
+                            and opt_value != rule.arg:
+                        raise BadRequest(description=f"'{opt_name}' cannot be "
+                                         f"different from {rule.arg}")
+                    elif rule.type == ValidationRuleEnum.neq\
+                            and opt_value == rule.arg:
+                        raise BadRequest(description=f"'{opt_name}' cannot be "
+                                         f"equal to {rule.arg}")
+                    # TODO : check file format
+                    # elif rule.type == ValidationRuleEnum.format:
+                    #     opt_value must be base64 encoded
+                    #     and opt_value is not rule.arg
+                        raise BadRequest
+                    elif rule.type == ValidationRuleEnum.into\
+                            and opt_value not in rule.arg:
+                        raise BadRequest(description=f"'{opt_name}' must be "
+                                         f"in {rule.arg}")
+
             opts_array.append(Option(**opt))
         return opts_array
 

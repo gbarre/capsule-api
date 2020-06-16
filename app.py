@@ -5,11 +5,24 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_marshmallow import Marshmallow
 from flask_oidc import OpenIDConnect
+# from utils import XOpenIDConnect
 from exceptions import render_exception
 from nats import NATS
 
 
 basedir = os.path.abspath(os.path.dirname(__file__))
+
+
+# Wrapper of the class XOpenIDConnect to load the legacy config file
+# client_secrets.json directly from the YAML configuration file.
+class XOpenIDConnect(OpenIDConnect):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def load_secrets(self, app):
+        return app.config['OIDC_CLIENT_SECRETS']
+
 
 # Create the SQLAlchemy db instance
 db = SQLAlchemy()
@@ -21,7 +34,7 @@ migrate = Migrate()
 ma = Marshmallow()
 
 # Initialize OpenIDConnect
-oidc = OpenIDConnect()
+oidc = XOpenIDConnect()
 
 # Initialize NATS
 nats = NATS()

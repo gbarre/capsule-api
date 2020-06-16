@@ -11,29 +11,33 @@ class YamlConfig:
             config = None
 
         # TOOD: KeyError to manage.
-        self.APP_NAME = config['api']['app_name']
-        self.HOST = config['api']['host']
-        self.PRIVATE_KEY = config['api']['rsa_private_key']
-        self.NATS_URI = config['api']['nats']['uri']
-        self.DEBUG = config['api']['debug']
-        self.SECRET_KEY = config['api']['secret_key']
-        self.ENV = config['api']['env']
-        self.SQLALCHEMY_ECHO = config['api']['sqlalchemy']['echo']
-        self.SQLALCHEMY_TRACK_MODIFICATIONS = config['api']['sqlalchemy']['track_modifications']
+        api = config['api']
+        self.APP_NAME = api['app_name']
+        self.HOST = api['host']
+        self.PRIVATE_KEY = api['rsa_private_key']
+        self.NATS_URI = api['nats']['uri']
+        self.DEBUG = api['debug']
+        self.SECRET_KEY = api['secret_key']
+        self.ENV = api['env']
+
+        sqlalc = api['sqlalchemy']
+        self.SQLALCHEMY_ECHO = sqlalc['echo']
+        self.SQLALCHEMY_TRACK_MODIFICATIONS = sqlalc['track_modifications']
 
         # OIDC
         # TODO: get client secrets config in the same YAML file with overriding
         #  of the method load_secrets from the class OpenIDConnect.
-        self.OIDC_CLIENT_SECRETS = config['api']['oidc']['client_secrets']
-        self.OIDC_ID_TOKEN_COOKIE_SECURE = config['api']['oidc']['id_token_cookie_secure']
-        self.OIDC_REQUIRE_VERIFIED_EMAIL = config['api']['oidc']['require_verified_email']
-        self.OIDC_USER_INFO_ENABLED = config['api']['oidc']['user_info_enabled']
-        self.OIDC_OPENID_REALM = config['api']['oidc']['openid_realm']
-        self.OIDC_SCOPES = config['api']['oidc']['scopes']
-        self.OIDC_INTROSPECTION_AUTH_METHOD = config['api']['oidc']['introspection_auth_method']
+        _oidc = api['oidc']
+        self.OIDC_CLIENT_SECRETS = _oidc['client_secrets']
+        self.OIDC_ID_TOKEN_COOKIE_SECURE = _oidc['id_token_cookie_secure']
+        self.OIDC_REQUIRE_VERIFIED_EMAIL = _oidc['require_verified_email']
+        self.OIDC_USER_INFO_ENABLED = _oidc['user_info_enabled']
+        self.OIDC_OPENID_REALM = _oidc['openid_realm']
+        self.OIDC_SCOPES = _oidc['scopes']
+        self.OIDC_INTROSPECTION_AUTH_METHOD = _oidc['introspection_auth_method']
 
         # Database
-        self.SQLALCHEMY_DATABASE_URI = config['api']['database_uri']
+        self.SQLALCHEMY_DATABASE_URI = api['database_uri']
 
         # Drivers
         self.DRIVERS = config['drivers']

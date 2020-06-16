@@ -67,10 +67,11 @@ def post(capsule_id, user, webapp_data=None):
         newArgs["fqdns"] = fqdns
 
     if "opts" in webapp_data:
-        opts = Option.create(webapp_data["opts"])
+        opts = Option.create(webapp_data["opts"], runtime_id)
         webapp_data.pop("opts")
         newArgs["opts"] = opts
 
+    # TODO: ensure base64 encode tls_crt & tls_key if not
     webapp = WebApp(**webapp_data, **newArgs)
     capsule.webapp = webapp
 
@@ -127,11 +128,12 @@ def put(capsule_id, user):
         fqdns = FQDN.create(webapp_data["fqdns"])
         webapp.fqdns = fqdns
 
-    if "opts" in webapp_data:
-        opts = Option.create(webapp_data["opts"])
-        webapp.opts = opts
-
+    # TODO: ensure new runtime_id has same familly
     webapp.runtime_id = webapp_data["runtime_id"]
+
+    if "opts" in webapp_data:
+        opts = Option.create(webapp_data["opts"], webapp_data["runtime_id"])
+        webapp.opts = opts
 
     if "tls_crt" in webapp_data:
         webapp.tls_crt = webapp_data["tls_crt"]

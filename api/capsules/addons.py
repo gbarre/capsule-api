@@ -56,12 +56,14 @@ def post(capsule_id, user, addon_data=None):
         addon_data["env"] = json.dumps(addon_data["env"])
 
     if "opts" in addon_data:
-        opts = Option.create(addon_data["opts"])
+        opts = Option.create(addon_data["opts"], runtime_id)
         addon_data.pop("opts")
 
         addon = AddOn(**addon_data, opts=opts)
     else:
         addon = AddOn(**addon_data)
+
+    # TODO: ensure name is "human readable"
 
     capsule.addons.append(addon)
 

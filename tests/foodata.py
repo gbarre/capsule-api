@@ -101,32 +101,26 @@ class DBFooData:
         )
 
         self.sshkey1 = SSHKey(
-            public_key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCt+vNHscC4LbZY/"
-                       "YQP0hcV4QrwRlhqrcuhAvZZERmpNLLOWK4Neaa7ywikVGOOVcY+q3"
-                       "XRHPNZTVkEZhwm0F+/87LJpNhxhZu4BdJ2mfIwx0JS5gRflfeUxxL"
-                       "JAwLXQZpcO7GRdz/w12EgBohHNbxJyKwL7DSFAnaZ08/tlsjoNRlo"
-                       "1k4NHFf5Xf8K3M1ZlXeSxNV9nlpXtD6tbVVJn18tDCZgSqH64m1+i"
-                       "Vb05sB2htifgkBB+fCElRV/v7Eylc5Zu1EMTlrHmeHB3Yf8DpRMkw"
-                       "YHe4j+yDutLvhhZzGmrnNGcD8zZkE1pwKivjwBKee4Bee8NzVR7vM"
-                       "ary2GkqY1 john@doe",
+            public_key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQClaiWs3I86Y45l+"
+                       "q7vnvMeo4rRXy5fznVEqW2XaMMdDhjugExTHIBGKfAYdV+3L9kNwc"
+                       "vz+Bu/uSfD2UeinoJwKecMfBiRq1zdbw8FNzxSz3Vxw5lEYepl5L+"
+                       "lNbWfHR3rxsJLNEo6n5Q4+h/lHHP7MXVdch3jxj7bHUwNHct6Zw=="
+                       " john@doe",
         )
 
         self.sshkey2 = SSHKey(
-            public_key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqDWN5ay+bKoNg/"
-                       "+DbugWvLjY6q+ODdelRkZTakj7UNq+a40Vm+HHRT2tuoB1NxeR87U"
-                       "ieJt9IxWiiTasb/Ss+OgcAn5l8kvQvRQe+dp10qbeQHzkrgjpsFj4"
-                       "9YDOVKRTrqm5X721TnpqAo2RjqGBeEU+y9REfXPNPMUsni3w/h/BQ"
-                       "qJi/e2CRBRdgbi/3bO0Xf0Pt0bc/9jjF6vulqzttdbxowbee8bJlP"
-                       "yz/LnNcTGDdmw2PNQFwe0ZuhHsFzSLX4acM3je0+xcdlq0+Gq8nU5"
-                       "jz/x0SXuXFz9zFHPO3Ivko1VFdBXaqeb8wOluUjmOxJdDcg3Uqswc"
-                       "5Z08KU+9r jane@doe",
+            public_key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQC/YCx71smBufMXF"
+                       "thQQsjSW18adRCpI5L+I8z4qtx+8SQeTSFWZF/E9QSgG6UoajwzCb"
+                       "5oQM/+M9Hmel1rSUUfjGx8HQV4smVbCRTgRGDJTpFhbvoeO0AC6YJ"
+                       "6n/eBzu0zKVlW0UqMqJU1cQLWgnFfSDURmzLHlnPn467uXPx5Pw=="
+                       " jane@doe",
         )
 
         self.sshkey3 = SSHKey(
-            public_key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQCqGKukO1De7zhZj"
-                       "6+H0qtjTkVxwTCpvKe4eCZ0FPqri0cb2JZfXJ/DgYSF6vUpwmJG8w"
-                       "VQZKjeGcjDOL5UlsuusFncCzWBQ7RKNUSesmQRMSGkVb1/3j+skZ6"
-                       "UtW+5u09lHNsj6tQ51s1SPrCBkedbNf0Tp0GbMJDyR4e9T04ZZw=="
+            public_key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDCVu8lOZxm+7fjM"
+                       "QpdNuU2HinAhWmmEtYcX9wxCcBs14GmDrDSOhZB61bq9vdzkSlV0W"
+                       "st711mUlEZlXh/999NL7iAy6COKYxsEmRgbCU+9k8rBsSTDcXS6MW"
+                       "+aJI4vnqMgVSGwBDgxZs4X2mthYhCitgbk9D3WbstAinUkhEtzQ=="
                        " phpseclib-generated-key"
         )
 
