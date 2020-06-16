@@ -1,7 +1,7 @@
 from flask import request
 from models import RoleEnum, Capsule, SSHKey, capsule_output_schema
 from app import db
-from utils import oidc_require_role
+from utils import oidc_require_role, valid_sshkey
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden, Conflict
 from sqlalchemy.exc import StatementError
 
@@ -34,6 +34,10 @@ def post(capsule_id, user):
     capsule = _get_capsule(capsule_id, user)
 
     for public_key in sshkey_data:
+        if not valid_sshkey(public_key):
+            raise BadRequest(description=f"'{public_key}' is not "
+                             "a valid ssh public key")
+
         for key in capsule.authorized_keys:
             if public_key == key.public_key:
                 raise Conflict(description="'public_key' already exist "

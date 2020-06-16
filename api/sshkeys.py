@@ -1,7 +1,7 @@
 from flask import request
 from models import RoleEnum, SSHKey, sshkey_schema, sshkeys_schema
 from app import db
-from utils import oidc_require_role
+from utils import oidc_require_role, valid_sshkey
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 from sqlalchemy.exc import StatementError
 
@@ -27,6 +27,10 @@ def post(user):
     data = sshkey_schema.load(sshkey_data).data
 
     public_key = data["public_key"]
+
+    if not valid_sshkey(public_key):
+        raise BadRequest(description=f"'{public_key}' is not "
+                         "a valid ssh public key")
 
     sshkey = SSHKey(public_key=public_key, user_id=user.id)
     db.session.add(sshkey)
