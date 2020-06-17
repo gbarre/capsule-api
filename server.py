@@ -2,18 +2,31 @@
 Main module of the server file
 """
 
-import sys
+import argparse
 from app import create_app
 from nats.listener import create_nats_listener
 from config import YamlConfig
 # TODO: Move CORS in app.py
 from flask_cors import CORS
 
-# TODO: Implement a kind of --config option.
-if len(sys.argv) != 2:
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    '--config', '-c',
+    dest='config_file',
+    type=str,
+    required=False,
+    help="The YAML configuration file of the API server.",
+)
+
+# Parse only known arguments because others arguments are added during
+# a DB migration.
+args, unknown = parser.parse_known_args()
+config_file = args.config_file
+
+# The default YAML config file is the option is not provided.
+if config_file is None:
     config_file = './config.yml'
-else:
-    config_file = sys.argv[1]
 
 # TODO: manage error config like "no such file", "bad config syntax" etc.
 yamlconfig = YamlConfig(config_file)
