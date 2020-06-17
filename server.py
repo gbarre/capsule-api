@@ -10,7 +10,7 @@ from config import YamlConfig
 from flask_cors import CORS
 
 # TODO: Implement a kind of --config option.
-if len(sys.argv) == 1:
+if len(sys.argv) != 2:
     config_file = './config.yml'
 else:
     config_file = sys.argv[1]

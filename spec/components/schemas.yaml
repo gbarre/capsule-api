@@ -185,6 +185,14 @@ WebApp:
             type: string # can be any value
             example: "42"
       default: []
+    cron_cmd:
+      type: string
+      nullable: true
+      example: "/usr/bin/php /app/data/www/admin/cli/cron.php"
+    cron_schedule:
+      type: string
+      nullable: true
+      example: "* * * * *"
     quota:
       description: quota obtained from the capsule declaration
       type: object
@@ -277,6 +285,14 @@ WebAppInVerbose:
             type: string # can be any value
             example: "42"
       default: []
+    cron_cmd:
+      type: string
+      default: ""
+      example: "/usr/bin/php /app/data/www/admin/cli/cron.php"
+    cron_schedule:
+      type: string
+      default: ""
+      example: "* * * * *"
     quota:
       description: quota obtained from the capsule declaration
       type: object

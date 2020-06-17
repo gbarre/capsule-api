@@ -1,3 +1,4 @@
+# TODO: check cron syntax for POST & PUT
 from flask import request
 from ast import literal_eval
 from models import RoleEnum
@@ -9,6 +10,8 @@ from app import db
 from utils import oidc_require_role
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden, Conflict
 from sqlalchemy.exc import StatementError
+import base64
+import binascii
 
 
 def _get_capsule(capsule_id, user):
@@ -71,7 +74,20 @@ def post(capsule_id, user, webapp_data=None):
         webapp_data.pop("opts")
         newArgs["opts"] = opts
 
-    # TODO: ensure base64 encode tls_crt & tls_key if not
+    if ("tls_key" in webapp_data and "tls_crt" not in webapp_data) or \
+            ("tls_crt" in webapp_data and "tls_key" not in webapp_data):
+        raise BadRequest(description="Both tls_crt and tls_key are "
+                                     "required together")
+
+    if "tls_crt" in webapp_data and "tls_key" in webapp_data:
+        try:
+            base64.b64decode(webapp_data['tls_crt'])
+            base64.b64decode(webapp_data['tls_key'])
+        except binascii.Error:
+            webapp_data['tls_crt'] = base64.b64encode(webapp_data['tls_crt'])
+            webapp_data['tls_key'] = base64.b64encode(webapp_data['tls_key'])
+        # TODO: ensure crt & key are paired (via hte modulus).
+
     webapp = WebApp(**webapp_data, **newArgs)
     capsule.webapp = webapp
 
@@ -135,20 +151,30 @@ def put(capsule_id, user):
         opts = Option.create(webapp_data["opts"], webapp_data["runtime_id"])
         webapp.opts = opts
 
-    if "tls_crt" in webapp_data:
+    if "tls_crt" in webapp_data and "tls_key" in webapp_data:
+        try:
+            base64.b64decode(webapp_data['tls_crt'])
+            base64.b64decode(webapp_data['tls_key'])
+        except binascii.Error:
+            webapp_data['tls_crt'] = base64.b64encode(webapp_data['tls_crt'])
+            webapp_data['tls_key'] = base64.b64encode(webapp_data['tls_key'])
+        # TODO: ensure crt & key are paired (via hte modulus).
         webapp.tls_crt = webapp_data["tls_crt"]
-    else:
-        webapp.tls_crt = None
-
-    if "tls_key" in webapp_data:
         webapp.tls_key = webapp_data["tls_key"]
     else:
+        webapp.tls_crt = None
         webapp.tls_key = None
 
     if "tls_redirect_https" in webapp_data:
         webapp.tls_redirect_https = webapp_data["tls_redirect_https"]
     else:
         webapp.tls_redirect_https = False
+
+    for attribute in ['cron_cmd', 'cron_schedule']:
+        if attribute in webapp_data:
+            setattr(webapp, attribute, webapp_data[attribute])
+        else:
+            setattr(webapp, attribute, None)
 
     capsule.webapp = webapp
     db.session.commit()
