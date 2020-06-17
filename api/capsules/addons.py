@@ -64,6 +64,7 @@ def post(capsule_id, user, addon_data=None):
         addon = AddOn(**addon_data)
 
     # TODO: ensure name is "human readable"
+    # TODO: build uri
 
     capsule.addons.append(addon)
 

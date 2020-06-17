@@ -1,4 +1,3 @@
-# TODO: check cron syntax for POST & PUT
 from flask import request
 from ast import literal_eval
 from models import RoleEnum
@@ -170,11 +169,12 @@ def put(capsule_id, user):
     else:
         webapp.tls_redirect_https = False
 
-    for attribute in ['cron_cmd', 'cron_schedule']:
-        if attribute in webapp_data:
-            setattr(webapp, attribute, webapp_data[attribute])
-        else:
-            setattr(webapp, attribute, None)
+    # TODO: implement cron in an other file
+    # for attribute in ['cron_cmd', 'cron_schedule']:
+    #     if attribute in webapp_data:
+    #         setattr(webapp, attribute, webapp_data[attribute])
+    #     else:
+    #         setattr(webapp, attribute, None)
 
     capsule.webapp = webapp
     db.session.commit()

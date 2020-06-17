@@ -276,8 +276,6 @@ class WebApp(db.Model):
     quota_volume_size = db.Column(db.String(256))
     quota_memory_max = db.Column(db.String(256))
     quota_cpu_max = db.Column(db.String(256))
-    cron_cmd = db.Column(db.String(256))
-    cron_schedule = db.Column(db.String(256))
     created_at = db.Column(
         db.DateTime, default=datetime.utcnow
     )

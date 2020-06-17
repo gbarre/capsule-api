@@ -135,6 +135,15 @@
         "schema": {
           "type": "string"
         }
+      },
+      "cron_id": {
+        "in": "path",
+        "name": "cron_id",
+        "required": true,
+        "description": "Cron GUID",
+        "schema": {
+          "type": "string"
+        }
       }
     },
     "requestBodies": {},
@@ -346,6 +355,38 @@
           "fam"
         ]
       },
+      "Cron": {
+        "type": "object",
+        "properties": {
+          "minute": {
+            "type": "string",
+            "default": "0"
+          },
+          "hour": {
+            "type": "string",
+            "default": "*"
+          },
+          "month_day": {
+            "type": "string",
+            "default": "*"
+          },
+          "month": {
+            "type": "string",
+            "default": "*"
+          },
+          "week_day": {
+            "type": "string",
+            "default": "*"
+          },
+          "command": {
+            "type": "string",
+            "example": "/usr/bin/php /app/data/www/admin/cli/cron.php"
+          }
+        },
+        "required": [
+          "command"
+        ]
+      },
       "WebApp": {
         "type": "object",
         "properties": {
@@ -427,16 +468,6 @@
               }
             },
             "default": []
-          },
-          "cron_cmd": {
-            "type": "string",
-            "nullable": true,
-            "example": "/usr/bin/php /app/data/www/admin/cli/cron.php"
-          },
-          "cron_schedule": {
-            "type": "string",
-            "nullable": true,
-            "example": "* * * * *"
           },
           "quota": {
             "description": "quota obtained from the capsule declaration",
@@ -559,16 +590,6 @@
               }
             },
             "default": []
-          },
-          "cron_cmd": {
-            "type": "string",
-            "default": "",
-            "example": "/usr/bin/php /app/data/www/admin/cli/cron.php"
-          },
-          "cron_schedule": {
-            "type": "string",
-            "default": "",
-            "example": "* * * * *"
           },
           "quota": {
             "description": "quota obtained from the capsule declaration",

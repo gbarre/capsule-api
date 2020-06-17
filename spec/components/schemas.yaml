@@ -126,6 +126,30 @@ Runtime:
     - desc
     - fam
 
+Cron:
+  type: object
+  properties:
+    minute:
+      type: string
+      default: "0"
+    hour:
+      type: string
+      default: "*"
+    month_day:
+      type: string
+      default: "*"
+    month:
+      type: string
+      default: "*"
+    week_day:
+      type: string
+      default: "*"
+    command:
+      type: string
+      example: "/usr/bin/php /app/data/www/admin/cli/cron.php"
+  required:
+    - command
+
 WebApp:
   type: object
   properties:
@@ -185,14 +209,11 @@ WebApp:
             type: string # can be any value
             example: "42"
       default: []
-    cron_cmd:
-      type: string
-      nullable: true
-      example: "/usr/bin/php /app/data/www/admin/cli/cron.php"
-    cron_schedule:
-      type: string
-      nullable: true
-      example: "* * * * *"
+    # crons:
+    #   type: array
+    #   items:
+    #     $ref: "./schemas.yaml#/Cron"
+    #   default: []
     quota:
       description: quota obtained from the capsule declaration
       type: object
@@ -285,14 +306,11 @@ WebAppInVerbose:
             type: string # can be any value
             example: "42"
       default: []
-    cron_cmd:
-      type: string
-      default: ""
-      example: "/usr/bin/php /app/data/www/admin/cli/cron.php"
-    cron_schedule:
-      type: string
-      default: ""
-      example: "* * * * *"
+    # crons:
+    #   type: array
+    #   items:
+    #     $ref: "./schemas.yaml#/Cron"
+    #   default: []
     quota:
       description: quota obtained from the capsule declaration
       type: object

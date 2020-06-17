@@ -78,3 +78,10 @@ apptoken_id:
   description: Application token GUID
   schema:
     type: string
+cron_id:
+  in: path
+  name: cron_id
+  required: true
+  description: Cron GUID
+  schema:
+    type: string
