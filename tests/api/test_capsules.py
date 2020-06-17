@@ -1,5 +1,5 @@
 from tests.utils import api_version, dict_contains, unexisting_id, bad_id
-from app import oidc, nats
+from app import oidc
 from exceptions import KeycloakUserNotFound
 from unittest.mock import patch
 from werkzeug.exceptions import Forbidden
@@ -95,8 +95,7 @@ class TestCapsules:
     def test_create_duplicated_name(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.admin_user), \
-             patch("api.capsules.check_owners_on_keycloak"), \
-             patch.object(nats, "publish_capsule"):
+             patch("api.capsules.check_owners_on_keycloak"):
 
             # Create first caps
             testapp.post_json(
@@ -167,16 +166,13 @@ class TestCapsules:
     def test_create(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.admin_user), \
-             patch("api.capsules.check_owners_on_keycloak"), \
-             patch.object(nats, "publish_capsule") as publish_method:
+             patch("api.capsules.check_owners_on_keycloak"):
 
             res = testapp.post_json(
                 api_version + "/capsules",
                 self._capsule_input,
                 status=201
             ).json
-            # TODO
-            # publish_method.assert_called_once_with(res)
             assert dict_contains(res, self._capsule_input)
     #################################
 

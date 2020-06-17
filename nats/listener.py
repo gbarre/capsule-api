@@ -1,8 +1,7 @@
 # import os
 import json
 import threading
-from models import capsule_verbose_schema
-from models import WebApp, webapp_nats_schema
+from models import WebApp
 from models import AddOn, addon_schema
 from sqlalchemy import orm, create_engine
 from sqlalchemy.exc import StatementError
@@ -13,7 +12,6 @@ from Crypto.PublicKey import RSA
 from Crypto.Signature.PKCS1_v1_5 import PKCS115_SigScheme
 from Crypto.Hash import SHA256
 import base64
-import datetime
 
 
 class NATSListener(threading.Thread):
@@ -50,43 +48,18 @@ class NATSListener(threading.Thread):
             try:
                 webapp = __class__.session.query(WebApp).get(query_id)
             except StatementError:
+                # For instance the id is malformed.
                 msg.publish_response(data=None)
                 return
 
             try:
                 capsule = webapp.capsule
             except AttributeError:
+                # The id is well formed but no webapp with this capsule.
                 msg.publish_response(data=None)
                 return
 
-            webapp_data = webapp_nats_schema.dump(webapp).data
-            capsule_data = capsule_verbose_schema.dump(capsule).data
-
-            if 'env' in webapp_data:
-                webapp_data['env'] = literal_eval(webapp_data['env'])
-            else:
-                webapp_data['env'] = {}
-
-            data = {
-                "authorized_keys": [],
-                "env": webapp_data['env'],
-                "fqdns": webapp_data['fqdns'],
-                "id": query_id,
-                "name": capsule.name,
-                "runtime_id": webapp_data['runtime_id'],
-                "uid": capsule.uid,
-            }
-            for k in ['tls_crt', 'tls_key', 'tls_redirect_https']:
-                if k in webapp_data:
-                    data[k] = webapp_data[k]
-
-            for sshkey in capsule_data['authorized_keys']:
-                data['authorized_keys'].append(sshkey['public_key'])
-
-            for owner in capsule_data['owners']:
-                for sshkey in owner['public_keys']:
-                    data['authorized_keys'].append(sshkey['public_key'])
-
+            data = nats.build_nats_webapp_data(webapp, capsule)
             msg.publish_response(data=data)
 
         elif "capsule.addon" in msg.subject:
@@ -103,7 +76,6 @@ class NATSListener(threading.Thread):
                 return
 
             addon_data = addon_schema.dump(addon).data
-            capsule_data = capsule_verbose_schema.dump(capsule).data
             if 'env' in addon_data:
                 addon_data['env'] = literal_eval(addon_data['env'])
             else:
@@ -111,12 +83,12 @@ class NATSListener(threading.Thread):
                 addon_data.pop('capsule_id')
 
             data = {
-                "env": webapp_data['env'],
+                "env": addon_data['env'],
                 "id": query_id,
                 "name": capsule.name,
-                "runtime_id": webapp_data['runtime_id'],
-                "opts": webapp_data['opts'],
-                "uri": webapp_data['uri'],
+                "runtime_id": addon_data['runtime_id'],
+                "opts": addon_data['opts'],
+                "uri": addon_data['uri'],
             }
 
             msg.publish_response(data=data)
@@ -161,7 +133,7 @@ class NATSDriverMsg:
             return
 
         self.signature = self.payload[:index]
-        self.json_bytes = self.payload[index+1:]
+        self.json_bytes = self.payload[index + 1:]
 
         try:
             self.json = json.loads(self.json_bytes)
@@ -202,8 +174,8 @@ class NATSDriverMsg:
             self.error = f'Value of state is not valid: {self.json["state"]}'
             return
 
-        if not(isinstance(self.json['data'], dict)
-           and 'id' in self.json['data']):
+        j = self.json['data']
+        if not(isinstance(j, dict) and 'id' in j):
             self.is_msg_valid = False
             self.error = 'Data value must be an object with the key "id"'
             return
@@ -215,27 +187,12 @@ class NATSDriverMsg:
             state = "absent"
         else:
             state = "present"
-        self.generate_response(state=state, data=data)
-        nats.publish(self.subject, self.response)
-
-    def generate_response(self, state, data):
-        res = {
-            "from": "api",
-            "to": self.json['from'],
-            "state": state,
-            "data": data,
-            "time": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        }
-
-        private_key = self.config.PRIVATE_KEY
-
-        json_bytes = bytes(json.dumps(res), 'utf-8')
-        json_hash = SHA256.new(json_bytes)
-        priv_key = RSA.importKey(private_key)
-        signer = PKCS115_SigScheme(priv_key)
-        signature = signer.sign(json_hash)
-        encoded_signature = base64.b64encode(signature)
-        self.response = encoded_signature + __class__._delimiter + json_bytes
+        response = nats.generate_response(
+            to=self.json['from'],
+            state=state,
+            data=data
+        )
+        nats.publish(self.subject, response)
 
 
 def create_nats_listener(app, config):

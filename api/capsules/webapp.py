@@ -5,7 +5,7 @@ from models import Capsule
 from models import WebApp, webapp_schema
 from models import FQDN, Option
 from models import Runtime, RuntimeTypeEnum
-from app import db
+from app import db, nats
 from utils import oidc_require_role
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden, Conflict
 from sqlalchemy.exc import StatementError
@@ -45,10 +45,13 @@ def post(capsule_id, user, webapp_data=None):
         raise Conflict(description="This capsule already has a webapp.")
 
     # Datas could come from PUT
-    if webapp_data is None:
+    if webapp is None:
         webapp_data = request.get_json()
+        if "env" in webapp_data:
+            webapp_data["env"] = str(webapp_data["env"])
+        data = webapp_schema.load(webapp_data).data
 
-    runtime_id = webapp_data["runtime_id"]
+    runtime_id = data["runtime_id"]
     runtime = Runtime.query.get(runtime_id)
 
     if runtime is None:
@@ -59,41 +62,43 @@ def post(capsule_id, user, webapp_data=None):
         raise BadRequest(description=f"The runtime_id '{runtime.id}' "
                          "has not type 'webapp'.")
 
-    if "env" in webapp_data:
-        webapp_data["env"] = str(webapp_data["env"])
-
     newArgs = dict()
-    if "fqdns" in webapp_data:
-        fqdns = FQDN.create(webapp_data["fqdns"])
-        webapp_data.pop("fqdns")
+    if "fqdns" in data:
+        fqdns = FQDN.create(data["fqdns"])
+        data.pop("fqdns")
         newArgs["fqdns"] = fqdns
 
-    if "opts" in webapp_data:
-        opts = Option.create(webapp_data["opts"], runtime_id)
-        webapp_data.pop("opts")
+    if "opts" in data:
+        opts = Option.create(data["opts"], runtime_id)
+        data.pop("opts")
         newArgs["opts"] = opts
 
-    if ("tls_key" in webapp_data and "tls_crt" not in webapp_data) or \
-            ("tls_crt" in webapp_data and "tls_key" not in webapp_data):
+    if ("tls_key" in data and "tls_crt" not in data) or \
+            ("tls_crt" in data and "tls_key" not in data):
         raise BadRequest(description="Both tls_crt and tls_key are "
                                      "required together")
 
-    if "tls_crt" in webapp_data and "tls_key" in webapp_data:
+    if "tls_crt" in data and "tls_key" in data:
         try:
-            base64.b64decode(webapp_data['tls_crt'])
-            base64.b64decode(webapp_data['tls_key'])
+            base64.b64decode(data['tls_crt'])
+            base64.b64decode(data['tls_key'])
         except binascii.Error:
-            webapp_data['tls_crt'] = base64.b64encode(webapp_data['tls_crt'])
-            webapp_data['tls_key'] = base64.b64encode(webapp_data['tls_key'])
+            data['tls_crt'] = base64.b64encode(data['tls_crt'])
+            data['tls_key'] = base64.b64encode(data['tls_key'])
         # TODO: ensure crt & key are paired (via hte modulus).
 
-    webapp = WebApp(**webapp_data, **newArgs)
+    webapp = WebApp(**data, **newArgs)
     capsule.webapp = webapp
 
     db.session.add(webapp)
     db.session.commit()
 
     result = WebApp.query.get(capsule.webapp_id)
+
+    # TODO: Ask to OLC for dest
+    nats.publish_response(result, capsule, "*", "present", "capsule.webapp")
+
+    # Api response
     result_json = webapp_schema.dump(result).data
     if result_json['env'] is not None:
         result_json["env"] = literal_eval(result_json["env"])
@@ -138,46 +143,52 @@ def put(capsule_id, user):
 
     if "env" in webapp_data:
         webapp.env = str(webapp_data["env"])
+        webapp_data.pop('env')
 
-    if "fqdns" in webapp_data:
-        fqdns = FQDN.create(webapp_data["fqdns"])
+    data = webapp_schema.load(webapp_data).data
+
+    if "fqdns" in data:
+        fqdns = FQDN.create(data["fqdns"])
         webapp.fqdns = fqdns
 
     # TODO: ensure new runtime_id has same familly
-    webapp.runtime_id = webapp_data["runtime_id"]
+    webapp.runtime_id = data["runtime_id"]
 
-    if "opts" in webapp_data:
-        opts = Option.create(webapp_data["opts"], webapp_data["runtime_id"])
+    if "opts" in data:
+        opts = Option.create(data["opts"], data["runtime_id"])
         webapp.opts = opts
 
-    if "tls_crt" in webapp_data and "tls_key" in webapp_data:
+    if "tls_crt" in data and "tls_key" in data:
         try:
-            base64.b64decode(webapp_data['tls_crt'])
-            base64.b64decode(webapp_data['tls_key'])
+            base64.b64decode(data['tls_crt'])
+            base64.b64decode(data['tls_key'])
         except binascii.Error:
-            webapp_data['tls_crt'] = base64.b64encode(webapp_data['tls_crt'])
-            webapp_data['tls_key'] = base64.b64encode(webapp_data['tls_key'])
+            data['tls_crt'] = base64.b64encode(data['tls_crt'])
+            data['tls_key'] = base64.b64encode(data['tls_key'])
         # TODO: ensure crt & key are paired (via hte modulus).
-        webapp.tls_crt = webapp_data["tls_crt"]
-        webapp.tls_key = webapp_data["tls_key"]
+        webapp.tls_crt = data["tls_crt"]
+        webapp.tls_key = data["tls_key"]
     else:
         webapp.tls_crt = None
         webapp.tls_key = None
 
-    if "tls_redirect_https" in webapp_data:
-        webapp.tls_redirect_https = webapp_data["tls_redirect_https"]
+    if "tls_redirect_https" in data:
+        webapp.tls_redirect_https = data["tls_redirect_https"]
     else:
         webapp.tls_redirect_https = False
 
     # TODO: implement cron in an other file
     # for attribute in ['cron_cmd', 'cron_schedule']:
-    #     if attribute in webapp_data:
-    #         setattr(webapp, attribute, webapp_data[attribute])
+    #     if attribute in data:
+    #         setattr(webapp, attribute, data[attribute])
     #     else:
     #         setattr(webapp, attribute, None)
 
     capsule.webapp = webapp
     db.session.commit()
+
+    # TODO: Ask to OLC for dest
+    nats.publish_response(webapp, capsule, "*", "present", "capsule.webapp")
 
     return get(capsule_id)
 
@@ -194,4 +205,8 @@ def delete(capsule_id, user):
 
     db.session.delete(webapp)
     db.session.commit()
+
+    # TODO: Ask to OLC for dest
+    nats.publish_response(webapp, capsule, "*", "absent", "capsule.webapp")
+
     return None, 204

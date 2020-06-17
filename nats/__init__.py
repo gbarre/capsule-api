@@ -1,6 +1,13 @@
 import json
 import logging
 from pynats import NATSClient
+import datetime
+from Crypto.Hash import SHA256
+import base64
+from Crypto.Signature.PKCS1_v1_5 import PKCS115_SigScheme
+from Crypto.PublicKey import RSA
+from models import RuntimeTypeEnum, webapp_nats_schema, capsule_verbose_schema
+from ast import literal_eval
 
 
 class NATSNoEchoClient(NATSClient):
@@ -31,6 +38,8 @@ class NATS(object):
 
     SUBJECT = 'capsule.>'
 
+    _delimiter = b"^"
+
     def __init__(self, app=None):
         if app is not None:
             self.init_app(app)
@@ -44,6 +53,7 @@ class NATS(object):
             url=app.config['NATS_URI'],
             name=app.config['APP_NAME'],
         )
+        __class__._PRIVATE_KEY = app.config['PRIVATE_KEY']
         self.logger = logging.getLogger('NATS')
         # TODO set level depending on the DEBUG key of app.config
         self.logger.setLevel(logging.DEBUG)
@@ -61,9 +71,76 @@ class NATS(object):
         self.logger.debug(f"subscribed to {subject}.")
         self.client.subscribe(subject, callback=callback)
 
-    def publish_capsule(self, json_payload):
-        self.publish(self.SUBJECT, json_payload)
+    # def publish_capsule(self, json_payload):
+    #     self.publish(self.SUBJECT, json_payload)
 
     def publish(self, subject, signed_payload):
         self.logger.debug(f"payload {signed_payload} published on {subject}.")
         self.client.publish(subject, payload=signed_payload)
+
+    @staticmethod
+    def generate_response(to, state, data):
+        res = {
+            "from": "api",
+            "to": to,
+            "state": state,
+            "data": data,
+            "time": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        }
+
+        private_key = __class__._PRIVATE_KEY
+
+        json_bytes = bytes(json.dumps(res), 'utf-8')
+        json_hash = SHA256.new(json_bytes)
+        priv_key = RSA.importKey(private_key)
+        signer = PKCS115_SigScheme(priv_key)
+        signature = signer.sign(json_hash)
+        encoded_signature = base64.b64encode(signature)
+        return encoded_signature + __class__._delimiter + json_bytes
+
+    def publish_response(self, obj, capsule, to, state, subject):
+        runtime_type = obj.runtime.runtime_type
+        if runtime_type is RuntimeTypeEnum.webapp:
+            data = self.build_nats_webapp_data(obj, capsule)
+        else:
+            print('Oulalala')
+
+        signed_payload = self.generate_response(
+            to=to,
+            state=state,
+            data=data
+        )
+        self.publish(subject, signed_payload)
+
+    @staticmethod
+    def build_nats_webapp_data(webapp, capsule):
+
+        webapp_data = webapp_nats_schema.dump(webapp).data
+        capsule_data = capsule_verbose_schema.dump(capsule).data
+
+        if 'env' in webapp_data:
+            webapp_data['env'] = literal_eval(webapp_data['env'])
+        else:
+            webapp_data['env'] = {}
+
+        data = {
+            "authorized_keys": [],
+            "env": webapp_data['env'],
+            "fqdns": webapp_data['fqdns'],
+            "id": webapp_data['id'],
+            "name": capsule.name,
+            "runtime_id": webapp_data['runtime_id'],
+            "uid": capsule.uid,
+        }
+        for k in ['tls_crt', 'tls_key', 'tls_redirect_https']:
+            if k in webapp_data:
+                data[k] = webapp_data[k]
+
+        for sshkey in capsule_data['authorized_keys']:
+            data['authorized_keys'].append(sshkey['public_key'])
+
+        for owner in capsule_data['owners']:
+            for sshkey in owner['public_keys']:
+                data['authorized_keys'].append(sshkey['public_key'])
+
+        return data

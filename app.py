@@ -2,10 +2,21 @@ import os
 import connexion
 import werkzeug
 from flask_sqlalchemy import SQLAlchemy
+
+# Create the SQLAlchemy db instance.
+# Warning: this object can be imported in another modules below, so
+# it must be created before.
+db = SQLAlchemy()
+
 from flask_migrate import Migrate
 from flask_marshmallow import Marshmallow
+
+# Initialize Marshmallow.
+# Warning: this object can be imported in another modules below, so
+# it must be created before.
+ma = Marshmallow()
+
 from flask_oidc import OpenIDConnect
-# from utils import XOpenIDConnect
 from exceptions import render_exception
 from nats import NATS
 
@@ -24,14 +35,8 @@ class XOpenIDConnect(OpenIDConnect):
         return app.config['OIDC_CLIENT_SECRETS']
 
 
-# Create the SQLAlchemy db instance
-db = SQLAlchemy()
-
 # Initialize Migration
 migrate = Migrate()
-
-# Initialize Marshmallow
-ma = Marshmallow()
 
 # Initialize OpenIDConnect
 oidc = XOpenIDConnect()
