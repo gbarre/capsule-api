@@ -235,7 +235,7 @@ def valid_sshkey(public_key):
         return False
     # data[4:11] must have string which matches with the typeofkey,
     # another ssh key property.
-    if data[a:a+str_len] == typeofkey and int(str_len) == int(7):
+    if data[a:a + str_len] == typeofkey and int(str_len) == int(7):
         return True
     else:
         return False

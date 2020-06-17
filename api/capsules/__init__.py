@@ -4,7 +4,7 @@ from models import SSHKey, User
 from models import Capsule, capsule_output_schema, capsules_output_schema
 from models import capsule_input_schema
 from models import capsules_verbose_schema, capsule_verbose_schema
-from app import db, nats
+from app import db
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 from utils import check_owners_on_keycloak, oidc_require_role
 from utils import is_valid_capsule_name, build_query_filters
