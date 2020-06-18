@@ -83,8 +83,8 @@ def post(capsule_id, user, webapp_data=None):
             base64.b64decode(data['tls_crt'])
             base64.b64decode(data['tls_key'])
         except binascii.Error:
-            data['tls_crt'] = base64.b64encode(data['tls_crt'])
-            data['tls_key'] = base64.b64encode(data['tls_key'])
+            data['tls_crt'] = base64.b64encode(bytes(data['tls_crt'], 'utf-8'))
+            data['tls_key'] = base64.b64encode(bytes(data['tls_key'], 'utf-8'))
         # TODO: ensure crt & key are paired (via hte modulus).
 
     webapp = WebApp(**data, **newArgs)
