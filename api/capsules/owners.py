@@ -1,7 +1,7 @@
 from flask import request
 from models import RoleEnum
 from models import Capsule, User, user_schema, capsule_output_schema
-from app import db
+from app import db, nats
 from utils import oidc_require_role, check_owners_on_keycloak
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden, Conflict
 from exceptions import KeycloakUserNotFound
@@ -75,6 +75,8 @@ def patch(capsule_id, user):
     capsule.owners.append(new_user)
     db.session.commit()
 
+    nats.publish_webapp_present(capsule)
+
     result = Capsule.query.filter_by(id=capsule_id).first()
     return capsule_output_schema.dump(result).data, 200, {
         'Location': f'{request.base_url}/{capsule.id}',
@@ -107,4 +109,7 @@ def delete(capsule_id, user_id, user):
 
     capsule.owners.remove(user)
     db.session.commit()
+
+    nats.publish_webapp_present(capsule)
+
     return None, 204

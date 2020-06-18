@@ -3,6 +3,7 @@ from app import oidc
 from unittest.mock import patch
 from exceptions import KeycloakUserNotFound
 import pytest
+from nats import NATS
 
 
 class TestCapsuleOwners:
@@ -169,13 +170,15 @@ class TestCapsuleOwners:
         capsule_id = str(db.capsule1.id)
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.user1), \
-             patch("api.capsules.owners.check_owners_on_keycloak"):
+             patch("api.capsules.owners.check_owners_on_keycloak"), \
+             patch.object(NATS, "publish_webapp_present") as publish_method:
 
             res = testapp.patch_json(
                 api_version + "/capsules/" + capsule_id + "/owners",
                 self._owners_input,
                 status=200
             ).json
+            publish_method.assert_called_once
             assert self._owners_input["newOwner"] in res["owners"]
     ################################################
 
@@ -254,13 +257,15 @@ class TestCapsuleOwners:
         capsule_id = str(db.capsule1.id)
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.user1), \
-             patch("api.capsules.owners.check_owners_on_keycloak"):
+             patch("api.capsules.owners.check_owners_on_keycloak"), \
+             patch.object(NATS, "publish_webapp_present") as publish_method:
 
             # Delete owner
             testapp.delete(
                 f"{api_version}/capsules/{capsule_id}/owners/{db.user2.name}",
                 status=204
             )
+            publish_method.assert_called_once
 
             # Check owner is not present anymore
             res = testapp.get(

@@ -1,6 +1,6 @@
 from flask import request
 from models import RoleEnum, Capsule, SSHKey, capsule_output_schema
-from app import db
+from app import db, nats
 from utils import oidc_require_role, valid_sshkey
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden, Conflict
 from sqlalchemy.exc import StatementError
@@ -48,6 +48,8 @@ def post(capsule_id, user):
 
     db.session.commit()
 
+    nats.publish_webapp_present(capsule)
+
     result = Capsule.query.filter_by(id=capsule_id).first()
     return capsule_output_schema.dump(result).data, 201, {
         'Location': f'{request.base_url}/capsules/{capsule.id}',
@@ -76,4 +78,7 @@ def delete(capsule_id, sshkey_id, user):
         db.session.delete(sshkey)
 
     db.session.commit()
+
+    nats.publish_webapp_present(capsule)
+
     return None, 204

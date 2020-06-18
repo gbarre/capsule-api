@@ -5,6 +5,7 @@ from werkzeug.exceptions import Forbidden
 from models import capsule_output_schema
 import pytest
 import json
+from nats import NATS
 
 
 class TestCapsuleSshKeys:
@@ -65,7 +66,8 @@ class TestCapsuleSshKeys:
     def test_create_confilct(self, testapp, db):
         capsule_id = str(db.capsule1.id)
         with patch.object(oidc, "validate_token", return_value=True), \
-             patch("utils.check_user_role", return_value=db.user1):
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch.object(NATS, "publish_webapp_present") as publish_method:
 
             # Add sshkey
             testapp.post_json(
@@ -73,6 +75,7 @@ class TestCapsuleSshKeys:
                 self._sshkey_input,
                 status=201
             )
+            publish_method.assert_called_once
 
             # Try to add again
             res = testapp.post_json(
@@ -88,13 +91,15 @@ class TestCapsuleSshKeys:
         capsule_id = str(db.capsule1.id)
         capsule_output = self.build_output(db)
         with patch.object(oidc, "validate_token", return_value=True), \
-             patch("utils.check_user_role", return_value=db.user1):
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch.object(NATS, "publish_webapp_present") as publish_method:
 
             res = testapp.post_json(
                 api_version + "/capsules/" + capsule_id + "/sshkeys",
                 self._sshkey_input,
                 status=201
             ).json
+            publish_method.assert_called_once
             assert dict_contains(res, capsule_output)
     #############################################################
 
@@ -108,7 +113,8 @@ class TestCapsuleSshKeys:
     def test_delete_sshkey(self, testapp, db):
         capsule_id = str(db.capsule1.id)
         with patch.object(oidc, "validate_token", return_value=True), \
-             patch("utils.check_user_role", return_value=db.admin_user):
+             patch("utils.check_user_role", return_value=db.admin_user), \
+             patch.object(NATS, "publish_webapp_present") as publish_method:
 
             # Get sshkey id
             sshkey = db.sshkey3
@@ -119,6 +125,7 @@ class TestCapsuleSshKeys:
                 f"{api_version}/capsules/{capsule_id}/sshkeys/{sshkey_id}",
                 status=204
             )
+            publish_method.assert_called_once
 
             # Ensure this sshkey is not present anymore
             res = testapp.get(

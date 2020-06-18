@@ -3,6 +3,7 @@ from app import oidc
 from unittest.mock import patch
 from werkzeug.exceptions import Forbidden
 import pytest
+from nats import NATS
 
 
 class TestSshKeys:
@@ -90,13 +91,15 @@ class TestSshKeys:
     # Response 201:
     def test_create(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
-             patch("utils.check_user_role", return_value=db.user1):
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch.object(NATS, "publish_webapp_present") as publish_method:
 
             res = testapp.post_json(
                 api_version + "/sshkeys",
                 self._sshkey_input,
                 status=201
             ).json
+            publish_method.assert_called_once
             assert dict_contains(res, self._sshkey_input)
     #################################
 

@@ -6,7 +6,7 @@ from Crypto.Hash import SHA256
 import base64
 from Crypto.Signature.PKCS1_v1_5 import PKCS115_SigScheme
 from Crypto.PublicKey import RSA
-from models import RuntimeTypeEnum, webapp_nats_schema, capsule_verbose_schema
+from models import webapp_nats_schema, capsule_verbose_schema
 from ast import literal_eval
 
 
@@ -98,19 +98,28 @@ class NATS(object):
         encoded_signature = base64.b64encode(signature)
         return encoded_signature + __class__._delimiter + json_bytes
 
-    def publish_response(self, obj, capsule, to, state, subject):
-        runtime_type = obj.runtime.runtime_type
-        if runtime_type is RuntimeTypeEnum.webapp:
-            data = self.build_nats_webapp_data(obj, capsule)
-        else:
-            print('Oulalala')
-
+    def _publish_response_after_api_request(self, data, state, subject):
         signed_payload = self.generate_response(
-            to=to,
+            to="*",
             state=state,
             data=data
         )
         self.publish(subject, signed_payload)
+
+    def publish_webapp_present(self, capsule):
+        if capsule.webapp is not None:
+            data = self.build_nats_webapp_data(capsule.webapp, capsule)
+            self._publish_response_after_api_request(
+                data,
+                'present',
+                "capsule.webapp"
+            )
+
+    def publish_webapp_absent(self, webapp_id):
+        data = {"id": webapp_id}
+        self._publish_response_after_api_request(
+            data, 'absent', 'capsule.webapp'
+        )
 
     @staticmethod
     def build_nats_webapp_data(webapp, capsule):
@@ -118,7 +127,7 @@ class NATS(object):
         webapp_data = webapp_nats_schema.dump(webapp).data
         capsule_data = capsule_verbose_schema.dump(capsule).data
 
-        if 'env' in webapp_data:
+        if 'env' in webapp_data and webapp_data['env'] is not None:
             webapp_data['env'] = literal_eval(webapp_data['env'])
         else:
             webapp_data['env'] = {}

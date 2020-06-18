@@ -4,7 +4,7 @@ from models import SSHKey, User
 from models import Capsule, capsule_output_schema, capsules_output_schema
 from models import capsule_input_schema
 from models import capsules_verbose_schema, capsule_verbose_schema
-from app import db
+from app import db, nats
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 from utils import check_owners_on_keycloak, oidc_require_role
 from utils import is_valid_capsule_name, build_query_filters
@@ -90,9 +90,6 @@ def post():
     caps = Capsule.query.filter_by(id=capsule.id).first()
     result = capsule_output_schema.dump(caps).data
 
-    # TODO: Publish signed message to nats
-    # nats.publish_capsule(result)
-
     return result, 201, {
         'Location': f'{request.base_url}/capsules/{capsule.id}',
     }
@@ -120,6 +117,7 @@ def get(capsule_id, verbose, user):
         return capsule_output_schema.dump(capsule).data
 
 
+# DELETE /capsules/{cID}
 @oidc_require_role(min_role=RoleEnum.superadmin)
 def delete(capsule_id):
     try:
@@ -130,6 +128,12 @@ def delete(capsule_id):
     if capsule is None:
         raise NotFound(description=f"The requested capsule '{capsule_id}' "
                        "has not been found.")
+
+    nats.publish_webapp_absent(capsule)
+
+    # TODO: Publish NATS : delete addons
+    # for addon in capsule.addons:
+    #     nats.publish_addon_absent(addon, capsule)
 
     db.session.delete(capsule)
     db.session.commit()

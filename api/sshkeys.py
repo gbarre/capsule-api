@@ -1,9 +1,18 @@
 from flask import request
+from models import Capsule, User
 from models import RoleEnum, SSHKey, sshkey_schema, sshkeys_schema
-from app import db
+from app import db, nats
 from utils import oidc_require_role, valid_sshkey
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 from sqlalchemy.exc import StatementError
+
+
+def nats_publish_webapp_present(user):
+    query = []
+    query.append(Capsule.owners.any(User.name == user.name))
+    capsules = Capsule.query.filter(*query).all()
+    for capsule in capsules:
+        nats.publish_webapp_present(capsule)
 
 
 # /GET /sshkeys
@@ -24,9 +33,12 @@ def search(offset, limit, user):
 @oidc_require_role(min_role=RoleEnum.user)
 def post(user):
     sshkey_data = request.get_json()
-    data = sshkey_schema.load(sshkey_data).data
+    # data = sshkey_schema.load(sshkey_data).data
 
-    public_key = data["public_key"]
+    if 'public_key' not in sshkey_data:
+        raise BadRequest("The key 'public_key' is required.")
+
+    public_key = sshkey_data["public_key"]
 
     if not valid_sshkey(public_key):
         raise BadRequest(description=f"'{public_key}' is not "
@@ -35,6 +47,8 @@ def post(user):
     sshkey = SSHKey(public_key=public_key, user_id=user.id)
     db.session.add(sshkey)
     db.session.commit()
+
+    nats_publish_webapp_present(user)
 
     result = SSHKey.query.get(sshkey.id)
     return sshkey_schema.dump(result).data, 201, {
@@ -54,9 +68,12 @@ def delete(sshkey_id, user):
         raise NotFound(description=f"The requested sshkey '{sshkey_id}' "
                        "has not been found.")
 
-    if (user.id is not sshkey.user_id) and (user.role < RoleEnum.admin):
+    if (user.id != sshkey.user_id) and (user.role < RoleEnum.admin):
         raise Forbidden
 
     db.session.delete(sshkey)
     db.session.commit()
+
+    nats_publish_webapp_present(user)
+
     return None, 204

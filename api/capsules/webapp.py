@@ -95,8 +95,7 @@ def post(capsule_id, user, webapp_data=None):
 
     result = WebApp.query.get(capsule.webapp_id)
 
-    # TODO: Ask to OLC for dest
-    nats.publish_response(result, capsule, "*", "present", "capsule.webapp")
+    nats.publish_webapp_present(capsule)
 
     # Api response
     result_json = webapp_schema.dump(result).data
@@ -187,8 +186,7 @@ def put(capsule_id, user):
     capsule.webapp = webapp
     db.session.commit()
 
-    # TODO: Ask to OLC for dest
-    nats.publish_response(webapp, capsule, "*", "present", "capsule.webapp")
+    nats.publish_webapp_present(capsule)
 
     return get(capsule_id)
 
@@ -203,10 +201,11 @@ def delete(capsule_id, user):
     if webapp is None:
         raise NotFound(description="This capsule does not have webapp.")
 
+    webapp_id = str(webapp.id)
+
     db.session.delete(webapp)
     db.session.commit()
 
-    # TODO: Ask to OLC for dest
-    nats.publish_response(webapp, capsule, "*", "absent", "capsule.webapp")
+    nats.publish_webapp_absent(webapp_id)
 
     return None, 204

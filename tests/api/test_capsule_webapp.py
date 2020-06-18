@@ -136,7 +136,8 @@ class TestCapsuleWebapp:
     def test_create(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.user1), \
-             patch.object(NATS, "publish_response") as publish_method:
+             patch.object(NATS, "publish_webapp_absent") as publish_method1, \
+             patch.object(NATS, "publish_webapp_present") as publish_method2:
             capsule_id = str(db.capsule1.id)
 
             # Remove existing webapp
@@ -144,7 +145,7 @@ class TestCapsuleWebapp:
                 api_version + '/capsules/' + capsule_id + '/webapp',
                 status=204
             )
-            publish_method.assert_called_once
+            publish_method1.assert_called_once
 
             # Create webapp
             new_webapp = self.build_webapp(db)
@@ -154,7 +155,7 @@ class TestCapsuleWebapp:
                 new_webapp,
                 status=201
             ).json
-            assert publish_method.call_count == 2
+            publish_method2.assert_called_once
             assert dict_contains(res, new_webapp)
     ################################################
 
@@ -190,7 +191,7 @@ class TestCapsuleWebapp:
 
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.user1), \
-             patch.object(NATS, "publish_response") as publish_method:
+             patch.object(NATS, "publish_webapp_absent") as publish_method:
 
             # Remove existing webapp
             testapp.delete(
@@ -227,7 +228,7 @@ class TestCapsuleWebapp:
         capsule_id = str(db.capsule1.id)
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.user1), \
-             patch.object(NATS, "publish_response") as publish_method:
+             patch.object(NATS, "publish_webapp_present") as publish_method:
 
             current_webapp = self.build_output(db)
             current_webapp.pop('id')
@@ -258,14 +259,15 @@ class TestCapsuleWebapp:
 
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.user1), \
-             patch.object(NATS, "publish_response") as publish_method:
+             patch.object(NATS, "publish_webapp_absent") as publish_method1, \
+             patch.object(NATS, "publish_webapp_present") as publish_method2:
 
             # Remove existing webapp
             testapp.delete(
                 api_version + '/capsules/' + capsule_id + '/webapp',
                 status=204
             )
-            publish_method.assert_called_once
+            publish_method1.assert_called_once
 
             new_webapp = self.build_webapp(db)
 
@@ -274,7 +276,7 @@ class TestCapsuleWebapp:
                 new_webapp,
                 status=201
             ).json
-            assert publish_method.call_count == 2
+            publish_method2.assert_called_once
             assert dict_contains(res, self._webapp_input)
 
     # Response 401:
@@ -325,7 +327,7 @@ class TestCapsuleWebapp:
         capsule_id = str(db.capsule1.id)
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.user1), \
-             patch.object(NATS, "publish_response") as publish_method:
+             patch.object(NATS, "publish_webapp_absent") as publish_method:
 
             # Delete webapp
             testapp.delete(
@@ -377,7 +379,7 @@ class TestCapsuleWebapp:
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.user1), \
              patch("api.capsules.owners.check_owners_on_keycloak"), \
-             patch.object(NATS, "publish_response") as publish_method:
+             patch.object(NATS, "publish_webapp_absent") as publish_method:
 
             # Delete webapp
             testapp.delete(
