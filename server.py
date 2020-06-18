@@ -28,7 +28,6 @@ config_file = args.config_file
 if config_file is None:
     config_file = './config.yml'
 
-# TODO: manage error config like "no such file", "bad config syntax" etc.
 yamlconfig = YamlConfig(config_file)
 
 connex_app = create_app(yamlconfig)

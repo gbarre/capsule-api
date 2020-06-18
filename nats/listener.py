@@ -1,4 +1,3 @@
-# import os
 import json
 import threading
 from models import WebApp
@@ -17,7 +16,6 @@ class NATSListener(threading.Thread):
 
     def __init__(self, config):
         super().__init__(daemon=True)
-        # TODO: make subscriptions
         nats.subscribe(nats.SUBJECT, callback=self.listen)
         nats.logger.info('NATS listener initialized.')
         self.init_session(config.SQLALCHEMY_DATABASE_URI)
@@ -139,7 +137,6 @@ class NATSDriverMsg:
                 return
 
         driver = self.json['from']
-        # TODO: KeyError with unknown driver in config.
         public_key = self.config.get_pubkey_from_driver(driver)
 
         pubkey = RSA.importKey(public_key)

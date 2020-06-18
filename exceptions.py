@@ -32,3 +32,13 @@ class KeycloakUserNotFound(Exception):
 class KeycloakIdNotFound(Exception):
     def __init__(self, missing_id):
         self.missing_id = missing_id
+
+
+class ConfigError(Exception):
+    pass
+
+class NotRSACertificate(Exception):
+    pass
+
+class NotValidPEMFile(Exception):
+    pass

@@ -318,7 +318,6 @@ class Option(db.Model):
                 raise BadRequest(description="This option is not available: "
                                  f"field_name='{opt_name}', tag='{opt_tag}'")
 
-            # TODO: check that value match with validation_rule (if exists)
             rules = AvailableOptionValidationRule.query\
                 .filter_by(available_option_id=available_opt.id).all()
 

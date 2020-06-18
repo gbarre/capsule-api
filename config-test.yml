@@ -30,6 +30,7 @@ api:
   database_uri: 'sqlite:///test_capsule.db'
   nats:
     uri: 'nats://localhost:4222'
+    log_level: 'WARN'
   rsa_private_key: |
     -----BEGIN RSA PRIVATE KEY-----
     unused for tests

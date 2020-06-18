@@ -55,8 +55,7 @@ class NATS(object):
         )
         __class__._PRIVATE_KEY = app.config['PRIVATE_KEY']
         self.logger = logging.getLogger('NATS')
-        # TODO set level depending on the DEBUG key of app.config
-        self.logger.setLevel(logging.DEBUG)
+        self.logger.setLevel(getattr(logging, app.config['NATS_LOG_LEVEL']))
 
         formatter = logging\
             .Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
