@@ -2,12 +2,11 @@
 import json
 import threading
 from models import WebApp
-from models import AddOn, addon_schema
+from models import AddOn
 from sqlalchemy import orm, create_engine
 from sqlalchemy.exc import StatementError
 from app import nats
 from json.decoder import JSONDecodeError
-from ast import literal_eval
 from Crypto.PublicKey import RSA
 from Crypto.Signature.PKCS1_v1_5 import PKCS115_SigScheme
 from Crypto.Hash import SHA256

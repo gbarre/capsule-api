@@ -174,7 +174,7 @@ def put(capsule_id, addon_id, user):
 # DELETE /capsules/{cID}/addons/{aID}
 @oidc_require_role(min_role=RoleEnum.user)
 def delete(capsule_id, addon_id, user):
-    capsule = _get_capsule(capsule_id, user)
+    _get_capsule(capsule_id, user)
 
     addon = AddOn.query.get(addon_id)
     if not addon:

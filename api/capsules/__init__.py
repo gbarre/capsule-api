@@ -141,11 +141,9 @@ def delete(capsule_id):
             'id': addon.id,
             'runtime_id': addon.runtime_id,
         })
-    capsule_name = str(capsule.name)
 
     db.session.delete(capsule)
     db.session.commit()
-
 
     if webapp_id is not None:
         nats.publish_webapp_absent(webapp_id)
