@@ -27,14 +27,14 @@ class YamlConfig:
         # OIDC
         # TODO: get client secrets config in the same YAML file with overriding
         #  of the method load_secrets from the class OpenIDConnect.
-        _oidc = api['oidc']
-        self.OIDC_CLIENT_SECRETS = _oidc['client_secrets']
-        self.OIDC_ID_TOKEN_COOKIE_SECURE = _oidc['id_token_cookie_secure']
-        self.OIDC_REQUIRE_VERIFIED_EMAIL = _oidc['require_verified_email']
-        self.OIDC_USER_INFO_ENABLED = _oidc['user_info_enabled']
-        self.OIDC_OPENID_REALM = _oidc['openid_realm']
-        self.OIDC_SCOPES = _oidc['scopes']
-        self.OIDC_INTROSPECTION_AUTH_METHOD = _oidc['introspection_auth_method']
+        _o = api['oidc']
+        self.OIDC_CLIENT_SECRETS = _o['client_secrets']
+        self.OIDC_ID_TOKEN_COOKIE_SECURE = _o['id_token_cookie_secure']
+        self.OIDC_REQUIRE_VERIFIED_EMAIL = _o['require_verified_email']
+        self.OIDC_USER_INFO_ENABLED = _o['user_info_enabled']
+        self.OIDC_OPENID_REALM = _o['openid_realm']
+        self.OIDC_SCOPES = _o['scopes']
+        self.OIDC_INTROSPECTION_AUTH_METHOD = _o['introspection_auth_method']
 
         # Database
         self.SQLALCHEMY_DATABASE_URI = api['database_uri']

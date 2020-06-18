@@ -704,7 +704,7 @@ class CapsuleOutputSchema(ma.SQLAlchemyAutoSchema):
     # https://stackoverflow.com/questions/56779627/serialize-uuids-with-marshmallow-sqlalchemy
     @post_dump()
     def __post_dump(self, data):
-        if 'webapp' in data:
+        if 'webapp' in data and data['webapp'] is not None:
             data['webapp'] = str(data['webapp'])
         if 'addons' in data:
             data['addons'] = list(map(str, data['addons']))
