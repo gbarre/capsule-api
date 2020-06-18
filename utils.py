@@ -4,6 +4,7 @@ from models import RoleEnum
 from models import User, AppToken
 from flask import current_app, g, request
 from exceptions import KeycloakUserNotFound, KeycloakIdNotFound
+from exceptions import NotRSACertificate, NotValidPEMFile
 from werkzeug.exceptions import BadRequest, Forbidden, Unauthorized
 from functools import wraps
 from app import oidc
@@ -13,6 +14,8 @@ from hashlib import sha512
 import base64
 import struct
 import binascii
+import OpenSSL.crypto
+from Crypto.Util import asn1
 
 
 OIDC_CONFIG = None
@@ -236,6 +239,45 @@ def valid_sshkey(public_key):
     # data[4:11] must have string which matches with the typeofkey,
     # another ssh key property.
     if data[a:a + str_len] == typeofkey and int(str_len) == int(7):
+        return True
+    else:
+        return False
+
+
+def is_keycert_associated(str_key, str_cert):
+
+    c = OpenSSL.crypto
+
+    try:
+        cert = c.load_certificate(c.FILETYPE_PEM, str_cert)
+    except Exception:
+        raise NotValidPEMFile('The certificate is not a valid PEM file')
+    try:
+        priv = c.load_privatekey(c.FILETYPE_PEM, str_key)
+    except Exception:
+        raise NotValidPEMFile('The private key is not a valid PEM file')
+
+    pub = cert.get_pubkey()
+
+    # Only works for RSA (I think)
+    if pub.type()!=c.TYPE_RSA or priv.type()!=c.TYPE_RSA:
+        raise NotRSACertificate('Can only handle RSA keys and certificates')
+
+    # This seems to work with public as well
+    pub_asn1 = c.dump_privatekey(c.FILETYPE_ASN1, pub)
+    priv_asn1 = c.dump_privatekey(c.FILETYPE_ASN1, priv)
+
+    # Decode DER
+    pub_der = asn1.DerSequence()
+    pub_der.decode(pub_asn1)
+    priv_der = asn1.DerSequence()
+    priv_der.decode(priv_asn1)
+
+    # Get the modulus
+    pub_modulus = pub_der[1]
+    priv_modulus = priv_der[1]
+
+    if pub_modulus == priv_modulus:
         return True
     else:
         return False

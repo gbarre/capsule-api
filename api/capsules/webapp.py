@@ -6,11 +6,12 @@ from models import WebApp, webapp_schema
 from models import FQDN, Option
 from models import Runtime, RuntimeTypeEnum
 from app import db, nats
-from utils import oidc_require_role
+from utils import oidc_require_role, is_keycert_associated
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden, Conflict
 from sqlalchemy.exc import StatementError
 import base64
 import binascii
+from exceptions import NotRSACertificate, NotValidPEMFile
 
 
 def _get_capsule(capsule_id, user):
@@ -52,7 +53,10 @@ def post(capsule_id, user, webapp_data=None):
         data = webapp_schema.load(webapp_data).data
 
     runtime_id = data["runtime_id"]
-    runtime = Runtime.query.get(runtime_id)
+    try:
+        runtime = Runtime.query.get(runtime_id)
+    except StatementError as e:
+        raise BadRequest(description=str(e))
 
     if runtime is None:
         raise BadRequest(description=f"The runtime_id '{runtime_id}' "
@@ -80,12 +84,18 @@ def post(capsule_id, user, webapp_data=None):
 
     if "tls_crt" in data and "tls_key" in data:
         try:
-            base64.b64decode(data['tls_crt'])
-            base64.b64decode(data['tls_key'])
+            str_cert = base64.b64decode(data['tls_crt'])
+            str_key = base64.b64decode(data['tls_key'])
         except binascii.Error:
-            data['tls_crt'] = base64.b64encode(bytes(data['tls_crt'], 'utf-8'))
-            data['tls_key'] = base64.b64encode(bytes(data['tls_key'], 'utf-8'))
-        # TODO: ensure crt & key are paired (via hte modulus).
+            raise BadRequest(description="'tls_crt' and 'tls_key' must be "
+                                         "base64 encoded.")
+        try:
+            # Ensure that certificate and key are paired.
+            if not is_keycert_associated(str_key, str_cert):
+                raise BadRequest(description="The certificate and the key "
+                                             "are not associated")
+        except (NotRSACertificate, NotValidPEMFile) as e:
+            raise BadRequest(description=str(e))
 
     webapp = WebApp(**data, **newArgs)
     capsule.webapp = webapp
@@ -150,7 +160,20 @@ def put(capsule_id, user):
         fqdns = FQDN.create(data["fqdns"])
         webapp.fqdns = fqdns
 
-    # TODO: ensure new runtime_id has same familly
+    # Ensure new runtime_id has same familly
+    new_runtime_id = str(data["runtime_id"])
+    try :
+        new_runtime = Runtime.query.get(new_runtime_id)
+    except StatementError as e:
+        raise BadRequest(description=str(e))
+    if new_runtime is None:
+        raise BadRequest(description=f"The runtime_id '{new_runtime_id}' "
+                         "does not exist.")
+    new_fam = new_runtime.fam
+    old_fam = webapp.runtime.fam
+    if new_fam is not old_fam:
+        raise BadRequest(f"Changing runtime familly from '{old_fam}' "
+                         f"to '{new_fam}' is not possible")
     webapp.runtime_id = data["runtime_id"]
 
     if "opts" in data:
@@ -159,12 +182,18 @@ def put(capsule_id, user):
 
     if "tls_crt" in data and "tls_key" in data:
         try:
-            base64.b64decode(data['tls_crt'])
-            base64.b64decode(data['tls_key'])
+            str_cert = base64.b64decode(data['tls_crt'])
+            str_key = base64.b64decode(data['tls_key'])
         except binascii.Error:
-            data['tls_crt'] = base64.b64encode(data['tls_crt'])
-            data['tls_key'] = base64.b64encode(data['tls_key'])
-        # TODO: ensure crt & key are paired (via hte modulus).
+            raise BadRequest(description="'tls_crt' and 'tls_key' must be "
+                                         "base64 encoded.")
+        try:
+            # Ensure that certificate and key are paired.
+            if not is_keycert_associated(str_key, str_cert):
+                raise BadRequest(description="The certificate and the key "
+                                             "are not associated")
+        except (NotRSACertificate, NotValidPEMFile) as e:
+            raise BadRequest(description=str(e))
         webapp.tls_crt = data["tls_crt"]
         webapp.tls_key = data["tls_key"]
     else:
