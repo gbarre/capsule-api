@@ -38,45 +38,62 @@ class NATSListener(threading.Thread):
                 f"discarded because {msg.error}: {msg.payload}")
             return
 
-        data_json = msg.json['data']
-        query_id = data_json['id']
+        msg_state = msg.json['state']
 
-        if "capsule.webapp" in msg.subject:
-            try:
-                webapp = __class__.session.query(WebApp).get(query_id)
-            except StatementError:
-                # For instance the id is malformed.
-                msg.publish_response(data=None)
-                return
+        if msg_state == "?status":
+            data_json = msg.json['data']
+            query_id = data_json['id']
 
-            try:
-                capsule = webapp.capsule
-            except AttributeError:
-                # The id is well formed but no webapp with this capsule.
-                msg.publish_response(data=None)
-                return
+            if "capsule.webapp" in msg.subject:
+                try:
+                    webapp = __class__.session.query(WebApp).get(query_id)
+                except StatementError:
+                    # For instance the id is malformed.
+                    msg.publish_response(data=None)
+                    return
 
-            data = nats.build_nats_webapp_data(webapp, capsule)
-            msg.publish_response(data=data)
+                try:
+                    capsule = webapp.capsule
+                except AttributeError:
+                    # The id is well formed but no webapp with this capsule.
+                    msg.publish_response(data=None)
+                    return
 
-        elif "capsule.addon" in msg.subject:
-            try:
-                addon = __class__.session.query(AddOn).get(query_id)
-            except StatementError:
-                msg.publish_response(data=None)
-                return
+                data = nats.build_nats_webapp_data(webapp, capsule)
+                msg.publish_response(data=data)
 
-            try:
-                capsule = addon.capsule
-            except AttributeError:
-                msg.publish_response(data=None)
-                return
+            elif "capsule.addon" in msg.subject:
+                try:
+                    addon = __class__.session.query(AddOn).get(query_id)
+                except StatementError:
+                    msg.publish_response(data=None)
+                    return
 
-            data = nats.build_nats_addon_data(addon, capsule.name)
-            msg.publish_response(data=data)
+                try:
+                    capsule = addon.capsule
+                except AttributeError:
+                    msg.publish_response(data=None)
+                    return
 
-        else:
-            nats.logger.error(f"{origin_subject}: invalid subject.")
+                data = nats.build_nats_addon_data(addon, capsule.name)
+                msg.publish_response(data=data)
+
+            else:
+                nats.logger.error(f"{origin_subject}: invalid subject.")
+
+        elif msg_state == "?list":
+            if "capsule.webapp" in msg.subject:
+                webapps = __class__.session.query(WebApp).all()
+                data = nats.build_data_ids(webapps)
+                msg.publish_response(data=data)
+            elif "capsule.addon" in msg.subject:
+                runtime_id = msg.subject.split('.')[2]
+                addons = __class__.session.query(AddOn)\
+                    .filter_by(runtime_id=runtime_id).all()
+                data = nats.build_data_ids(addons)
+                msg.publish_response(data=data)
+            else:
+                nats.logger.error(f"{origin_subject}: invalid subject.")
 
     def run(self):
         nats.logger.info('NATS listener waiting for incoming messages.')
@@ -93,7 +110,7 @@ class NATSDriverMsg:
         'time',
     ]
 
-    _state_answer = "?status"
+    _state_answer = ["?status", "?list"]
     _delimiter = b"^"
 
     def __init__(self, nats_msg, config):
@@ -150,13 +167,14 @@ class NATSDriverMsg:
             self.error = 'Invalid signature'
             return
 
-        if self.json["state"] != __class__._state_answer:
+        if self.json["state"] not in __class__._state_answer:
             self.is_msg_valid = False
             self.error = f'Value of state is not valid: {self.json["state"]}'
             return
 
         j = self.json['data']
-        if not(isinstance(j, dict) and 'id' in j):
+        if (self.json["state"] == "?status") and \
+                not(isinstance(j, dict) and 'id' in j):
             self.is_msg_valid = False
             self.error = 'Data value must be an object with the key "id"'
             return

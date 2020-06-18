@@ -185,3 +185,11 @@ class NATS(object):
         }
 
         return data
+
+    @staticmethod
+    def build_data_ids(obj_array):
+        ids = []
+        for obj in obj_array:
+            ids.append(str(obj.id))
+
+        return ids
