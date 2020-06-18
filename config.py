@@ -25,8 +25,6 @@ class YamlConfig:
         self.SQLALCHEMY_TRACK_MODIFICATIONS = sqlalc['track_modifications']
 
         # OIDC
-        # TODO: get client secrets config in the same YAML file with overriding
-        #  of the method load_secrets from the class OpenIDConnect.
         _o = api['oidc']
         self.OIDC_CLIENT_SECRETS = _o['client_secrets']
         self.OIDC_ID_TOKEN_COOKIE_SECURE = _o['id_token_cookie_secure']
