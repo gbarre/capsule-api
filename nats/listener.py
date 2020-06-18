@@ -75,22 +75,7 @@ class NATSListener(threading.Thread):
                 msg.publish_response(data=None)
                 return
 
-            addon_data = addon_schema.dump(addon).data
-            if 'env' in addon_data:
-                addon_data['env'] = literal_eval(addon_data['env'])
-            else:
-                addon_data['env'] = {}
-                addon_data.pop('capsule_id')
-
-            data = {
-                "env": addon_data['env'],
-                "id": query_id,
-                "name": capsule.name,
-                "runtime_id": addon_data['runtime_id'],
-                "opts": addon_data['opts'],
-                "uri": addon_data['uri'],
-            }
-
+            data = nats.build_nats_addon_data(addon, capsule.name)
             msg.publish_response(data=data)
 
         else:

@@ -229,7 +229,8 @@ class TestCapsules:
     def test_delete_capsule(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.superadmin_user), \
-             patch.object(NATS, "publish_webapp_absent") as publish_method:
+             patch.object(NATS, "publish_webapp_absent") as publish_method1, \
+             patch.object(NATS, "publish_addon_absent") as publish_method2:
 
             # Get the capsule id
             capsule_id = str(db.capsule1.id)
@@ -238,7 +239,8 @@ class TestCapsules:
                 api_version + "/capsules/" + capsule_id,
                 status=204
             )
-            publish_method.assert_called_once
+            publish_method1.assert_called_once
+            assert publish_method2.call_count > 0
 
             # No more capsule
             res = testapp.get(

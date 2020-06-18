@@ -6,7 +6,7 @@ from models import Capsule
 from models import AddOn, addon_schema, addons_schema
 from models import Option
 from models import Runtime, RuntimeTypeEnum
-from app import db
+from app import db, nats
 from utils import oidc_require_role, build_query_filters
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 from sqlalchemy.exc import StatementError
@@ -70,6 +70,8 @@ def post(capsule_id, user, addon_data=None):
 
     db.session.add(addon)
     db.session.commit()
+
+    nats.publish_addon_present(addon, capsule.name)
 
     result_json = addon_schema.dump(addon).data
     result_json["env"] = json.loads(result_json["env"])
@@ -136,7 +138,7 @@ def get(capsule_id, addon_id, user):
 # PUT /capsules/{cID}/addons/{aID}
 @oidc_require_role(min_role=RoleEnum.user)
 def put(capsule_id, addon_id, user):
-    _get_capsule(capsule_id, user)
+    capsule = _get_capsule(capsule_id, user)
     addon_data = request.get_json()
 
     try:
@@ -164,13 +166,15 @@ def put(capsule_id, addon_id, user):
 
     db.session.commit()
 
+    nats.publish_addon_present(addon, capsule.name)
+
     return get(capsule_id, addon_id)
 
 
 # DELETE /capsules/{cID}/addons/{aID}
 @oidc_require_role(min_role=RoleEnum.user)
 def delete(capsule_id, addon_id, user):
-    _get_capsule(capsule_id, user)
+    capsule = _get_capsule(capsule_id, user)
 
     addon = AddOn.query.get(addon_id)
     if not addon:
@@ -179,6 +183,11 @@ def delete(capsule_id, addon_id, user):
     if str(addon.capsule.id) != capsule_id:
         raise Forbidden
 
+    runtime_id = addon.runtime_id
+
     db.session.delete(addon)
     db.session.commit()
+
+    nats.publish_addon_absent(addon_id, runtime_id)
+
     return None, 204

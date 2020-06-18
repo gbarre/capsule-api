@@ -129,12 +129,28 @@ def delete(capsule_id):
         raise NotFound(description=f"The requested capsule '{capsule_id}' "
                        "has not been found.")
 
-    nats.publish_webapp_absent(capsule)
+    # Get infos for nats after db.session.commit
+    if capsule.webapp_id is not None:
+        webapp_id = str(capsule.webapp_id)
+    else:
+        webapp_id = None
 
-    # TODO: Publish NATS : delete addons
-    # for addon in capsule.addons:
-    #     nats.publish_addon_absent(addon, capsule)
+    addons_infos = []
+    for addon in capsule.addons:
+        addons_infos.append({
+            'id': addon.id,
+            'runtime_id': addon.runtime_id,
+        })
+    capsule_name = str(capsule.name)
 
     db.session.delete(capsule)
     db.session.commit()
+
+
+    if webapp_id is not None:
+        nats.publish_webapp_absent(webapp_id)
+
+    for addon in addons_infos:
+        nats.publish_addon_absent(addon['id'], addon['runtime_id'])
+
     return None, 204

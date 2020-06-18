@@ -6,7 +6,7 @@ from Crypto.Hash import SHA256
 import base64
 from Crypto.Signature.PKCS1_v1_5 import PKCS115_SigScheme
 from Crypto.PublicKey import RSA
-from models import webapp_nats_schema, capsule_verbose_schema
+from models import webapp_nats_schema, capsule_verbose_schema, addon_schema
 from ast import literal_eval
 
 
@@ -70,9 +70,6 @@ class NATS(object):
     def subscribe(self, subject, *, callback):
         self.logger.debug(f"subscribed to {subject}.")
         self.client.subscribe(subject, callback=callback)
-
-    # def publish_capsule(self, json_payload):
-    #     self.publish(self.SUBJECT, json_payload)
 
     def publish(self, subject, signed_payload):
         self.logger.debug(f"payload {signed_payload} published on {subject}.")
@@ -151,5 +148,41 @@ class NATS(object):
         for owner in capsule_data['owners']:
             for sshkey in owner['public_keys']:
                 data['authorized_keys'].append(sshkey['public_key'])
+
+        return data
+
+    def publish_addon_present(self, addon, capsule_name):
+        data = self.build_nats_addon_data(addon, capsule_name)
+        runtime_id = str(addon.runtime_id)
+        self._publish_response_after_api_request(
+            data,
+            'present',
+            f"capsule.addon.{runtime_id}"
+        )
+
+    def publish_addon_absent(self, addon_id, runtime_id):
+        data = {"id": str(addon_id)}
+        self._publish_response_after_api_request(
+            data, 'absent', f"capsule.addon.{runtime_id}"
+        )
+
+    @staticmethod
+    def build_nats_addon_data(addon, capsule_name):
+
+        addon_data = addon_schema.dump(addon).data
+        if 'env' in addon_data and addon_data['env'] is not None:
+            addon_data['env'] = literal_eval(addon_data['env'])
+        else:
+            addon_data['env'] = {}
+            addon_data.pop('capsule_id')
+
+        data = {
+            "env": addon_data['env'],
+            "id": addon_data['id'],
+            "name": capsule_name,
+            "runtime_id": addon_data['runtime_id'],
+            "opts": addon_data['opts'],
+            "uri": addon_data['uri'],
+        }
 
         return data
