@@ -260,7 +260,7 @@ def is_keycert_associated(str_key, str_cert):
     pub = cert.get_pubkey()
 
     # Only works for RSA (I think)
-    if pub.type()!=c.TYPE_RSA or priv.type()!=c.TYPE_RSA:
+    if pub.type() != c.TYPE_RSA or priv.type() != c.TYPE_RSA:
         raise NotRSACertificate('Can only handle RSA keys and certificates')
 
     # This seems to work with public as well

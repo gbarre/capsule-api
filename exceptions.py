@@ -37,8 +37,10 @@ class KeycloakIdNotFound(Exception):
 class ConfigError(Exception):
     pass
 
+
 class NotRSACertificate(Exception):
     pass
+
 
 class NotValidPEMFile(Exception):
     pass

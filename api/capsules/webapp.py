@@ -162,7 +162,7 @@ def put(capsule_id, user):
 
     # Ensure new runtime_id has same familly
     new_runtime_id = str(data["runtime_id"])
-    try :
+    try:
         new_runtime = Runtime.query.get(new_runtime_id)
     except StatementError as e:
         raise BadRequest(description=str(e))
