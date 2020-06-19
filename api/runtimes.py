@@ -60,7 +60,10 @@ def get(runtime_id):
         raise NotFound(description=f"The requested runtime '{runtime_id}' "
                        "has not been found.")
 
-    return runtime_schema.dump(runtime).data
+    result_json = runtime_schema.dump(runtime).data
+    return result_json, 200, {
+        'Location': f'{request.base_url}/runtimes/{runtime.id}'
+    }
 
 
 # PUT /runtimes/{rId}
@@ -81,6 +84,8 @@ def put(runtime_id):
     runtime.fam = data["fam"]
     runtime.name = data["name"]
     runtime.runtime_type = data["runtime_type"]
+    if 'uri_template' in data:
+        runtime.uri_template = data['uri_template']
 
     delattr(runtime, "available_opts")
     if "available_opts" in data:
@@ -88,9 +93,7 @@ def put(runtime_id):
         runtime.available_opts = available_opts
 
     db.session.commit()
-
-    result = Runtime.query.get(runtime.id)
-    return runtime_schema.dump(result).data
+    return get(str(runtime.id))
 
 
 # DELETE /runtimes/{rId}

@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime
 from app import db, ma
-from marshmallow import fields, post_dump
+from marshmallow import fields, post_dump, pre_load
 from marshmallow_enum import EnumField
 from sqlalchemy.orm import backref
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -11,6 +11,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from ast import literal_eval
 from werkzeug.exceptions import BadRequest
 import re
+import json
 
 
 class GUID(TypeDecorator):
@@ -145,6 +146,7 @@ class Runtime(db.Model):
     desc = db.Column(db.String(256), nullable=False)
     fam = db.Column(db.String(256), nullable=False)
     runtime_type = db.Column(db.Enum(RuntimeTypeEnum), nullable=False)
+    uri_template = db.Column(db.Text, nullable=True)
     webapps = db.relationship(
         "WebApp",
         backref="runtime",
@@ -323,6 +325,7 @@ class Option(db.Model):
 
             if rules is not None:
                 for rule in rules:
+                    # TODO: check access_level
                     if rule.type == ValidationRuleEnum.regex:
                         regex = re.compile(rule.arg)
                         if regex.match(opt_value) is None:
@@ -485,19 +488,6 @@ class RuntimeSchema(ma.SQLAlchemyAutoSchema):
     id = ma.auto_field(dump_only=True)
 
     runtime_type = EnumField(RuntimeTypeEnum, by_value=True)
-
-    # webapps = fields.Nested(
-    #     'WebAppSchema',
-    #     default=[],
-    #     many=True,
-    #     only=('capsule_id', 'id'),
-    # )
-    # addons = fields.Nested(
-    #     'AddOnSchema',
-    #     default=[],
-    #     many=True,
-    #     only=('capsule_id', 'id'),
-    # )
     available_opts = fields.Nested(
         'AvailableOptionSchema',
         default=[],
@@ -513,6 +503,16 @@ class RuntimeSchema(ma.SQLAlchemyAutoSchema):
             data['webapps'] = list(map(str, data['webapps']))
         if 'addons' in data:
             data['addons'] = list(map(str, data['addons']))
+
+        if data['uri_template'] is not None:
+            # string =====================> json / object
+            data['uri_template'] = json.loads(data['uri_template'])
+
+    @pre_load()
+    def __pre_load(self, data):
+        if 'uri_template' in data and data['uri_template'] is not None:
+            # json / object =====================> string
+            data['uri_template'] = json.dumps(data['uri_template'])
 
 
 class AvailableOptionSchema(ma.SQLAlchemyAutoSchema):
@@ -576,9 +576,7 @@ class WebAppNatsSchema(ma.SQLAlchemyAutoSchema):
 
     class Meta:
         model = WebApp
-        # include_relationships = True
         include_fk = True
-        # exclude = ('runtime',)
         sqla_session = db.session
 
     id = ma.auto_field(dump_only=True)
@@ -589,8 +587,7 @@ class WebAppNatsSchema(ma.SQLAlchemyAutoSchema):
         many=True,
         only=('tag', 'field_name', 'value'),
     )
-    # tls_crt = ma.auto_field(load_only=True)
-    # tls_key = ma.auto_field(load_only=True)
+
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
 

@@ -68,25 +68,25 @@ AvailableOpt:
     - access_level
     - default_value
   example:
-    - access_level: user
-      tag: Apache
-      field_name: vhost.conf
+    - access_level: admin
+      tag: SQL
+      field_name: my.cnf
       field_description: >-
-        Fichier de configuration du VirtualHost Apache2
+        Fichier de configuration MySQL
       value_type: file
-      default_value: "{base64-encoded vhost.conf file content}"
+      default_value: "{base64-encoded my.cnf file content}"
     - access_level: user
-      tag: PHP
-      field_name: worker
+      tag: SQL
+      field_name: threads
       field_description: >-
-        Nombre de workers pour PHP
+        Nombre de threads MySQL
       value_type: integer
-      default_value: "6"
+      default_value: "20"
       validation_rules:
         - type: min
           arg: "1"
         - type: max
-          arg: "42"
+          arg: "200"
 
 Runtime:
   type: object
@@ -97,17 +97,41 @@ Runtime:
       example: a972e936-0840-4278-b5d2-8ec7af8836bc
     name:
       type: string
-      example: apache-2.4 php-7.2.x
+      example: MariaDB 10.1
     desc:
       type: string
       example: >-
-        Stack web classique Apache 2.4 + PHP 7.2.x
+        MySQL Database Server
     fam:
       type: string
-      example: Apache PHP
+      example: Database
     runtime_type:
       type: string
       enum: [webapp, addon]
+    uri_template:
+      nullable: true
+      type: object
+      properties:
+        pattern:
+          type: string
+        variables:
+          type: array
+          items:
+            - $ref: "./schemas.yaml#/UriVariables"
+      required:
+        - pattern
+        - variables
+      example:
+        pattern: "mysql://{username}:{password}@host:port/{username}"
+        variables:
+          - name: "username"
+            src: "capsule" # currently "capsule" or "random"
+            length: 16
+            unique: true
+          - name: password
+            src: "random"
+            length: 32
+            unique: false
     available_opts:
       $ref: "./schemas.yaml#/AvailableOpt"
     created_at:
@@ -125,6 +149,24 @@ Runtime:
     - runtime_type
     - desc
     - fam
+
+UriVariables:
+  type: object
+  properties:
+    name:
+      type: string
+    src:
+      type: string
+      enum: [capsule, random]
+    length:
+      type: integer
+    unique:
+      type: boolean
+  required:
+    - name
+    - src
+    - length
+    - unique
 
 Cron:
   type: object
