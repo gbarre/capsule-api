@@ -192,4 +192,4 @@ class NATS(object):
         for obj in obj_array:
             ids.append(str(obj.id))
 
-        return ids
+        return {"ids": ids}

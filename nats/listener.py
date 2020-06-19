@@ -184,12 +184,16 @@ class NATSDriverMsg:
             return
 
     def publish_response(self, data):
-        if data is None:
-            query_id = self.json['data']['id']
-            data = {"id": query_id}
-            state = "absent"
+        if self.json["state"] == "?list":
+            state = "list"
         else:
-            state = "present"
+            if data is None:
+                query_id = self.json['data']['id']
+                data = {"id": query_id}
+                state = "absent"
+            else:
+
+                state = "present"
         response = nats.generate_response(
             to=self.json['from'],
             state=state,
