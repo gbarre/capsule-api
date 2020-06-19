@@ -87,9 +87,13 @@ class NATSListener(threading.Thread):
                 data = nats.build_data_ids(webapps)
                 msg.publish_response(data=data)
             elif "capsule.addon" in msg.subject:
-                runtime_id = msg.subject.split('.')[2]
-                addons = __class__.session.query(AddOn)\
-                    .filter_by(runtime_id=runtime_id).all()
+                try:
+                    runtime_id = msg.subject.split('.')[2]
+                    addons = __class__.session.query(AddOn)\
+                        .filter_by(runtime_id=runtime_id).all()
+                except (IndexError, StatementError):
+                    nats.logger.error(f"{origin_subject}: invalid subject.")
+                    return
                 data = nats.build_data_ids(addons)
                 msg.publish_response(data=data)
             else:

@@ -169,11 +169,11 @@ pip install -r requirements.txt
 pip install -r test-requirements.txt
 
 docker stop $(docker ps -qa)
-docker rm $(docker ps -qa)
+docker rm $(docker ps -qa) # /!\ ONLY TO (RE)START FROM SCRATCH /!\
 
 # Run a docker instance
 ./keycloak/start.sh
-vim client_secrets.json # Copy the json displayed by the previous command.
+vim config-local.yml # Adapt the json displayed by the previous command...
 
 # Run database which is currently empty without structure.
 cp .env.local .env
@@ -185,7 +185,12 @@ FLASK_APP=server.py python -m flask db upgrade
 # You have to add some users in the database to have an available API.
 
 # Run the server.
-python server.py
+python server.py --config config-local.yml
+
+# Send Nats request to simulate a driver
+cd dev-tools
+python publish_msg.py --nats=localhost:4222 --subject="capsule.addon.ecea7683-92a8-4e2d-a846-be3c92f01308" --state="?list" --data='{}'
+python publish_msg.py --nats=localhost:4222 --subject="capsule.webapp" --state="?state" --data='{"id": "19129f93-b50c-4d06-9c96-d779d1dac467"}'
 ```
 
 ## Requirements
