@@ -569,6 +569,21 @@ class WebAppSchema(ma.SQLAlchemyAutoSchema):
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
 
+    @post_dump()
+    def __post_dump(self, data):
+        if (data['env'] is not None) and (isinstance(data['env'], str)) \
+                and (len(data['env']) > 0):
+            data['env'] = literal_eval(data['env'])
+        else:
+            data['env'] = {}
+
+    @pre_load()
+    def __pre_load(self, data):
+        if ('env' in data) and (data['env'] is not None):
+            data['env'] = json.dumps(data['env'])
+        else:
+            data['env'] = ""
+
 
 class WebAppNatsSchema(ma.SQLAlchemyAutoSchema):
     def __init__(self, **kwargs):
@@ -590,6 +605,21 @@ class WebAppNatsSchema(ma.SQLAlchemyAutoSchema):
 
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
+
+    @post_dump()
+    def __post_dump(self, data):
+        if (data['env'] is not None) and (isinstance(data['env'], str)) \
+                and (len(data['env']) > 0):
+            data['env'] = literal_eval(data['env'])
+        else:
+            data['env'] = {}
+
+    @pre_load()
+    def __pre_load(self, data):
+        if ('env' in data) and (data['env'] is not None):
+            data['env'] = json.dumps(data['env'])
+        else:
+            data['env'] = ""
 
 
 class AddOnSchema(ma.SQLAlchemyAutoSchema):
@@ -613,6 +643,21 @@ class AddOnSchema(ma.SQLAlchemyAutoSchema):
     )
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
+
+    @post_dump()
+    def __post_dump(self, data):
+        if (data['env'] is not None) and (isinstance(data['env'], str)) \
+                and (len(data['env']) > 0):
+            data['env'] = literal_eval(data['env'])
+        else:
+            data['env'] = {}
+
+    @pre_load()
+    def __pre_load(self, data):
+        if ('env' in data) and (data['env'] is not None):
+            data['env'] = json.dumps(data['env'])
+        else:
+            data['env'] = ""
 
 
 class OptionSchema(ma.SQLAlchemyAutoSchema):
@@ -750,18 +795,31 @@ class CapsuleSchemaVerbose(ma.SQLAlchemyAutoSchema):
     def __post_dump(self, data):
         if ('webapp' in data) and (data['webapp'] is not None):
             if ('env' in data["webapp"]) \
-                    and (data['webapp']['env'] is not None):
+                    and (data['webapp']['env'] is not None) \
+                    and (isinstance(data['webapp']['env'], str)) \
+                    and (len(data['webapp']['env']) > 0):
                 data['webapp']['env'] = literal_eval(data['webapp']['env'])
-            else:
-                data['webapp']['env'] = dict()
+        else:
+            data['webapp'] = {}
+        if 'addons' in data:
+            for addon in data['addons']:
+                if ('env' in addon) and (addon['env'] is not None) \
+                        and (isinstance(addon['env'], str)) \
+                        and (len(addon['env']) > 0):
+                    addon['env'] = literal_eval(addon['env'])
+
+    @pre_load()
+    def __pre_load(self, data):
+        if ('webapp' in data) and (data['webapp'] is not None):
+            if ('env' in data["webapp"]) \
+                    and (data['webapp']['env'] is not None):
+                data['webapp']['env'] = json.dumps(data['webapp']['env'])
         else:
             data['webapp'] = {}
         if 'addons' in data:
             for addon in data['addons']:
                 if ('env' in addon) and (addon['env'] is not None):
-                    addon['env'] = literal_eval(addon['env'])
-                else:
-                    addon['env'] = dict()
+                    addon['env'] = json.dumps(addon['env'])
 
 
 class UserSchema(ma.SQLAlchemyAutoSchema):

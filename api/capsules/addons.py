@@ -1,6 +1,4 @@
 from flask import request
-import ast
-import json
 from models import RoleEnum
 from models import Capsule
 from models import AddOn, addon_schema, addons_schema
@@ -41,7 +39,9 @@ def post(capsule_id, user, addon_data=None):
     if addon_data is None:
         addon_data = request.get_json()
 
-    runtime_id = addon_data["runtime_id"]
+    data = addon_schema.load(addon_data).data
+
+    runtime_id = data["runtime_id"]
     runtime = Runtime.query.get(runtime_id)
 
     if runtime is None:
@@ -52,19 +52,27 @@ def post(capsule_id, user, addon_data=None):
         raise BadRequest(description=f"The runtime_id '{runtime.id}' "
                          "has not type 'addon'.")
 
-    if "env" in addon_data:
-        addon_data["env"] = json.dumps(addon_data["env"])
+    if "opts" in data:
+        opts = Option.create(data["opts"], runtime_id)
+        data.pop("opts")
 
-    if "opts" in addon_data:
-        opts = Option.create(addon_data["opts"], runtime_id)
-        addon_data.pop("opts")
-
-        addon = AddOn(**addon_data, opts=opts)
+        addon = AddOn(**data, opts=opts)
     else:
-        addon = AddOn(**addon_data)
+        addon = AddOn(**data)
 
     # TODO: ensure name is "human readable"
     # TODO: build uri
+    # addon.uri = runtime.generate_uri()
+    # o = URITemplate(name='ccccc', uri_template_json)
+    # o.generate_uri()
+    # runtime_data = runtime_schema.dump(runtime).data
+    # uri_template = runtime_data['uri_template']
+    # pattern = uri_template['pattern']
+    # variables = uri_template['variables']
+    # for variable in variables:
+    #     if variable['src'] == 'capsule':
+    #         pass
+    #     elif variable['src'] == 'random'
 
     capsule.addons.append(addon)
 
@@ -74,7 +82,6 @@ def post(capsule_id, user, addon_data=None):
     nats.publish_addon_present(addon, capsule.name)
 
     result_json = addon_schema.dump(addon).data
-    result_json["env"] = json.loads(result_json["env"])
     return result_json, 201, {
         'Location':
             f'{request.base_url}/capsules/{capsule_id}/addons/{addon.id}',
@@ -97,11 +104,6 @@ def search(capsule_id, user, offset, limit, filters):
         raise NotFound(description="No addons have been found.")
 
     results = addons_schema.dump(results).data
-    for result in results:
-        if result['env'] is not None:
-            result["env"] = ast.literal_eval(result["env"])
-        else:
-            result['env'] = dict()
 
     return results
 
@@ -124,10 +126,6 @@ def get(capsule_id, addon_id, user):
         raise Forbidden
 
     result = addon_schema.dump(result).data
-    if result['env'] is not None:
-        result["env"] = ast.literal_eval(result["env"])
-    else:
-        result['env'] = dict()
 
     return result, 200, {
         'Location':
@@ -140,6 +138,7 @@ def get(capsule_id, addon_id, user):
 def put(capsule_id, addon_id, user):
     capsule = _get_capsule(capsule_id, user)
     addon_data = request.get_json()
+    data = addon_schema.load(addon_data).data
 
     try:
         addon = AddOn.query.get(addon_id)
@@ -153,16 +152,21 @@ def put(capsule_id, addon_id, user):
     if str(addon.capsule.id) != capsule_id:
         raise Forbidden
 
-    addon.description = addon_data["description"]
-    addon.name = addon_data["name"]
-    addon.runtime_id = addon_data["runtime_id"]
+    addon.description = data["description"]
+    addon.name = data["name"]
+    # TODO: ensure runtime_id has the same familly, like in webapp
+    addon.runtime_id = data["runtime_id"]
 
     if "env" in addon_data:
-        addon.env = str(addon_data["env"])
+        addon.env = data["env"]
+    else:
+        addon.env = {}
 
-    if "opts" in addon_data:
-        opts = Option.create(addon_data["opts"])
+    if "opts" in data:
+        opts = Option.create(data["opts"])
         addon.opts = opts
+    else:
+        addon.opts = []
 
     db.session.commit()
 

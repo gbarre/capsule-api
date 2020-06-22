@@ -3,7 +3,6 @@ from app import oidc
 from models import addon_schema
 from unittest.mock import patch
 import json
-import ast
 from werkzeug.exceptions import Forbidden
 import pytest
 from nats import NATS
@@ -32,7 +31,6 @@ class TestCapsuleAddons:
     @staticmethod
     def build_output(db):
         addon = json.loads(addon_schema.dumps(db.addon1).data)
-        addon["env"] = ast.literal_eval(addon["env"])
         return [addon]
 
     ################################################

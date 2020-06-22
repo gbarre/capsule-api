@@ -7,7 +7,6 @@ import base64
 from Crypto.Signature.PKCS1_v1_5 import PKCS115_SigScheme
 from Crypto.PublicKey import RSA
 from models import webapp_nats_schema, capsule_verbose_schema, addon_schema
-from ast import literal_eval
 
 
 class NATSNoEchoClient(NATSClient):
@@ -123,11 +122,6 @@ class NATS(object):
         webapp_data = webapp_nats_schema.dump(webapp).data
         capsule_data = capsule_verbose_schema.dump(capsule).data
 
-        if 'env' in webapp_data and webapp_data['env'] is not None:
-            webapp_data['env'] = literal_eval(webapp_data['env'])
-        else:
-            webapp_data['env'] = {}
-
         data = {
             "authorized_keys": [],
             "env": webapp_data['env'],
@@ -169,11 +163,7 @@ class NATS(object):
     def build_nats_addon_data(addon, capsule_name):
 
         addon_data = addon_schema.dump(addon).data
-        if 'env' in addon_data and addon_data['env'] is not None:
-            addon_data['env'] = literal_eval(addon_data['env'])
-        else:
-            addon_data['env'] = {}
-            addon_data.pop('capsule_id')
+        addon_data.pop('capsule_id')
 
         data = {
             "env": addon_data['env'],

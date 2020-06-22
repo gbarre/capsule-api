@@ -3,7 +3,6 @@ from app import oidc
 from unittest.mock import patch
 from models import webapp_schema
 import json
-import ast
 import pytest
 from nats import NATS
 
@@ -47,7 +46,6 @@ class TestCapsuleWebapp:
     @staticmethod
     def build_output(db):
         webapp = json.loads(webapp_schema.dumps(db.webapp1).data)
-        webapp["env"] = ast.literal_eval(webapp["env"])
         return webapp
 
     ################################################

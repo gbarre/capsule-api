@@ -1,5 +1,4 @@
 from flask import request
-from ast import literal_eval
 from models import RoleEnum
 from models import Capsule
 from models import WebApp, webapp_schema
@@ -48,8 +47,6 @@ def post(capsule_id, user, webapp_data=None):
     # Datas could come from PUT
     if webapp is None:
         webapp_data = request.get_json()
-        if "env" in webapp_data:
-            webapp_data["env"] = str(webapp_data["env"])
         data = webapp_schema.load(webapp_data).data
 
     runtime_id = data["runtime_id"]
@@ -109,10 +106,6 @@ def post(capsule_id, user, webapp_data=None):
 
     # Api response
     result_json = webapp_schema.dump(result).data
-    if result_json['env'] is not None:
-        result_json["env"] = literal_eval(result_json["env"])
-    else:
-        result_json["env"] = {}
 
     return result_json, 201, {
         'Location': f'{request.base_url}/{capsule.id}/webapp',
@@ -129,10 +122,6 @@ def get(capsule_id, user):
 
     result = WebApp.query.get(capsule.webapp_id)
     result_json = webapp_schema.dump(result).data
-    if result_json['env'] is not None:
-        result_json["env"] = literal_eval(result_json["env"])
-    else:
-        result_json["env"] = {}
 
     return result_json, 200, {
         'Location': f'{request.base_url}/{capsule.id}/webapp',
@@ -150,11 +139,12 @@ def put(capsule_id, user):
     if webapp is None:
         return post(capsule_id=capsule_id, webapp_data=webapp_data)
 
-    if "env" in webapp_data:
-        webapp.env = str(webapp_data["env"])
-        webapp_data.pop('env')
-
     data = webapp_schema.load(webapp_data).data
+
+    if "env" in webapp_data:
+        webapp.env = webapp_data["env"]
+    else:
+        webapp.env = None
 
     if "fqdns" in data:
         fqdns = FQDN.create(data["fqdns"])
@@ -179,6 +169,8 @@ def put(capsule_id, user):
     if "opts" in data:
         opts = Option.create(data["opts"], data["runtime_id"])
         webapp.opts = opts
+    else:
+        webapp.opts = None
 
     if "tls_crt" in data and "tls_key" in data:
         try:
