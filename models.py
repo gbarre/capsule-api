@@ -9,9 +9,11 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.types import TypeDecorator, CHAR
 from sqlalchemy.dialects.postgresql import UUID
 from ast import literal_eval
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import BadRequest, Forbidden
 import re
 import json
+import string
+import random
 
 
 class GUID(TypeDecorator):
@@ -174,6 +176,67 @@ class Runtime(db.Model):
     def instances(self):
         return self.webapps or self.addons
 
+    def generate_uri(self, capsule):
+        if self.uri_template is not None:
+            template = json.loads(self.uri_template)
+            pattern = template['pattern']
+            variables = template['variables']
+            d_vars = {}
+            for variable in variables:
+                value = self._generate_variable(
+                    src=variable['src'],
+                    length=variable['length'],
+                    unique=variable['unique'],
+                    capsule=capsule,
+                )
+                d_vars[variable['name']] = value
+
+            res = pattern.format(**d_vars)
+            return res
+        else:
+            return None
+
+    def _generate_variable(self, src, length, unique=None,
+                           capsule=None, offset=1):
+        res = ""
+        if src == 'capsule':
+            name = capsule.name.replace('-', '')[:8]
+            uid = str(capsule.uid)
+            ll = len(name) + len(uid) + len(str(offset))
+            if ll < length:
+                diff = length - ll
+                capsule_id = str(capsule.id).replace('-', '')[:diff]
+            else:
+                # Corner case
+                return self._generate_variable(src='random', length=length)
+            res = name + uid + capsule_id + str(offset)
+
+            # uniqueness
+            # TODO: not optimal at all because maybe there are lot of
+            #       recursions and one SQL request for each call.
+            #       And what happens when there are the same request
+            #       in the same moment (race conditions etc).
+            if unique:
+                addon = AddOn.query\
+                    .filter_by(runtime_id=self.id)\
+                    .filter(AddOn.uri.like(f"%{res}%")).one_or_none()
+                if addon is not None:
+                    return self._generate_variable(
+                        src=src,
+                        length=length,
+                        unique=unique,
+                        capsule=capsule,
+                        offset=offset + 1,
+                    )
+
+        elif src == 'random':
+            lettersAndDigits = string.ascii_letters + string.digits
+            res = ''.join(
+                (random.choice(lettersAndDigits) for i in range(length))
+            )
+
+        return res
+
 
 class AvailableOption(db.Model):
     __tablename__ = "available_options"
@@ -303,7 +366,7 @@ class Option(db.Model):
         return self.webapp_id or self.addon_id
 
     @staticmethod
-    def create(opts, runtime_id):
+    def create(opts, runtime_id, user_role):
         opts_array = []
         for opt in opts:
             opt_tag = opt['tag']
@@ -320,12 +383,16 @@ class Option(db.Model):
                 raise BadRequest(description="This option is not available: "
                                  f"field_name='{opt_name}', tag='{opt_tag}'")
 
+            # Check access_level
+            if user_role < available_opt.access_level:
+                raise Forbidden(description="You don't have permission to set "
+                                            f"the option '{opt_name}'")
+
             rules = AvailableOptionValidationRule.query\
                 .filter_by(available_option_id=available_opt.id).all()
 
             if rules is not None:
                 for rule in rules:
-                    # TODO: check access_level
                     if rule.type == ValidationRuleEnum.regex:
                         regex = re.compile(rule.arg)
                         if regex.match(opt_value) is None:

@@ -70,7 +70,7 @@ def post(capsule_id, user, webapp_data=None):
         newArgs["fqdns"] = fqdns
 
     if "opts" in data:
-        opts = Option.create(data["opts"], runtime_id)
+        opts = Option.create(data["opts"], runtime_id, user.role)
         data.pop("opts")
         newArgs["opts"] = opts
 
@@ -167,7 +167,7 @@ def put(capsule_id, user):
     webapp.runtime_id = data["runtime_id"]
 
     if "opts" in data:
-        opts = Option.create(data["opts"], data["runtime_id"])
+        opts = Option.create(data["opts"], data["runtime_id"], user.role)
         webapp.opts = opts
     else:
         webapp.opts = None

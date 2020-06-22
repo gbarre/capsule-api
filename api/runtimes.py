@@ -32,6 +32,21 @@ def post(runtime=None):
         runtime_data = request.get_json()
         data = runtime_schema.load(runtime_data).data
 
+        if 'uri_template' in data and data['uri_template'] is not None:
+            variables = data['uri_template']['variables']
+            for variable in variables:
+                length = variable['length']
+                unique = variable['unique']
+                src = variable['src']
+                if unique and src == 'random':
+                    raise BadRequest(description="Uniqueness is not taken "
+                                                 "into account for a random "
+                                                 "variable.")
+                if unique and length < 16 and src == 'capsule':
+                    raise BadRequest(description="Uniqueness of a variable "
+                                                 "required a length greater "
+                                                 "or equal to 16.")
+
         if "available_opts" in data:
             available_opts = AvailableOption.create(data["available_opts"])
             data.pop("available_opts")
@@ -85,6 +100,19 @@ def put(runtime_id):
     runtime.name = data["name"]
     runtime.runtime_type = data["runtime_type"]
     if 'uri_template' in data:
+        variables = data['uri_template']['variables']
+        for variable in variables:
+            length = variable['length']
+            unique = variable['unique']
+            src = variable['src']
+            if unique and src == 'random':
+                raise BadRequest(description="Uniqueness is not taken "
+                                             "into account for a random "
+                                             "variable.")
+            if unique and length < 16 and src == 'capsule':
+                raise BadRequest(description="Uniqueness of a variable "
+                                             "required a length greater "
+                                             "or equal to 16.")
         runtime.uri_template = data['uri_template']
 
     delattr(runtime, "available_opts")

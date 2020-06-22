@@ -41,7 +41,7 @@ api:
   #   -----END PUBLIC KEY-----
 
 drivers:
-  - name: 'k8s'
+  - name: 'k8s' # in the "from" key of a NATS message.
     rsa_private_key: |
       -----BEGIN PUBLIC KEY-----
       unused for tests
