@@ -21,7 +21,7 @@ from Crypto.Util import asn1
 OIDC_CONFIG = None
 
 
-def is_valid_capsule_name(name):
+def is_valid_name(name):
 
     if len(name) > 64:
         return False

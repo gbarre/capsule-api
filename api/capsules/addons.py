@@ -5,7 +5,7 @@ from models import AddOn, addon_schema, addons_schema
 from models import Option
 from models import Runtime, RuntimeTypeEnum
 from app import db, nats
-from utils import oidc_require_role, build_query_filters
+from utils import build_query_filters, is_valid_name, oidc_require_role
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 from sqlalchemy.exc import StatementError
 
@@ -60,8 +60,13 @@ def post(capsule_id, user, addon_data=None):
     else:
         addon = AddOn(**data)
 
-    # TODO: ensure name is "human readable"
-    # use is_valid_capsule_name ?
+    addon_name = data['name']
+    if not is_valid_name(addon_name):
+        msg = f'The addon name "{addon_name}" is invalid: only lowercase '\
+            'alphanumeric characters or "-" are allowed, the first and the '\
+            'last characters must be alphanumeric, the name must have at '\
+            'least 2 characters and less than 64 characters.'
+        raise BadRequest(description=msg)
 
     addon.uri = runtime.generate_uri(capsule)
 
@@ -144,6 +149,14 @@ def put(capsule_id, addon_id, user):
         raise Forbidden
 
     addon.description = data["description"]
+
+    addon_name = data['name']
+    if not is_valid_name(addon_name):
+        msg = f'The addon name "{addon_name}" is invalid: only lowercase '\
+            'alphanumeric characters or "-" are allowed, the first and the '\
+            'last characters must be alphanumeric, the name must have at '\
+            'least 2 characters and less than 64 characters.'
+        raise BadRequest(description=msg)
     addon.name = data["name"]
 
     # Ensure new runtime_id has same familly

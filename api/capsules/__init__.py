@@ -7,7 +7,7 @@ from models import capsules_verbose_schema, capsule_verbose_schema
 from app import db, nats
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 from utils import check_owners_on_keycloak, oidc_require_role
-from utils import is_valid_capsule_name, build_query_filters
+from utils import is_valid_name, build_query_filters
 from exceptions import KeycloakUserNotFound
 from sqlalchemy.exc import StatementError
 
@@ -72,7 +72,7 @@ def post():
     capsule_name = data['name']
 
     # https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-label-names
-    if not is_valid_capsule_name(capsule_name):
+    if not is_valid_name(capsule_name):
         msg = f'The capsule name "{capsule_name}" is invalid: only lowercase '\
             'alphanumeric characters or "-" are allowed, the first and the '\
             'last characters must be alphanumeric, the name must have at '\
