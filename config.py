@@ -47,6 +47,11 @@ class YamlConfig:
             # Database
             self.SQLALCHEMY_DATABASE_URI = api['database_uri']
 
+            self.SQLALCHEMY_ENGINE_OPTIONS = {
+              # To avoid "SQL lost connection".
+              'pool_pre_ping': True,
+            }
+
             # Drivers
             self.DRIVERS = config['drivers']
         except KeyError as e:
