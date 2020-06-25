@@ -3,7 +3,7 @@ import threading
 from models import WebApp
 from models import AddOn
 from sqlalchemy import orm, create_engine
-from sqlalchemy.exc import StatementError
+from sqlalchemy.exc import OperationalError, StatementError
 from app import nats
 from json.decoder import JSONDecodeError
 from Crypto.PublicKey import RSA
@@ -22,7 +22,9 @@ class NATSListener(threading.Thread):
         __class__.config = config
 
     def init_session(self, uri):
-        session_factory = orm.sessionmaker(bind=create_engine(uri))
+        session_factory = orm.sessionmaker(
+            bind=create_engine(uri, pool_pre_ping=True)
+        )
         __class__.session = orm.scoped_session(session_factory)
 
     @staticmethod
@@ -39,17 +41,19 @@ class NATSListener(threading.Thread):
             return
 
         msg_state = msg.json['state']
+        msg_invalid_subject = f"{origin_subject}: invalid subject."
 
         if msg_state == "?status":
             data_json = msg.json['data']
             query_id = data_json['id']
 
             if "capsule.webapp" in msg.subject:
-                try:
-                    webapp = __class__.session.query(WebApp).get(query_id)
-                except StatementError:
-                    # For instance the id is malformed.
-                    msg.publish_response(data=None)
+                webapp = __class__.get_sqlalchemy_obj(
+                    subj=origin_subject,
+                    obj=WebApp,
+                    query_id=query_id,
+                )
+                if webapp is None:
                     return
 
                 try:
@@ -63,10 +67,12 @@ class NATSListener(threading.Thread):
                 msg.publish_response(data=data)
 
             elif "capsule.addon" in msg.subject:
-                try:
-                    addon = __class__.session.query(AddOn).get(query_id)
-                except StatementError:
-                    msg.publish_response(data=None)
+                addon = __class__.get_sqlalchemy_obj(
+                    subj=origin_subject,
+                    obj=AddOn,
+                    query_id=query_id,
+                )
+                if addon is None:
                     return
 
                 try:
@@ -79,25 +85,57 @@ class NATSListener(threading.Thread):
                 msg.publish_response(data=data)
 
             else:
-                nats.logger.error(f"{origin_subject}: invalid subject.")
+                nats.logger.error(msg_invalid_subject)
 
         elif msg_state == "?list":
             if "capsule.webapp" in msg.subject:
-                webapps = __class__.session.query(WebApp).all()
+                webapps = __class__.get_sqlalchemy_obj(
+                    subj=origin_subject,
+                    obj=WebApp,
+                )
+                if webapps is None:
+                    return
+
                 data = nats.build_data_ids(webapps)
                 msg.publish_response(data=data)
             elif "capsule.addon" in msg.subject:
                 try:
                     runtime_id = msg.subject.split('.')[2]
-                    addons = __class__.session.query(AddOn)\
-                        .filter_by(runtime_id=runtime_id).all()
-                except (IndexError, StatementError):
-                    nats.logger.error(f"{origin_subject}: invalid subject.")
+                except IndexError:
+                    nats.logger.error(msg_invalid_subject)
                     return
+
+                addons = __class__.get_sqlalchemy_obj(
+                    subj=origin_subject,
+                    obj=AddOn,
+                    runtime_id=runtime_id,
+                )
+                if addons is None:
+                    return
+
                 data = nats.build_data_ids(addons)
                 msg.publish_response(data=data)
             else:
-                nats.logger.error(f"{origin_subject}: invalid subject.")
+                nats.logger.error(msg_invalid_subject)
+
+    @staticmethod
+    def get_sqlalchemy_obj(subj, obj, query_id=None, runtime_id=None):
+        result = None
+        try:
+            if query_id is not None:
+                result = __class__.session.query(obj).get(query_id)
+            elif runtime_id is not None:
+                result = __class__.session.query(obj)\
+                    .filter_by(runtime_id=runtime_id).all()
+            else:
+                result = __class__.session.query(obj).all()
+        except OperationalError:
+            nats.logger.error(f"{subj}: database unreachable.")
+            __class__.session.rollback()
+        except StatementError:
+            nats.logger.error(f"{subj}: invalid id submitted.")
+
+        return result
 
     def run(self):
         nats.logger.info('NATS listener waiting for incoming messages.')
