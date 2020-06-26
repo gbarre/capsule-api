@@ -11,7 +11,7 @@ from sqlalchemy.exc import StatementError
 def _get_capsule(capsule_id, user):
     try:
         capsule = Capsule.query.filter_by(id=capsule_id).first()
-    except StatementError as e:
+    except StatementError:
         raise BadRequest(description=f"'{capsule_id}' is not a valid id.'")
 
     if capsule is None:

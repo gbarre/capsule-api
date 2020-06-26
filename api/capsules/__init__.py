@@ -23,7 +23,7 @@ def search(offset, limit, filters, verbose, user):
             query.append(Capsule.owners.any(User.name == user.name))
         results = Capsule.query.filter(*query)\
             .limit(limit).offset(offset).all()
-    except AttributeError as e:
+    except AttributeError:
         raise BadRequest
 
     if not results:
@@ -100,7 +100,7 @@ def post():
 def get(capsule_id, verbose, user):
     try:
         capsule = Capsule.query.filter_by(id=capsule_id).first()
-    except StatementError as e:
+    except StatementError:
         raise BadRequest(description=f"'{capsule_id}' is not a valid id.'")
 
     if capsule is None:
@@ -122,7 +122,7 @@ def get(capsule_id, verbose, user):
 def delete(capsule_id):
     try:
         capsule = Capsule.query.filter_by(id=capsule_id).first()
-    except StatementError as e:
+    except StatementError:
         raise BadRequest(description=f"'{capsule_id}' is not a valid id.'")
 
     if capsule is None:

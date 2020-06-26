@@ -11,7 +11,7 @@ def search(offset, limit, filters):
     try:
         results = User.query.filter_by(**filters)\
             .limit(limit).offset(offset).all()
-    except InvalidRequestError as e:
+    except InvalidRequestError:
         raise BadRequest
 
     if not results:

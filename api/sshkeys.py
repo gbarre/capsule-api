@@ -61,7 +61,7 @@ def post(user):
 def delete(sshkey_id, user):
     try:
         sshkey = SSHKey.query.get(sshkey_id)
-    except StatementError as e:
+    except StatementError:
         raise BadRequest(description=f"'{sshkey_id}' is not a valid id.'")
 
     if sshkey is None:

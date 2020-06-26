@@ -15,7 +15,7 @@ def search(offset, limit, filters):
         query = build_query_filters(Runtime, filters)
         results = Runtime.query.filter(*query)\
             .limit(limit).offset(offset).all()
-    except AttributeError as e:
+    except AttributeError:
         raise BadRequest
 
     if not results:
@@ -68,7 +68,7 @@ def post(runtime=None):
 def get(runtime_id):
     try:
         runtime = Runtime.query.get(runtime_id)
-    except StatementError as e:
+    except StatementError:
         raise BadRequest(description=f"'{runtime_id}' is not a valid id.'")
 
     if runtime is None:
@@ -89,7 +89,7 @@ def put(runtime_id):
 
     try:
         runtime = Runtime.query.get(runtime_id)
-    except StatementError as e:
+    except StatementError:
         raise BadRequest(description=f"'{runtime_id}' is not a valid id.'")
 
     if runtime is None:
@@ -129,7 +129,7 @@ def put(runtime_id):
 def delete(runtime_id):
     try:
         runtime = Runtime.query.get(runtime_id)
-    except StatementError as e:
+    except StatementError:
         raise BadRequest(description=f"'{runtime_id}' is not a valid id.'")
 
     if runtime is None:

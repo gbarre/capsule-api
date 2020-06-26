@@ -17,7 +17,7 @@ def search(offset, limit, filters, user):
             query.append(AppToken.user == user)
         results = AppToken.query.filter(*query)\
             .filter_by(**filters).limit(limit).offset(offset).all()
-    except InvalidRequestError as e:
+    except InvalidRequestError:
         raise BadRequest
 
     if not results:
@@ -57,7 +57,7 @@ def post(user):
 def delete(apptoken_id, user):
     try:
         apptoken = AppToken.query.get(apptoken_id)
-    except StatementError as e:
+    except StatementError:
         raise BadRequest(description=f"'{apptoken_id}' is not a valid id.'")
 
     if apptoken is None:
