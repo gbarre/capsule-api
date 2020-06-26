@@ -16,7 +16,7 @@ def search(offset, limit, filters):
         results = Runtime.query.filter(*query)\
             .limit(limit).offset(offset).all()
     except AttributeError as e:
-        raise BadRequest(description=str(e))
+        raise BadRequest
 
     if not results:
         raise NotFound(description="No runtimes have been found.")
@@ -69,7 +69,7 @@ def get(runtime_id):
     try:
         runtime = Runtime.query.get(runtime_id)
     except StatementError as e:
-        raise BadRequest(description=str(e))
+        raise BadRequest(description=f"'{runtime_id}' is not a valid id.'")
 
     if runtime is None:
         raise NotFound(description=f"The requested runtime '{runtime_id}' "
@@ -90,7 +90,7 @@ def put(runtime_id):
     try:
         runtime = Runtime.query.get(runtime_id)
     except StatementError as e:
-        raise BadRequest(description=str(e))
+        raise BadRequest(description=f"'{runtime_id}' is not a valid id.'")
 
     if runtime is None:
         return post(runtime=runtime)
@@ -130,7 +130,7 @@ def delete(runtime_id):
     try:
         runtime = Runtime.query.get(runtime_id)
     except StatementError as e:
-        raise BadRequest(description=str(e))
+        raise BadRequest(description=f"'{runtime_id}' is not a valid id.'")
 
     if runtime is None:
         raise NotFound(description=f"The requested runtime '{runtime_id}' "

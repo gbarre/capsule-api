@@ -12,7 +12,7 @@ def search(offset, limit, filters):
         results = User.query.filter_by(**filters)\
             .limit(limit).offset(offset).all()
     except InvalidRequestError as e:
-        raise BadRequest(description=str(e))
+        raise BadRequest
 
     if not results:
         raise NotFound(description="No users have been found.")

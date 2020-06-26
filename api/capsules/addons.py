@@ -14,7 +14,7 @@ def _get_capsule(capsule_id, user):
     try:
         capsule = Capsule.query.filter_by(id=capsule_id).first()
     except StatementError as e:
-        raise BadRequest(description=str(e))
+        raise BadRequest(description=f"'{capsule_id}' is not a valid id.'")
 
     if capsule is None:
         raise NotFound(description=f"The requested capsule '{capsule_id}' "
@@ -94,7 +94,7 @@ def search(capsule_id, user, offset, limit, filters):
         query.append(AddOn.capsule_id == capsule_id)
         results = AddOn.query.filter(*query).limit(limit).offset(offset).all()
     except AttributeError as e:
-        raise BadRequest(description=str(e))
+        raise BadRequest
 
     if not results:
         raise NotFound(description="No addons have been found.")
@@ -112,7 +112,7 @@ def get(capsule_id, addon_id, user):
     try:
         result = AddOn.query.get(addon_id)
     except StatementError as e:
-        raise BadRequest(description=str(e))
+        raise BadRequest(description=f"'{addon_id}' is not a valid id.'")
 
     if not result:
         raise NotFound(description=f"The requested addon '{addon_id}' "
@@ -139,7 +139,7 @@ def put(capsule_id, addon_id, user):
     try:
         addon = AddOn.query.get(addon_id)
     except StatementError as e:
-        raise BadRequest(description=str(e))
+        raise BadRequest(description=f"'{addon_id}' is not a valid id.'")
 
     if not addon:
         raise NotFound(description=f"The requested addon '{addon_id}' "
@@ -164,7 +164,7 @@ def put(capsule_id, addon_id, user):
     try:
         new_runtime = Runtime.query.get(new_runtime_id)
     except StatementError as e:
-        raise BadRequest(description=str(e))
+        raise BadRequest(description=f"'{new_runtime_id}' is not a valid id.'")
     if new_runtime is None:
         raise BadRequest(description=f"The runtime_id '{new_runtime_id}' "
                          "does not exist.")

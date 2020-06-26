@@ -10,7 +10,7 @@ def _get_capsule(capsule_id, user):
     try:
         capsule = Capsule.query.filter_by(id=capsule_id).first()
     except StatementError as e:
-        raise BadRequest(description=str(e))
+        raise BadRequest(description=f"'{capsule_id}' is not a valid id.'")
 
     if capsule is None:
         raise NotFound(description=f"The requested capsule '{capsule_id}' "
@@ -63,7 +63,7 @@ def delete(capsule_id, sshkey_id, user):
     try:
         sshkey = SSHKey.query.get(sshkey_id)
     except StatementError as e:
-        raise BadRequest(description=str(e))
+        raise BadRequest(description=f"'{sshkey_id}' is not a valid id.'")
 
     if sshkey is None:
         raise NotFound(description=f"The requested sshkey '{sshkey_id}' "

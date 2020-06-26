@@ -17,7 +17,7 @@ def _get_capsule(capsule_id, user):
     try:
         capsule = Capsule.query.filter_by(id=capsule_id).first()
     except StatementError as e:
-        raise BadRequest(description=str(e))
+        raise BadRequest(description=f"'{capsule_id}' is not a valid id.'")
 
     if capsule is None:
         raise NotFound(description=f"The requested capsule '{capsule_id}' "
@@ -53,7 +53,7 @@ def post(capsule_id, user, webapp_data=None):
     try:
         runtime = Runtime.query.get(runtime_id)
     except StatementError as e:
-        raise BadRequest(description=str(e))
+        raise BadRequest(description=f"'{runtime_id}' is not a valid id.'")
 
     if runtime is None:
         raise BadRequest(description=f"The runtime_id '{runtime_id}' "
@@ -92,7 +92,7 @@ def post(capsule_id, user, webapp_data=None):
                 raise BadRequest(description="The certificate and the key "
                                              "are not associated")
         except (NotRSACertificate, NotValidPEMFile) as e:
-            raise BadRequest(description=str(e))
+            raise BadRequest
 
     webapp = WebApp(**data, **newArgs)
     capsule.webapp = webapp
@@ -155,7 +155,7 @@ def put(capsule_id, user):
     try:
         new_runtime = Runtime.query.get(new_runtime_id)
     except StatementError as e:
-        raise BadRequest(description=str(e))
+        raise BadRequest(description=f"'{new_runtime_id}' is not a valid id.'")
     if new_runtime is None:
         raise BadRequest(description=f"The runtime_id '{new_runtime_id}' "
                          "does not exist.")
@@ -185,7 +185,7 @@ def put(capsule_id, user):
                 raise BadRequest(description="The certificate and the key "
                                              "are not associated")
         except (NotRSACertificate, NotValidPEMFile) as e:
-            raise BadRequest(description=str(e))
+            raise BadRequest
         webapp.tls_crt = data["tls_crt"]
         webapp.tls_key = data["tls_key"]
     else:

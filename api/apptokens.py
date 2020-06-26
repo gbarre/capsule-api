@@ -18,7 +18,7 @@ def search(offset, limit, filters, user):
         results = AppToken.query.filter(*query)\
             .filter_by(**filters).limit(limit).offset(offset).all()
     except InvalidRequestError as e:
-        raise BadRequest(description=str(e))
+        raise BadRequest
 
     if not results:
         raise NotFound(description="No apptoken have been found.")
@@ -58,7 +58,7 @@ def delete(apptoken_id, user):
     try:
         apptoken = AppToken.query.get(apptoken_id)
     except StatementError as e:
-        raise BadRequest(description=str(e))
+        raise BadRequest(description=f"'{apptoken_id}' is not a valid id.'")
 
     if apptoken is None:
         raise NotFound(description=f"The requested apptoken '{apptoken_id}' "

@@ -24,7 +24,7 @@ def search(offset, limit, filters, verbose, user):
         results = Capsule.query.filter(*query)\
             .limit(limit).offset(offset).all()
     except AttributeError as e:
-        raise BadRequest(description=str(e))
+        raise BadRequest
 
     if not results:
         raise NotFound(description="No capsules have been found.")
@@ -101,7 +101,7 @@ def get(capsule_id, verbose, user):
     try:
         capsule = Capsule.query.filter_by(id=capsule_id).first()
     except StatementError as e:
-        raise BadRequest(description=str(e))
+        raise BadRequest(description=f"'{capsule_id}' is not a valid id.'")
 
     if capsule is None:
         raise NotFound(description=f"The requested capsule '{capsule_id}' "
@@ -123,7 +123,7 @@ def delete(capsule_id):
     try:
         capsule = Capsule.query.filter_by(id=capsule_id).first()
     except StatementError as e:
-        raise BadRequest(description=str(e))
+        raise BadRequest(description=f"'{capsule_id}' is not a valid id.'")
 
     if capsule is None:
         raise NotFound(description=f"The requested capsule '{capsule_id}' "
