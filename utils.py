@@ -5,7 +5,8 @@ from models import User, AppToken
 from flask import current_app, g, request
 from exceptions import KeycloakUserNotFound, KeycloakIdNotFound
 from exceptions import NotRSACertificate, NotValidPEMFile
-from werkzeug.exceptions import BadRequest, Forbidden, Unauthorized
+from werkzeug.exceptions import BadRequest, Forbidden
+from werkzeug.exceptions import ServiceUnavailable, Unauthorized
 from functools import wraps
 from app import oidc
 from inspect import signature
@@ -16,6 +17,7 @@ import struct
 import binascii
 import OpenSSL.crypto
 from Crypto.Util import asn1
+from sqlalchemy.exc import OperationalError
 
 
 OIDC_CONFIG = None
@@ -111,7 +113,10 @@ def require_auth(view_func):
 
 def check_apptoken(token):
     hashed_token = sha512(token.encode('ascii')).hexdigest()
-    apptoken = AppToken.query.filter_by(token=hashed_token).first()
+    try:
+        apptoken = AppToken.query.filter_by(token=hashed_token).first()
+    except OperationalError:
+        raise ServiceUnavailable("The database is unreachable.")
     if apptoken is None:
         raise Unauthorized(description="Token is not valid.")
     else:
