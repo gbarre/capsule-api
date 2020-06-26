@@ -6,7 +6,7 @@ from flask import current_app, g, request
 from exceptions import KeycloakUserNotFound, KeycloakIdNotFound
 from exceptions import NotRSACertificate, NotValidPEMFile
 from werkzeug.exceptions import BadRequest, Forbidden
-from werkzeug.exceptions import ServiceUnavailable, Unauthorized
+from werkzeug.exceptions import ServiceUnavailable
 from functools import wraps
 from app import oidc
 from inspect import signature
@@ -87,26 +87,19 @@ def oidc_require_role(min_role):
 
 def require_auth(view_func):
     def wrapper(*args, **kwargs):
-        if 'Authorization' in request.headers and \
-                request.headers['Authorization'].startswith('Bearer '):
-            token = request.headers['Authorization']\
-                .split(None, 1)[1].strip()
+        try:
+            token = request.headers['Authorization'].split(None, 1)[1].strip()
             (validity, username) = check_apptoken(token)
-            if validity:
-                g.capsule_app_token = username
-                return view_func(*args, **kwargs)
-            else:  # Fallback on Keycloak auth
-                return oidc.accept_token(
-                    require_token=True,
-                    render_errors=False
-                )(view_func)(*args, **kwargs)
-        else:
-            response_body = {
-                'error': 'invalid_token',
-                'error_description': 'Token required but invalid',
-            }
-            return response_body, 401,\
-                {'WWW-Authorization': 'Bearer'}
+        except KeyError:
+            validity = False
+        if validity:
+            g.capsule_app_token = username
+            return view_func(*args, **kwargs)
+        else:  # Fallback on Keycloak auth
+            return oidc.accept_token(
+                require_token=True,
+                render_errors=False
+            )(view_func)(*args, **kwargs)
 
     return wrapper
 
@@ -118,12 +111,11 @@ def check_apptoken(token):
     except OperationalError:
         raise ServiceUnavailable("The database is unreachable.")
     if apptoken is not None:
-    #     raise Unauthorized(description="Token is not valid.")
-    # else:
         username = apptoken.user.name
         return (True, username)
     else:
         return (False, None)
+
 
 def check_user_role(min_role=RoleEnum.admin):
     if hasattr(g, 'capsule_app_token'):  # Get user name from application token
