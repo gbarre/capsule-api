@@ -87,9 +87,9 @@ def oidc_require_role(min_role):
 
 def require_auth(view_func):
     def wrapper(*args, **kwargs):
-        if 'X-Capsule-Application' in request.headers and \
-                request.headers['X-Capsule-Application'].startswith('Bearer '):
-            token = request.headers['X-Capsule-Application']\
+        if 'Authorization' in request.headers and \
+                request.headers['Authorization'].startswith('Bearer '):
+            token = request.headers['Authorization']\
                 .split(None, 1)[1].strip()
             (validity, username) = check_apptoken(token)
             if validity:
@@ -101,7 +101,7 @@ def require_auth(view_func):
                     'error_description': 'Token required but invalid',
                 }
                 return response_body, 401,\
-                    {'WWW-X-Capsule-Application': 'Bearer'}
+                    {'WWW-Authorization': 'Bearer'}
         else:  # Fallback on Keycloak auth
             return oidc.accept_token(
                 require_token=True,
