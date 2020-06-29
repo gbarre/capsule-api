@@ -7,28 +7,55 @@ import base64
 from Crypto.Signature.PKCS1_v1_5 import PKCS115_SigScheme
 from Crypto.PublicKey import RSA
 from models import webapp_nats_schema, capsule_verbose_schema, addon_schema
+import io
+from pynats.exceptions import NATSReadSocketError
 
 
 class NATSNoEchoClient(NATSClient):
+
+    _CRLF_ = b"\r\n"
+
     # HACK: We need to mask this method in order to disable the echo
     def _send_connect_command(self):
         options = {
-            "name": self._conn_options["name"],
-            "lang": self._conn_options["lang"],
-            "protocol": self._conn_options["protocol"],
-            "version": self._conn_options["version"],
-            "verbose": self._conn_options["verbose"],
-            "pedantic": self._conn_options["pedantic"],
+            "name": self._conn_options.name,
+            "lang": self._conn_options.lang,
+            "protocol": self._conn_options.protocol,
+            "version": self._conn_options.version,
+            "verbose": self._conn_options.verbose,
+            "pedantic": self._conn_options.pedantic,
             "echo": False,  # added by the method masking
         }
 
-        if self._conn_options["username"] and self._conn_options["password"]:
-            options["user"] = self._conn_options["username"]
-            options["pass"] = self._conn_options["password"]
-        elif self._conn_options["username"]:
-            options["auth_token"] = self._conn_options["username"]
+        if self._conn_options.username and self._conn_options.password:
+            options["user"] = self._conn_options.username
+            options["pass"] = self._conn_options.password
+        elif self._conn_options.username:
+            options["auth_token"] = self._conn_options.username
 
         self._send(b"CONNECT", json.dumps(options))
+
+    def _readline(self, *, size: int = None) -> bytes:
+        read = io.BytesIO()
+
+        while True:
+            # if self.IS_DECONNECTED:
+            #     self.connect()
+            line = self._socket_file.readline()
+            if not line:
+                raise NATSReadSocketError()
+                # self.close()
+                # self.IS_DECONNECTED = True
+
+            read.write(line)
+
+            if size is not None:
+                if read.tell() == size + len(self._CRLF_):
+                    break
+            elif line.endswith(self._CRLF_):  # pragma: no branch
+                break
+
+        return read.getvalue()
 
 
 class NATS(object):
@@ -71,7 +98,11 @@ class NATS(object):
 
     def publish(self, subject, signed_payload):
         self.logger.debug(f"payload {signed_payload} published on {subject}.")
-        self.client.publish(subject, payload=signed_payload)
+        try:
+            self.client.publish(subject, payload=signed_payload)
+        except BrokenPipeError:
+            self.logger.error(f"payload {signed_payload} has not been "
+                              f"published on {subject}.")
 
     @staticmethod
     def generate_response(to, state, data):

@@ -1,6 +1,7 @@
 import os
 import connexion
 import werkzeug
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 
 # Create the SQLAlchemy db instance.
@@ -23,7 +24,6 @@ from nats import NATS
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-
 # Wrapper of the class XOpenIDConnect to load the legacy config file
 # client_secrets.json directly from the YAML configuration file.
 class XOpenIDConnect(OpenIDConnect):
@@ -44,6 +44,8 @@ oidc = XOpenIDConnect()
 # Initialize NATS
 nats = NATS()
 
+# Initialize CORS
+cors = CORS()
 
 def create_app(config):
     # Create the connexion application instance
@@ -73,4 +75,5 @@ def create_app(config):
     migrate.init_app(app, db)
     ma.init_app(app)
     oidc.init_app(app)
+    cors.init_app(app)
     return connex_app

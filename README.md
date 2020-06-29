@@ -44,6 +44,12 @@ $ python -m flask db upgrade
 
 ```sh
 pytest -v
+
+# Or:
+coverage run -m pytest -v
+# Then:
+coverage report -m
+coverage html
 ```
 
 ## How to create a local and complete dev environment
