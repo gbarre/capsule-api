@@ -1,5 +1,6 @@
 import pytest
 import webtest
+from unittest.mock import MagicMock, patch
 from app import create_app
 from app import db as _db
 from config import YamlConfig
@@ -9,7 +10,8 @@ from tests.foodata import DBFooData
 @pytest.fixture(scope='function')
 def app():
     yamlconfig = YamlConfig('./config-test.yml')
-    connex_app = create_app(yamlconfig)
+    with patch("app.create_nats_listener", return_value=MagicMock()):
+        connex_app = create_app(yamlconfig)
     return connex_app.app
 
 
