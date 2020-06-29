@@ -12,7 +12,7 @@ from pynats.exceptions import NATSReadSocketError
 
 
 class NATSNoEchoClient(NATSClient):
-
+    SHUT_RDWR = 2
     _CRLF_ = b"\r\n"
 
     # HACK: We need to mask this method in order to disable the echo
@@ -34,6 +34,11 @@ class NATSNoEchoClient(NATSClient):
             options["auth_token"] = self._conn_options.username
 
         self._send(b"CONNECT", json.dumps(options))
+
+    def close(self) -> None:
+        self._socket.shutdown(self.SHUT_RDWR)
+        self._socket_file.close()
+        self._socket.close()
 
     def _readline(self, *, size: int = None) -> bytes:
         read = io.BytesIO()
@@ -70,9 +75,9 @@ class NATS(object):
         if app is not None:
             self.init_app(app)
 
-    def __del__(self):
-        if self.client is not None:
-            self.client.close()
+    # def __del__(self):
+    #     if self.client is not None:
+    #         self.client.close()
 
     def init_app(self, app):
         self.client = NATSNoEchoClient(

@@ -35,7 +35,7 @@ class NATSListener(threading.Thread):
     @staticmethod
     def listen(msg):
 
-        # nats.logger.info('msg received')
+        nats.logger.info('msg received')
 
         msg = NATSDriverMsg(msg, __class__.config)
 
@@ -148,6 +148,7 @@ class NATSListener(threading.Thread):
         nats.logger.info('NATS listener waiting for incoming messages.')
         # try:
         nats.client.wait()
+        nats.client.close()
         #     self._IS_DISCONNECTED = False
         # except NATSReadSocketError:
         #     self._IS_DISCONNECTED = True

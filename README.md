@@ -52,6 +52,12 @@ coverage report -m
 coverage html
 ```
 
+## Run production server
+
+```sh
+gunicorn --access-logfile - --bind 0.0.0.0:5000 -w 4 --preload wsgi:app
+```
+
 ## How to create a local and complete dev environment
 
 TODO...

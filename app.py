@@ -47,6 +47,7 @@ nats = NATS()
 # Initialize CORS
 cors = CORS()
 
+from nats.listener import create_nats_listener
 def create_app(config):
     # Create the connexion application instance
     connex_app = connexion.App(
@@ -66,7 +67,6 @@ def create_app(config):
     )
 
     # Get the underlying Flask app instance
-
     app = connex_app.app
     app.config.from_object(config)
 
@@ -76,4 +76,6 @@ def create_app(config):
     ma.init_app(app)
     oidc.init_app(app)
     cors.init_app(app)
+    nats_listener = create_nats_listener(app, config)
+    nats_listener.start()
     return connex_app
