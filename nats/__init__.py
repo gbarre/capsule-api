@@ -1,18 +1,17 @@
 import json
 import logging
-from pynats import NATSClient
+from pynats import NATSClient, NATSInvalidSchemeError
 import datetime
 from Crypto.Hash import SHA256
 import base64
 from Crypto.Signature.PKCS1_v1_5 import PKCS115_SigScheme
 from Crypto.PublicKey import RSA
 from models import webapp_nats_schema, capsule_verbose_schema, addon_schema
-import io
-from pynats.exceptions import NATSReadSocketError
+import socket
+import re
 
 
 class NATSNoEchoClient(NATSClient):
-    SHUT_RDWR = 2
     _CRLF_ = b"\r\n"
 
     # HACK: We need to mask this method in order to disable the echo
@@ -35,32 +34,35 @@ class NATSNoEchoClient(NATSClient):
 
         self._send(b"CONNECT", json.dumps(options))
 
-    def close(self) -> None:
-        self._socket.shutdown(self.SHUT_RDWR)
-        self._socket_file.close()
-        self._socket.close()
+    def connect(self) -> None:
+        sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
 
-    def _readline(self, *, size: int = None) -> bytes:
-        read = io.BytesIO()
+        sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        if self._socket_options["keepalive"]:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
 
-        while True:
-            # if self.IS_DECONNECTED:
-            #     self.connect()
-            line = self._socket_file.readline()
-            if not line:
-                raise NATSReadSocketError()
-                # self.close()
-                # self.IS_DECONNECTED = True
+        self._socket = sock
 
-            read.write(line)
+        sock.settimeout(self._socket_options["timeout"])
+        sock.connect((self._conn_options.hostname, self._conn_options.port))
 
-            if size is not None:
-                if read.tell() == size + len(self._CRLF_):
-                    break
-            elif line.endswith(self._CRLF_):  # pragma: no branch
-                break
+        self._socket_file = sock.makefile("rb")
 
-        return read.getvalue()
+        scheme = self._conn_options.scheme
+
+        if scheme == "nats":
+            self._try_connection(tls_required=False)
+        elif scheme == "tls":
+            self._try_connection(tls_required=True)
+            self._connect_tls()
+        else:
+            raise NATSInvalidSchemeError("got unsupported URI "
+                                         f"scheme: {scheme}")
+
+        self._send_connect_command()
+        if self._conn_options.verbose:
+            OK_RE = re.compile(rb"^\+OK\s*\r\n")
+            self._recv(OK_RE)
 
 
 class NATS(object):
@@ -105,7 +107,7 @@ class NATS(object):
         self.logger.debug(f"payload {signed_payload} published on {subject}.")
         try:
             self.client.publish(subject, payload=signed_payload)
-        except BrokenPipeError:
+        except (BrokenPipeError, OSError):
             self.logger.error(f"payload {signed_payload} has not been "
                               f"published on {subject}.")
 

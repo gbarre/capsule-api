@@ -11,13 +11,10 @@ from Crypto.Signature.PKCS1_v1_5 import PKCS115_SigScheme
 from Crypto.Hash import SHA256
 import base64
 from pynats.exceptions import NATSReadSocketError
-from time import sleep
-import socket
+import time
 
 
 class NATSListener(threading.Thread):
-
-    _IS_DISCONNECTED = False
 
     def __init__(self, config):
         super().__init__(daemon=True)
@@ -146,51 +143,24 @@ class NATSListener(threading.Thread):
 
     def run(self):
         nats.logger.info('NATS listener waiting for incoming messages.')
-        # try:
-        nats.client.wait()
+        __reconnect = False
+        while True:
+            try:
+                if __reconnect is True:
+                    nats.client.connect()
+                    nats.subscribe(nats.SUBJECT, callback=self.listen)
+                    nats.logger.info("NATS reconnected.")
+                    __reconnect = False
+                nats.client.wait()
+            except (NATSReadSocketError, ConnectionRefusedError):
+                nats.client._socket_file.close()
+                nats.client._socket.close()
+                __reconnect = True
+                nats.logger.error("NATS server is unreachable, "
+                                  "try to reconnect in 5 seconds...")
+                time.sleep(5)
+                continue
         nats.client.close()
-        #     self._IS_DISCONNECTED = False
-        # except NATSReadSocketError:
-        #     self._IS_DISCONNECTED = True
-        #     print("lost socket")
-        #     sleep(5)
-        #     # self.try_reconnect()
-
-    def try_reconnect(self):
-        if self.is_socket_not_closed(nats.client._socket):
-            print("close socket")
-            nats.client._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            print('close client')
-            nats.client.close()
-
-        try:
-            print("connect client")
-            nats.client.connect()
-            self._IS_DISCONNECTED = False
-        except NATSReadSocketError:
-            print("NATSReadSocketError")
-            sleep(5)
-            self.try_reconnect()
-        except ConnectionRefusedError:
-            print("database unreachable")
-            sleep(5)
-            self.try_reconnect()
-
-    def is_socket_not_closed(self, sock: socket.socket) -> bool:
-        try:
-            # this will try to read bytes without blocking and also without removing them from buffer (peek only)
-            data = sock.recv(16, socket.MSG_DONTWAIT | socket.MSG_PEEK)
-            if len(data) == 0:
-                return True
-        except BlockingIOError:
-            return False  # socket is open and reading from it would block
-        except ConnectionResetError:
-            return True  # socket was closed for some other reason
-        except Exception as e:
-            print("unexpected exception when checking if a socket is closed")
-            print(str(e))
-            return False
-        return False
 
 
 class NATSDriverMsg:

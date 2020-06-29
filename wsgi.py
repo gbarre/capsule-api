@@ -16,11 +16,8 @@ yamlconfig = YamlConfig(config_file)
 
 connex_app = create_app(yamlconfig)
 app = connex_app.app
-#nats_listener = create_nats_listener(app, yamlconfig)
 
 if __name__ == "__main__":
-    print('toto wsgi.py')
-    #nats_listener.start()
     # NOTE: reloader should be deactivated for mitigating duplicated
     #       NATS client connections
     connex_app.run(use_reloader=False)

@@ -177,6 +177,7 @@ python3 -m venv venv
 . venv/bin/activate
 pip install --upgrade pip
 pip install --upgrade setuptools
+pip install tox
 pip install -r requirements.txt
 pip install -r test-requirements.txt
 

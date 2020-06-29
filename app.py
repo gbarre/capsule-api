@@ -24,6 +24,7 @@ from nats import NATS
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
+
 # Wrapper of the class XOpenIDConnect to load the legacy config file
 # client_secrets.json directly from the YAML configuration file.
 class XOpenIDConnect(OpenIDConnect):
@@ -48,6 +49,8 @@ nats = NATS()
 cors = CORS()
 
 from nats.listener import create_nats_listener
+
+
 def create_app(config):
     # Create the connexion application instance
     connex_app = connexion.App(
