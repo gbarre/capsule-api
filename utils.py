@@ -4,9 +4,13 @@ from models import RoleEnum
 from models import User, AppToken
 from flask import current_app, g, request
 from exceptions import KeycloakUserNotFound, KeycloakIdNotFound
-from exceptions import NotRSACertificate, NotValidPEMFile
 from werkzeug.exceptions import BadRequest, Forbidden
 from werkzeug.exceptions import ServiceUnavailable
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.exceptions import InvalidSignature
 from functools import wraps
 from app import oidc, db
 from inspect import signature
@@ -15,8 +19,6 @@ from hashlib import sha512
 import base64
 import struct
 import binascii
-import OpenSSL.crypto
-from Crypto.Util import asn1
 from sqlalchemy.exc import OperationalError
 
 
@@ -253,39 +255,25 @@ def valid_sshkey(public_key):
 
 
 def is_keycert_associated(str_key, str_cert):
+    issuer_public_key = load_pem_private_key(
+        str_key,
+        password=None,
+        backend=default_backend(),
+    ).public_key()
 
-    c = OpenSSL.crypto
+    cert_to_check = x509.load_pem_x509_certificate(
+        str_cert,
+        default_backend(),
+    )
 
     try:
-        cert = c.load_certificate(c.FILETYPE_PEM, str_cert)
-    except Exception:
-        raise NotValidPEMFile('The certificate is not a valid PEM file')
-    try:
-        priv = c.load_privatekey(c.FILETYPE_PEM, str_key)
-    except Exception:
-        raise NotValidPEMFile('The private key is not a valid PEM file')
-
-    pub = cert.get_pubkey()
-
-    # Only works for RSA (I think)
-    if pub.type() != c.TYPE_RSA or priv.type() != c.TYPE_RSA:
-        raise NotRSACertificate('Can only handle RSA keys and certificates')
-
-    # This seems to work with public as well
-    pub_asn1 = c.dump_privatekey(c.FILETYPE_ASN1, pub)
-    priv_asn1 = c.dump_privatekey(c.FILETYPE_ASN1, priv)
-
-    # Decode DER
-    pub_der = asn1.DerSequence()
-    pub_der.decode(pub_asn1)
-    priv_der = asn1.DerSequence()
-    priv_der.decode(priv_asn1)
-
-    # Get the modulus
-    pub_modulus = pub_der[1]
-    priv_modulus = priv_der[1]
-
-    if pub_modulus == priv_modulus:
+        issuer_public_key.verify(
+            cert_to_check.signature,
+            cert_to_check.tbs_certificate_bytes,
+            # Depends on the algorithm used to create the certificate
+            padding.PKCS1v15(),
+            cert_to_check.signature_hash_algorithm,
+        )
         return True
-    else:
+    except InvalidSignature:
         return False

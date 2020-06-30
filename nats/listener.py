@@ -1,4 +1,6 @@
+import time
 import json
+import base64
 import threading
 from models import WebApp
 from models import AddOn
@@ -6,12 +8,12 @@ from sqlalchemy import orm, create_engine
 from sqlalchemy.exc import OperationalError, StatementError
 from app import nats
 from json.decoder import JSONDecodeError
-from Crypto.PublicKey import RSA
-from Crypto.Signature import pkcs1_15
-from Crypto.Hash import SHA256
-import base64
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.exceptions import InvalidSignature
 from pynats.exceptions import NATSReadSocketError
-import time
 
 
 class NATSListener(threading.Thread):
@@ -217,17 +219,24 @@ class NATSDriverMsg:
                 return
 
         driver = self.json['from']
-        public_key = self.config.get_pubkey_from_driver(driver)
-
-        pubkey = RSA.importKey(public_key)
-        verifier = pkcs1_15.new(pubkey)
+        public_key = serialization.load_pem_public_key(
+            self.config.get_pubkey_from_driver(driver).encode('utf8'),
+            backend=default_backend(),
+        )
 
         signature = base64.b64decode(self.signature)
-        hashed_json = SHA256.new(self.json_bytes)
-
         try:
-            verifier.verify(hashed_json, signature)
-        except (ValueError, TypeError):
+            public_key.verify(
+                signature,
+                self.json_bytes,
+                padding.PKCS1v15(),
+                # padding.PSS(
+                #     mgf=padding.MGF1(hashes.SHA256()),
+                #     salt_length=padding.PSS.MAX_LENGTH,
+                # ),
+                hashes.SHA256(),
+            )
+        except InvalidSignature:
             self.is_msg_valid = False
             self.error = 'Invalid signature'
             return

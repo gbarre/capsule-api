@@ -1,14 +1,15 @@
+import re
 import json
 import logging
-from pynats import NATSClient, NATSInvalidSchemeError
 import datetime
-from Crypto.Hash import SHA256
 import base64
-from Crypto.Signature import pkcs1_15
-from Crypto.PublicKey import RSA
-from models import webapp_nats_schema, capsule_verbose_schema, addon_schema
 import socket
-import re
+from pynats import NATSClient, NATSInvalidSchemeError
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+from models import webapp_nats_schema, capsule_verbose_schema, addon_schema
 
 
 class NATSNoEchoClient(NATSClient):
@@ -120,13 +121,26 @@ class NATS(object):
             "data": data,
             "time": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
-
-        private_key = __class__._PRIVATE_KEY
-
         json_bytes = bytes(json.dumps(res), 'utf-8')
-        json_hash = SHA256.new(json_bytes)
-        priv_key = RSA.importKey(private_key)
-        signature = pkcs1_15.new(priv_key).sign(json_hash)
+
+        private_key = serialization.load_pem_private_key(
+            __class__._PRIVATE_KEY.encode('utf8'),
+            password=None,
+            backend=default_backend(),
+        )
+
+        # FIXME: PKCS1v15 is deprecated
+        #        PSS is recommended for new protocols signature
+        # https://cryptography.io/en/latest/hazmat/primitives/asymmetric/rsa/?highlight=sign#signing
+        signature = private_key.sign(
+            json_bytes,
+            padding.PKCS1v15(),
+            # padding.PSS(
+            #     mgf=padding.MGF1(hashes.SHA256()),
+            #     salt_length=padding.PSS.MAX_LENGTH
+            # ),
+            hashes.SHA256(),
+        )
         encoded_signature = base64.b64encode(signature)
         return encoded_signature + __class__._delimiter + json_bytes
 

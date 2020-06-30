@@ -1,6 +1,8 @@
-from Crypto.PublicKey import RSA
-from Crypto.Signature import pkcs1_15
-from Crypto.Hash import SHA256
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+
 
 import os
 import base64
@@ -67,10 +69,22 @@ b4h8/l1WOckrAcgdLn1EbYJzEeqglH1uy4DKYYR3ACde0KpAZHD9
 -----END RSA PRIVATE KEY-----"""
 
 json_bytes = bytes(json.dumps(res), 'utf-8')
-json_hash = SHA256.new(json_bytes)
-priv_key = RSA.importKey(private_key)
-signer = pkcs1_15.new(priv_key)
-signature = signer.sign(json_hash)
+# json_hash = SHA256.new(json_bytes)
+# priv_key = RSA.importKey(private_key)
+# signer = pkcs1_15.new(priv_key)
+# signature = signer.sign(json_hash)
+
+priv_key = serialization.load_pem_private_key(
+    private_key.encode('utf8'),
+    password=None,
+    backend=default_backend(),
+)
+signature = priv_key.sign(
+    json_bytes,
+    padding.PKCS1v15(),
+    hashes.SHA256(),
+)
+
 encoded_signature = base64.b64encode(signature)
 response = encoded_signature + b'^' + json_bytes
 
