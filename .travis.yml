@@ -10,7 +10,8 @@ before_install:
   - pip install -r requirements.txt
   - pip install -r test-requirements.txt
 
-# script:
+script:
+  - echo "hello"
 #   - pytest -v
 
 after_success:
