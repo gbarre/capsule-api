@@ -1,18 +1,18 @@
-language: python
-python:
-  - "3.6"
+dist: xenial
+# python:
+#   - "3.6"
 
-services:
-  - 'docker'
+# services:
+#   - 'docker'
 
 before_install:
   - pip install -r requirements.txt
   - pip install -r test-requirements.txt
 
-script:
-  - pytest -v
+# script:
+#   - pytest -v
 
 after_success:
-  - docker login -u $DOCKER_USER -p $DOCKER_TOKEN
-  - docker build -t $DOCKER_USER/capsule-api .
-  - docker push $DOCKER_USER/capsule-api
+  - echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USER" --password-stdin
+  - docker build -t ${DOCKER_USER}/capsule-api .
+  - docker push ${DOCKER_USER}/capsule-api
