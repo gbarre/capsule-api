@@ -19,6 +19,8 @@ class YamlConfig:
             self.DEBUG = api['debug']
             self.SECRET_KEY = api['secret_key']
             self.ENV = api['env']
+            self.ADMINS = api['admins']
+            self.SUPERADMINS = api['superadmins']
 
             self.NATS_URI = api['nats']['uri']
             nats_log_level = api['nats']['log_level']

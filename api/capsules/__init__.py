@@ -36,9 +36,6 @@ def search(offset, limit, filters, verbose, user):
 
 
 # POST /capsules
-# TIPS : use the 2 lines above to create user in DB at first launch.
-# from app import oidc
-# @oidc.accept_token(require_token=True, render_errors=False)
 @oidc_require_role(min_role=RoleEnum.admin)
 def post():
     capsule_data = request.get_json()

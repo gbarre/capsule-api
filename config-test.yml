@@ -7,6 +7,10 @@ api:
     echo: false
     track_modifications: false
   secret_key: 'somesecretormaybenot'
+  admins:
+    - admin
+  superadmins:
+    - superadmin
   oidc:
     client_secrets:
       web:

@@ -8,7 +8,7 @@ from exceptions import NotRSACertificate, NotValidPEMFile
 from werkzeug.exceptions import BadRequest, Forbidden
 from werkzeug.exceptions import ServiceUnavailable
 from functools import wraps
-from app import oidc
+from app import oidc, db
 from inspect import signature
 from sqlalchemy.util import symbol
 from hashlib import sha512
@@ -130,7 +130,17 @@ def check_user_role(min_role=RoleEnum.admin):
     # Look for user role
     user = User.query.filter_by(name=name).one_or_none()
 
-    if (user is None) or (user.role < min_role):
+    if user is None:
+        if name in current_app.config['ADMINS']:
+            user = User(name=name, role=RoleEnum.admin)
+        elif name in current_app.config['SUPERADMINS']:
+            user = User(name=name, role=RoleEnum.superadmin)
+        else:
+            raise Forbidden
+        db.session.add(user)
+        db.session.commit()
+
+    if user.role < min_role:
         raise Forbidden
 
     return user
