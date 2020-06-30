@@ -6,7 +6,7 @@ dist: bionic
 before_install:
   - sudo apt-get -y update
   - sudo apt-get -y install python3.6
-  - pip3 install --upgrade tox
+  - python3 -m pip install --upgrade tox
 
 script:
   - echo "hello ${DOCKER_USER}"
