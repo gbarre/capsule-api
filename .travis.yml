@@ -1,17 +1,18 @@
 dist: bionic
 
-# language: python
-# python:
-#   - 3.6
 before_install:
   - sudo apt-get -y update
   - sudo apt-get -y install python3.6 python3-pip
   - python3 -m pip install --upgrade tox
 
-script:
-  - echo "hello ${DOCKER_USER}"
-  - tox -e lint
-#   - pytest -v
-  - echo "${DOCKER_TOKEN}" | docker login --username "${DOCKER_USER}" --password-stdin
-  - docker build -t ${DOCKER_USER}/capsule-api .
-  - docker push ${DOCKER_USER}/capsule-api
+jobs:
+  include:
+    - stage: lint
+      script:
+        - tox -e lint
+    - stage: audit
+      script:
+        - tox -e secaudit
+    - stage: cover
+      script:
+        - tox -e cover
