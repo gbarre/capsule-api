@@ -39,9 +39,8 @@ USER capsule-api:capsule-api
 
 EXPOSE 5000
 
-#VOLUME ["/data"]
-
 ENV PATH="/opt/venv/bin:$PATH"
 ENV WORKERS="4"
+# ENV DB_MIGRATE="upgrade" # or "downgrade"
 
 ENTRYPOINT ["/capsule-api/entrypoint.sh"]
