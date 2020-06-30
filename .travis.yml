@@ -11,10 +11,10 @@ before_install:
   - pip install -r test-requirements.txt
 
 script:
-  - echo "hello $DOCKER_TOKEN"
+  - echo "hello ${{ secrets.DOCKER_USER }}"
 #   - pytest -v
 
 after_success:
-  - echo "$DOCKER_TOKEN" | docker login --username "$DOCKER_USER" --password-stdin
-  - docker build -t $DOCKER_USER/capsule-api .
-  - docker push $DOCKER_USER/capsule-api
+  - echo "${{ secrets.DOCKER_TOKEN }}" | docker login --username "${{ secrets.DOCKER_USER }}" --password-stdin
+  - docker build -t ${{ secrets.DOCKER_USER }}/capsule-api .
+  - docker push ${{ secrets.DOCKER_USER }}/capsule-api
