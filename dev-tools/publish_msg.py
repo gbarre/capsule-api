@@ -1,5 +1,5 @@
 from Crypto.PublicKey import RSA
-from Crypto.Signature.PKCS1_v1_5 import PKCS115_SigScheme
+from Crypto.Signature import pkcs1_15
 from Crypto.Hash import SHA256
 
 import os
@@ -69,7 +69,7 @@ b4h8/l1WOckrAcgdLn1EbYJzEeqglH1uy4DKYYR3ACde0KpAZHD9
 json_bytes = bytes(json.dumps(res), 'utf-8')
 json_hash = SHA256.new(json_bytes)
 priv_key = RSA.importKey(private_key)
-signer = PKCS115_SigScheme(priv_key)
+signer = pkcs1_15.new(priv_key)
 signature = signer.sign(json_hash)
 encoded_signature = base64.b64encode(signature)
 response = encoded_signature + b'^' + json_bytes

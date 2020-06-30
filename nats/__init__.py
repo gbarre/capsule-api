@@ -4,7 +4,7 @@ from pynats import NATSClient, NATSInvalidSchemeError
 import datetime
 from Crypto.Hash import SHA256
 import base64
-from Crypto.Signature.PKCS1_v1_5 import PKCS115_SigScheme
+from Crypto.Signature import pkcs1_15
 from Crypto.PublicKey import RSA
 from models import webapp_nats_schema, capsule_verbose_schema, addon_schema
 import socket
@@ -126,8 +126,7 @@ class NATS(object):
         json_bytes = bytes(json.dumps(res), 'utf-8')
         json_hash = SHA256.new(json_bytes)
         priv_key = RSA.importKey(private_key)
-        signer = PKCS115_SigScheme(priv_key)
-        signature = signer.sign(json_hash)
+        signature = pkcs1_15.new(priv_key).sign(json_hash)
         encoded_signature = base64.b64encode(signature)
         return encoded_signature + __class__._delimiter + json_bytes
 

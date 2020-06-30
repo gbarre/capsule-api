@@ -7,7 +7,7 @@ from sqlalchemy.exc import OperationalError, StatementError
 from app import nats
 from json.decoder import JSONDecodeError
 from Crypto.PublicKey import RSA
-from Crypto.Signature.PKCS1_v1_5 import PKCS115_SigScheme
+from Crypto.Signature import pkcs1_15
 from Crypto.Hash import SHA256
 import base64
 from pynats.exceptions import NATSReadSocketError
@@ -220,12 +220,14 @@ class NATSDriverMsg:
         public_key = self.config.get_pubkey_from_driver(driver)
 
         pubkey = RSA.importKey(public_key)
-        verifier = PKCS115_SigScheme(pubkey)
+        verifier = pkcs1_15.new(pubkey)
 
         signature = base64.b64decode(self.signature)
         hashed_json = SHA256.new(self.json_bytes)
 
-        if not verifier.verify(hashed_json, signature):
+        try:
+            verifier.verify(hashed_json, signature)
+        except (ValueError, TypeError):
             self.is_msg_valid = False
             self.error = 'Invalid signature'
             return
