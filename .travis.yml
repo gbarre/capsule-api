@@ -1,14 +1,13 @@
 dist: xenial
-language: python
-python:
-  - "3.6"
 
-# before_install:
-#   - pip install -r requirements.txt
-#   - pip install -r test-requirements.txt
+before_install:
+  - sudo apt-get -y update
+  - sudo apt-get -y install python3.6
+  - pip3 install tox
 
 script:
   - echo "hello ${DOCKER_USER}"
+  - tox -e lint
 #   - pytest -v
   - echo "${DOCKER_TOKEN}" | docker login --username "${DOCKER_USER}" --password-stdin
   - docker build -t ${DOCKER_USER}/capsule-api .
