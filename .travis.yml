@@ -1,12 +1,12 @@
 dist: bionic
 
-language: python
-python:
-  - 3.6
+# language: python
+# python:
+#   - 3.6
 before_install:
   - sudo apt-get -y update
   - sudo apt-get -y install python3.6
-  - pip3 install tox
+  - pip3 install --upgrade tox
 
 script:
   - echo "hello ${DOCKER_USER}"
