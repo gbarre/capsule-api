@@ -6,6 +6,7 @@ from models import RoleEnum
 from models import AvailableOption
 from utils import oidc_require_role, build_query_filters
 from sqlalchemy.exc import StatementError
+from marshmallow.exceptions import ValidationError
 
 
 # GET /runtimes
@@ -30,7 +31,10 @@ def post(runtime=None):
     # runtime could come from PUT
     if runtime is None:
         runtime_data = request.get_json()
-        data = runtime_schema.load(runtime_data).data
+        try:
+            data = runtime_schema.load(runtime_data).data
+        except ValidationError:
+            raise BadRequest("Please, refer to the API specification.")
 
         if 'uri_template' in data and data['uri_template'] is not None:
             variables = data['uri_template']['variables']

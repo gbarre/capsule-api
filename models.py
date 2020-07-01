@@ -369,9 +369,12 @@ class Option(db.Model):
     def create(opts, runtime_id, user_role):
         opts_array = []
         for opt in opts:
-            opt_tag = opt['tag']
-            opt_name = opt['field_name']
-            opt_value = opt['value']
+            try:
+                opt_tag = opt['tag']
+                opt_name = opt['field_name']
+                opt_value = opt['value']
+            except KeyError as e:
+                raise BadRequest(description=f"{str(e)} is required for opts")
 
             available_opt = AvailableOption.query\
                 .filter_by(
@@ -571,7 +574,9 @@ class RuntimeSchema(ma.SQLAlchemyAutoSchema):
         if 'addons' in data:
             data['addons'] = list(map(str, data['addons']))
 
-        if data['uri_template'] is not None:
+        if (data['uri_template'] is not None) \
+                and (isinstance(data['uri_template'], str)) \
+                and (len(data['uri_template']) > 0):
             # string =====================> json / object
             data['uri_template'] = json.loads(data['uri_template'])
 
