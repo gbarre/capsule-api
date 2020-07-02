@@ -19,7 +19,7 @@ tox:py36:
   image: ubuntu:latest
   script:
     - DEBIAN_FRONTEND=noninteractive apt-get update -qy
-    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python-pip
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python3-pip
     - python -m pip install --upgrade tox
     - tox -e py36
 
@@ -28,7 +28,7 @@ tox:py37:
   image: ubuntu:latest
   script:
     - DEBIAN_FRONTEND=noninteractive apt-get update -qy
-    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.7 python-pip
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.7 python3-pip
     - python -m pip install --upgrade tox
     - tox -e py37
 
@@ -37,7 +37,7 @@ tox:py38:
   image: ubuntu:latest
   script:
     - DEBIAN_FRONTEND=noninteractive apt-get update -qy
-    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.8 python-pip
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.8 python3-pip
     - python -m pip install --upgrade tox
     - tox -e py38
 
