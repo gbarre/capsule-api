@@ -98,7 +98,7 @@ def get(capsule_id, verbose, user):
     try:
         capsule = Capsule.query.filter_by(id=capsule_id).first()
     except StatementError:
-        raise BadRequest(description=f"'{capsule_id}' is not a valid id.'")
+        raise BadRequest(description=f"'{capsule_id}' is not a valid id.")
 
     if capsule is None:
         raise NotFound(description=f"The requested capsule '{capsule_id}' "
@@ -129,8 +129,6 @@ def delete(capsule_id):
     # Get infos for nats after db.session.commit
     if capsule.webapp_id is not None:
         webapp_id = str(capsule.webapp_id)
-    else:
-        webapp_id = None
 
     addons_infos = []
     for addon in capsule.addons:

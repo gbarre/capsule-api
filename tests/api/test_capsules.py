@@ -3,7 +3,7 @@ from app import oidc
 from exceptions import KeycloakUserNotFound
 from unittest.mock import patch
 from werkzeug.exceptions import Forbidden
-from models import capsule_output_schema
+from models import capsule_output_schema, capsule_verbose_schema
 import json
 import pytest
 from nats import NATS
@@ -16,6 +16,21 @@ class TestCapsules:
             "foobar",
             "barfoo",
             "toto1",
+        ],
+        "authorized_keys": [
+            "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDVbtGe1p6vAjwizq"
+            "EiO8EY5K3jyB7NoBT+gDREp6TcimUMJzsWryJampX7IqDpkC7I2/Y7"
+            "oiUudVR97Q6H//IckCJetaD/yONkqzRCxCoQz+J0JWlMZsS/MmIy6B"
+            "HDrLYB6KBZ4zk6exxbxcanJnz2fHahom8GE57l9khYgm3WLGi+v3of"
+            "b6ZsT6BrR8eXRpb6wJ6HcghGRwWg7+M6IMqZdprvzGomc7UO3fPmQX"
+            "f3KF9ZlelNCBsczD4qrYshiScVqmWmo2jePTDESWaaP3jlqz7Ekvfx"
+            "ukAuTm2spohtmVs+iwxOTvEwP3o7ucfp/o7QRYPqL/OPXAN8pjzf8z"
+            "Z2 toto@input",
+            "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDCVu8lOZxm+7fjM"
+            "QpdNuU2HinAhWmmEtYcX9wxCcBs14GmDrDSOhZB61bq9vdzkSlV0W"
+            "st711mUlEZlXh/999NL7iAy6COKYxsEmRgbCU+9k8rBsSTDcXS6MW"
+            "+aJI4vnqMgVSGwBDgxZs4X2mthYhCitgbk9D3WbstAinUkhEtzQ=="
+            " phpseclib-generated-key",
         ],
     }
 
@@ -30,26 +45,13 @@ class TestCapsules:
     def build_output(db):
         return json.loads(capsule_output_schema.dumps(db.capsule1).data)
 
+    @staticmethod
+    def build_verbose_output(db):
+        return json.loads(capsule_verbose_schema.dumps(db.capsule1).data)
+
     #################################
     # Testing GET /capsules
     #################################
-    # Response 404:
-    def test_get_no_capsule(self, testapp, db):
-        with patch.object(oidc, "validate_token", return_value=True), \
-             patch("utils.check_user_role", return_value=db.user3):
-
-            testapp.get(
-                api_version + "/capsules",
-                status=404
-            )
-
-    # Response 401:
-    def test_get_with_no_token(self, testapp, db):
-        testapp.get(
-            api_version + "/capsules",
-            status=401
-        )
-
     # Response 200:
     def test_get(self, testapp, db):
         capsule_output = self.build_output(db)
@@ -61,11 +63,67 @@ class TestCapsules:
                 status=200
             ).json
             assert dict_contains(res[0], capsule_output)
+
+    def test_get_verbose(self, testapp, db):
+        capsule_output = self.build_verbose_output(db)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1):
+
+            res = testapp.get(
+                api_version + "/capsules?verbose=True",
+                status=200
+            ).json
+            assert dict_contains(res[0], capsule_output)
+
+    # Response 400:
+    def test_get_bad_request(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1):
+
+            testapp.get(
+                api_version + "/capsules?filters[foo]=bar",
+                status=400
+            )
+
+    # Response 401:
+    def test_get_with_no_token(self, testapp, db):
+        testapp.get(
+            api_version + "/capsules",
+            status=401
+        )
+
+    # Response 404:
+    def test_get_no_capsule(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user3):
+
+            testapp.get(
+                api_version + "/capsules",
+                status=404
+            )
     #################################
 
     #################################
     # Testing POST /capsules
     #################################
+    # Response 201:
+    def test_create(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.admin_user), \
+             patch("api.capsules.check_owners_on_keycloak"):
+
+            res = testapp.post_json(
+                api_version + "/capsules",
+                self._capsule_input,
+                status=201
+            ).json
+
+            res.pop('authorized_keys')
+            clean_input = dict(self._capsule_input)
+            clean_input.pop('authorized_keys')
+
+            assert dict_contains(res, clean_input)
+
     # Response 400:
     def test_create_raises_on_invalid_owner(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
@@ -162,47 +220,11 @@ class TestCapsules:
                 self._capsule_input,
                 status=403
             )
-
-    # Response 201:
-    def test_create(self, testapp, db):
-        with patch.object(oidc, "validate_token", return_value=True), \
-             patch("utils.check_user_role", return_value=db.admin_user), \
-             patch("api.capsules.check_owners_on_keycloak"):
-
-            res = testapp.post_json(
-                api_version + "/capsules",
-                self._capsule_input,
-                status=201
-            ).json
-            assert dict_contains(res, self._capsule_input)
     #################################
 
     #################################
     # Testing GET /capsules/cId
     #################################
-    # Response 404:
-    def test_get_bad_capsule(self, testapp, db):
-        with patch.object(oidc, "validate_token", return_value=True), \
-             patch("utils.check_user_role", return_value=db.user1):
-
-            res = testapp.get(
-                api_version + "/capsules/" + unexisting_id,
-                status=404
-            ).json
-            msg = f"The requested capsule '{unexisting_id}' "\
-                  "has not been found."
-            assert msg in res["error_description"]
-
-    # Response 403:
-    def test_get_capsule_raise_bad_owner(self, testapp, db):
-        with patch.object(oidc, "validate_token", return_value=True), \
-             patch("utils.check_user_role", side_effect=Forbidden):
-
-            testapp.get(
-                api_version + "/capsules/" + unexisting_id,
-                status=403
-            )
-
     # Response 200:
     def test_get_capsule(self, testapp, db):
         capsule_output = self.build_output(db)
@@ -217,6 +239,56 @@ class TestCapsules:
                 status=200
             ).json
             assert dict_contains(capsule, capsule_output)
+
+    def test_get_capsule_verbose(self, testapp, db):
+        capsule_output = self.build_verbose_output(db)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1):
+
+            # Get the capsule id
+            capsule_id = str(db.capsule1.id)
+            # Get this capsule by id
+            capsule = testapp.get(
+                api_version + "/capsules/" + capsule_id + '?verbose=True',
+                status=200,
+            ).json
+            assert dict_contains(capsule, capsule_output)
+
+    # Response 400:
+    def test_get_capsule_bad_request(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1):
+
+            res = testapp.get(
+                api_version + "/capsules/" + bad_id,
+                status=400
+            ).json
+            msg = f"'{bad_id}' is not a valid id."
+            assert msg in res['error_description']
+
+    # Response 403:
+    def test_get_capsule_raise_bad_owner(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user3):
+
+            capsule_id = str(db.capsule1.id)
+            testapp.get(
+                api_version + "/capsules/" + capsule_id,
+                status=403
+            )
+
+    # Response 404:
+    def test_get_bad_capsule(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1):
+
+            res = testapp.get(
+                api_version + "/capsules/" + unexisting_id,
+                status=404
+            ).json
+            msg = f"The requested capsule '{unexisting_id}' "\
+                  "has not been found."
+            assert msg in res["error_description"]
     #################################
 
     #################################
@@ -280,5 +352,16 @@ class TestCapsules:
             testapp.delete(
                 api_version + "/capsules/" + capsule_id,
                 status=403
+            )
+
+    # Response 404:
+    def test_delete_not_found(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.superadmin_user):
+
+            # Delete this capsule
+            testapp.delete(
+                api_version + "/capsules/" + unexisting_id,
+                status=404
             )
     #################################

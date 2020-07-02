@@ -8,10 +8,6 @@ get:
     - $ref: "../components/parameters.yaml#/capsule_id"
     - $ref: "../components/parameters.yaml#/verbose"
   responses:
-    "404":
-      $ref: "../components/responses.yaml#/NotFound"
-    "403":
-      $ref: "../components/responses.yaml#/Forbidden"
     "200":
       description: The requested capsule
       content:
@@ -20,6 +16,12 @@ get:
             oneOf:
               - $ref: "../components/schemas.yaml#/Capsule"
               - $ref: "../components/schemas.yaml#/CapsuleVerbose"
+    "400":
+      $ref: "../components/responses.yaml#/BadRequest"
+    "403":
+      $ref: "../components/responses.yaml#/Forbidden"
+    "404":
+      $ref: "../components/responses.yaml#/NotFound"
 
 delete:
   tags: [superadmin]
@@ -38,3 +40,5 @@ delete:
       $ref: "../components/responses.yaml#/Unauthorized"
     "403":
       $ref: "../components/responses.yaml#/Forbidden"
+    "404":
+      $ref: "../components/responses.yaml#/NotFound"

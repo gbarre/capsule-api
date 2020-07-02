@@ -1,4 +1,4 @@
-from tests.utils import api_version, bad_id, dict_contains
+from tests.utils import api_version, bad_id, unexisting_id, dict_contains
 from app import oidc
 from unittest.mock import patch
 from models import apptoken_schema
@@ -93,6 +93,16 @@ class TestAppToken:
             ).json
             assert dict_contains(apptokens_output[0], res[0])
 
+    # Response 400:
+    def test_get_bad_request(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1):
+
+            testapp.get(
+                api_version + "/apptokens?filters[foo]=bar",
+                status=400
+            )
+
     # Response 401:
     def test_get_unauthenticated(self, testapp, db):
         testapp.get(
@@ -169,5 +179,15 @@ class TestAppToken:
             testapp.delete(
                 api_version + "/apptokens/" + apptoken_id,
                 status=403
+            )
+
+    # Response 404:
+    def test_delete_unexisting_apptoken(self, testapp, db):
+        with patch.object(oidc, 'validate_token', return_value=True), \
+             patch("utils.check_user_role", return_value=db.user3):
+
+            testapp.delete(
+                api_version + '/apptokens/' + unexisting_id,
+                status=404
             )
     #################################

@@ -39,6 +39,14 @@ class DBFooData:
             ],
         )
 
+        self.available_opt3 = AvailableOption(
+            access_level=RoleEnum.user,
+            tag="SQL",
+            field_name="my.cnf",
+            value_type=OptionValueTypeEnum.file,
+            field_description="MySQL configuration file.",
+        )
+
         self.runtime1 = Runtime(
             name="apache-2.4 php-7.2.x",
             desc="Stack web classique Apache 2.4 + PHP 7.2.x",
@@ -55,6 +63,9 @@ class DBFooData:
             desc="SQL server",
             fam="SQL",
             runtime_type=RuntimeTypeEnum.addon,
+            available_opts=[
+                self.available_opt3,
+            ],
         )
 
         self.fqdn1 = FQDN(
