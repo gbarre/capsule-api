@@ -11,35 +11,35 @@ variables:
   REPOSITORY_NAME: $CI_REGISTRY/$CI_PROJECT
 
 stages:
-  - tox
+  # - tox
   - deploy
 
-tox:lint:
-  stage: tox
-  image: ubuntu:latest
-  script:
-    - DEBIAN_FRONTEND=noninteractive apt-get update -qy
-    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python 3.7 python3.8 python3-pip
-    - python3 -m pip install --upgrade tox
-    - tox -e lint
+# tox:lint:
+#   stage: tox
+#   image: ubuntu:latest
+#   script:
+#     - DEBIAN_FRONTEND=noninteractive apt-get update -qy
+#     - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python 3.7 python3.8 python3-pip
+#     - python3 -m pip install --upgrade tox
+#     - tox -e lint
 
-tox:cover:
-  stage: tox
-  image: ubuntu:latest
-  script:
-    - DEBIAN_FRONTEND=noninteractive apt-get update -qy
-    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python 3.7 python3.8 python3-pip
-    - python3 -m pip install --upgrade tox
-    - tox -e cover
+# tox:cover:
+#   stage: tox
+#   image: ubuntu:latest
+#   script:
+#     - DEBIAN_FRONTEND=noninteractive apt-get update -qy
+#     - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python 3.7 python3.8 python3-pip
+#     - python3 -m pip install --upgrade tox
+#     - tox -e cover
 
-tox:secaudit:
-  stage: tox
-  image: ubuntu:latest
-  script:
-    - DEBIAN_FRONTEND=noninteractive apt-get update -qy
-    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python 3.7 python3.8 python3-pip
-    - python3 -m pip install --upgrade tox
-    - tox -e secaudit
+# tox:secaudit:
+#   stage: tox
+#   image: ubuntu:latest
+#   script:
+#     - DEBIAN_FRONTEND=noninteractive apt-get update -qy
+#     - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python 3.7 python3.8 python3-pip
+#     - python3 -m pip install --upgrade tox
+#     - tox -e secaudit
 
 deploy:
   stage: deploy
@@ -49,6 +49,7 @@ deploy:
   script:
     - export TAG_VERSION=$(printf '%s-%05d' ${CI_COMMIT_SHA:0:8} ${CI_PIPELINE_ID})
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - cat /kaniko/.docker/config.json
     - /kaniko/executor --destination ${REPOSITORY_NAME}/capsule-api:${API_VERSION}-${TAG_VERSION} --build-arg http_proxy=${HTTP_PROXY} --build-arg https_proxy=${HTTP_PROXY} --build-arg no_proxy=${NO_PROXY}
   only:
     - master
