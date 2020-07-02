@@ -11,35 +11,53 @@ variables:
   REPOSITORY_NAME: $CI_REGISTRY/$CI_PROJECT
 
 stages:
-  # - tox
+  - tox
   - deploy
 
-# tox:lint:
-#   stage: tox
-#   image: ubuntu:latest
-#   script:
-#     - DEBIAN_FRONTEND=noninteractive apt-get update -qy
-#     - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python 3.7 python3.8 python3-pip
-#     - python3 -m pip install --upgrade tox
-#     - tox -e lint
+tox:lint:
+  stage: tox
+  image: ubuntu:latest
+  script:
+    - DEBIAN_FRONTEND=noninteractive apt-get update -qy
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python3-pip
+    - python3 -m pip install --upgrade tox
+    - tox -e lint
 
-# tox:cover:
-#   stage: tox
-#   image: ubuntu:latest
-#   script:
-#     - DEBIAN_FRONTEND=noninteractive apt-get update -qy
-#     - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python 3.7 python3.8 python3-pip
-#     - python3 -m pip install --upgrade tox
-#     - tox -e cover
+tox:secaudit:
+  stage: tox
+  image: ubuntu:latest
+  script:
+    - DEBIAN_FRONTEND=noninteractive apt-get update -qy
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python3.8 python3-pip
+    - python3 -m pip install --upgrade tox
+    - tox -e secaudit
 
-# tox:secaudit:
-#   stage: tox
-#   image: ubuntu:latest
-#   script:
-#     - DEBIAN_FRONTEND=noninteractive apt-get update -qy
-#     - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python 3.7 python3.8 python3-pip
-#     - python3 -m pip install --upgrade tox
-#     - tox -e secaudit
+tox:cover36:
+  stage: tox
+  image: ubuntu:latest
+  script:
+    - DEBIAN_FRONTEND=noninteractive apt-get update -qy
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python3-pip
+    - python3 -m pip install --upgrade tox
+    - tox -e py36,cover
+
+tox:cover37:
+  stage: tox
+  image: ubuntu:latest
+  script:
+    - DEBIAN_FRONTEND=noninteractive apt-get update -qy
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.7 python3-pip
+    - python3 -m pip install --upgrade tox
+    - tox -e py37,cover
+
+tox:cover38:
+  stage: tox
+  image: ubuntu:latest
+  script:
+    - DEBIAN_FRONTEND=noninteractive apt-get update -qy
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.8 python3-pip
+    - python3 -m pip install --upgrade tox
+    - tox -e py38,cover
 
 deploy:
   stage: deploy
