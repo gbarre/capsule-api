@@ -21,7 +21,7 @@ tox:py36:
     - DEBIAN_FRONTEND=noninteractive apt-get update -qy
     - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python3-pip
     - python3 -m pip install --upgrade tox
-    - tox -e cover, lint, secaudit
+    - tox -e cover,lint,secaudit
 
 tox:py37:
   stage: tox
