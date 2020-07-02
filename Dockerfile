@@ -26,6 +26,12 @@ COPY entrypoint.sh .
 
 FROM python:3.6-slim AS run
 
+RUN set -eux; \
+    apt-get update; \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade -y; \
+    rm -rf /var/lib/apt/lists/*; \
+    apt-get clean
+
 WORKDIR /capsule-api
 
 COPY --from=build /opt/venv /opt/venv
