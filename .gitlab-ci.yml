@@ -49,8 +49,7 @@ deploy:
   script:
     - export TAG_VERSION=$(printf '%s-%05d' ${CI_COMMIT_SHA:0:8} ${CI_PIPELINE_ID})
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - cat /kaniko/.docker/config.json
-    - /kaniko/executor --destination ${REPOSITORY_NAME}/capsule-api:${API_VERSION}-${TAG_VERSION} --build-arg http_proxy=${HTTP_PROXY} --build-arg https_proxy=${HTTP_PROXY} --build-arg no_proxy=${NO_PROXY}
+    - /kaniko/executor --context . --destination ${REPOSITORY_NAME}/capsule-api:${API_VERSION}-${TAG_VERSION} --build-arg http_proxy=${HTTP_PROXY} --build-arg https_proxy=${HTTP_PROXY} --build-arg no_proxy=${NO_PROXY}
   only:
     - master
   when: manual
