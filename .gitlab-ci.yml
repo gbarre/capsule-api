@@ -1,0 +1,52 @@
+variables:
+  #########################################
+  ###### Example of global variables ######
+  #########################################
+  # CI_REGISTRY: docker.io
+  # CI_PROJECT: nginx
+  # CI_REGISTRY_USER: toto
+  # CI_REGISTRY_PASSWORD: tata
+  #########################################
+  API_VERSION: "1.0"
+  REPOSITORY_NAME: $CI_REGISTRY/$CI_PROJECT
+
+stages:
+  - tox
+  - deploy
+
+tox:lint:
+  stage: tox
+  script:
+    - apt-get update -qy
+    - apt-get install -y python3.6 python 3.7 python3.8 python3-pip
+    - python3 -m pip install --upgrade tox
+    - tox -e lint
+
+tox:cover:
+  stage: tox
+  script:
+    - apt-get update -qy
+    - apt-get install -y python3.6 python 3.7 python3.8 python3-pip
+    - python3 -m pip install --upgrade tox
+    - tox -e cover
+
+tox:secaudit:
+  stage: tox
+  script:
+    - apt-get update -qy
+    - apt-get install -y python3.6 python 3.7 python3.8 python3-pip
+    - python3 -m pip install --upgrade tox
+    - tox -e secaudit
+
+deploy:
+  stage: deploy
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - export TAG_VERSION=$(printf '%s-%05d' ${CI_COMMIT_SHA:0:8} ${CI_PIPELINE_ID})
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --dockerfile . --destination $${REPOSITORY_NAME}/capsule-api:$${API_VERSION}-$${TAG_VERSION} --build-arg http_proxy=$${HTTP_PROXY} --build-arg https_proxy=$${HTTP_PROXY} --build-arg no_proxy=$${NO_PROXY}
+  only:
+    - master
+  when: manual
