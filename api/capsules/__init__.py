@@ -127,6 +127,7 @@ def delete(capsule_id):
                        "has not been found.")
 
     # Get infos for nats after db.session.commit
+    webapp_id = None
     if capsule.webapp_id is not None:
         webapp_id = str(capsule.webapp_id)
 
