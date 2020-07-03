@@ -77,6 +77,10 @@ coverage run -m pytest -v
 # Then:
 coverage report -m
 coverage html
+
+# Now there is tox:
+tox -a
+tox -e lint,cover,secaudit,py36
 ```
 
 ## Run production server
