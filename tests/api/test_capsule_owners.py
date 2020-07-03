@@ -166,7 +166,7 @@ class TestCapsuleOwners:
             )
 
     # Response 200:
-    def test_patch(self, testapp, db):
+    def test_patch_with_unexisting_user(self, testapp, db):
         capsule_id = str(db.capsule1.id)
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.user1), \
@@ -180,6 +180,24 @@ class TestCapsuleOwners:
             ).json
             publish_method.assert_called_once
             assert self._owners_input["newOwner"] in res["owners"]
+
+    def test_patch_with_existing_user(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch("api.capsules.owners.check_owners_on_keycloak"), \
+             patch.object(NATS, "publish_webapp_present") as publish_method:
+
+            owner_input = {
+                "newOwner": db.user3.name,
+            }
+            res = testapp.patch_json(
+                api_version + "/capsules/" + capsule_id + "/owners",
+                owner_input,
+                status=200
+            ).json
+            publish_method.assert_called_once
+            assert db.user3.name in res["owners"]
     ################################################
 
     ################################################
@@ -235,6 +253,19 @@ class TestCapsuleOwners:
             owner = self._owners_input["newOwner"]
             testapp.delete(
                 f"{api_version}/capsules/{capsule_id}/owners/{owner}",
+                status=404
+            )
+
+    def test_delete_invalid_user(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch(
+                 "api.capsules.owners.check_owners_on_keycloak",
+                 return_value=True):
+
+            testapp.delete(
+                f"{api_version}/capsules/{capsule_id}/owners/toto",
                 status=404
             )
 

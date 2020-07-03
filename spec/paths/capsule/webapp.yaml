@@ -15,6 +15,12 @@ post:
         schema:
           $ref: "../../components/schemas.yaml#/WebApp"
   responses:
+    "201":
+      description: WebApp added to the capsule
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas.yaml#/WebApp"
     "400":
       $ref: "../../components/responses.yaml#/BadRequest"
     "401":
@@ -27,12 +33,6 @@ post:
         application/json:
           schema:
             $ref: "../../components/schemas.yaml#/Error"
-    "201":
-      description: WebApp added to the capsule
-      content:
-        application/json:
-          schema:
-            $ref: "../../components/schemas.yaml#/WebApp"
 
 get:
   tags: [user]
@@ -43,18 +43,18 @@ get:
   parameters:
     - $ref: "../../components/parameters.yaml#/capsule_id"
   responses:
-    "401":
-      $ref: "../../components/responses.yaml#/Unauthorized"
-    "403":
-      $ref: "../../components/responses.yaml#/Forbidden"
-    "404":
-      $ref: "../../components/responses.yaml#/NotFound"
     "200":
       description: The requested web application for a capsule
       content:
         application/json:
           schema:
             $ref: "../../components/schemas.yaml#/WebApp"
+    "401":
+      $ref: "../../components/responses.yaml#/Unauthorized"
+    "403":
+      $ref: "../../components/responses.yaml#/Forbidden"
+    "404":
+      $ref: "../../components/responses.yaml#/NotFound"
 
 put:
   tags: [user]

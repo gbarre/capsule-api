@@ -13,12 +13,6 @@ post:
         schema:
           $ref: "../../components/schemas.yaml#/AddOn"
   responses:
-    "400":
-      $ref: "../../components/responses.yaml#/BadRequest"
-    "401":
-      $ref: "../../components/responses.yaml#/Unauthorized"
-    "403":
-      $ref: "../../components/responses.yaml#/Forbidden"
     "201":
       description: AddOn added to the capsule
       content:
@@ -31,6 +25,12 @@ post:
           schema:
             type: string
             format: uri
+    "400":
+      $ref: "../../components/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../../components/responses.yaml#/Unauthorized"
+    "403":
+      $ref: "../../components/responses.yaml#/Forbidden"
 
 get:
   tags: [user]
@@ -44,12 +44,6 @@ get:
     - $ref: "../../components/parameters.yaml#/limit"
     - $ref: "../../components/parameters.yaml#/filters"
   responses:
-    "404":
-      $ref: "../../components/responses.yaml#/NotFound"
-    "401":
-      $ref: "../../components/responses.yaml#/Unauthorized"
-    "403":
-      $ref: "../../components/responses.yaml#/Forbidden"
     "200":
       description: The requested addons of a capsule
       content:
@@ -58,3 +52,11 @@ get:
             type: array
             items:
               $ref: "../../components/schemas.yaml#/AddOn"
+    "400":
+      $ref: "../../components/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../../components/responses.yaml#/Unauthorized"
+    "403":
+      $ref: "../../components/responses.yaml#/Forbidden"
+    "404":
+      $ref: "../../components/responses.yaml#/NotFound"

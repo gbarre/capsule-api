@@ -169,6 +169,7 @@ class DBFooData:
                 self.addon1,
             ],
             authorized_keys=[
+                self.sshkey2,
                 self.sshkey3,
             ],
         )

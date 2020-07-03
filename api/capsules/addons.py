@@ -14,7 +14,7 @@ def _get_capsule(capsule_id, user):
     try:
         capsule = Capsule.query.filter_by(id=capsule_id).first()
     except StatementError:
-        raise BadRequest(description=f"'{capsule_id}' is not a valid id.'")
+        raise BadRequest(description=f"'{capsule_id}' is not a valid id.")
 
     if capsule is None:
         raise NotFound(description=f"The requested capsule '{capsule_id}' "
@@ -112,7 +112,7 @@ def get(capsule_id, addon_id, user):
     try:
         result = AddOn.query.get(addon_id)
     except StatementError:
-        raise BadRequest(description=f"'{addon_id}' is not a valid id.'")
+        raise BadRequest(description=f"'{addon_id}' is not a valid id.")
 
     if not result:
         raise NotFound(description=f"The requested addon '{addon_id}' "
@@ -139,14 +139,14 @@ def put(capsule_id, addon_id, user):
     try:
         addon = AddOn.query.get(addon_id)
     except StatementError:
-        raise BadRequest(description=f"'{addon_id}' is not a valid id.'")
+        raise BadRequest(description=f"'{addon_id}' is not a valid id.")
 
     if not addon:
         raise NotFound(description=f"The requested addon '{addon_id}' "
                        "has not been found.")
 
     if str(addon.capsule.id) != capsule_id:
-        raise Forbidden
+        raise Forbidden(description="bad capsule id")
 
     addon.description = data["description"]
 
@@ -164,7 +164,7 @@ def put(capsule_id, addon_id, user):
     try:
         new_runtime = Runtime.query.get(new_runtime_id)
     except StatementError:
-        raise BadRequest(description=f"'{new_runtime_id}' is not a valid id.'")
+        raise BadRequest(description=f"'{new_runtime_id}' is not a valid id.")
     if new_runtime is None:
         raise BadRequest(description=f"The runtime_id '{new_runtime_id}' "
                          "does not exist.")
@@ -175,10 +175,7 @@ def put(capsule_id, addon_id, user):
                          f"to '{new_fam}' is not possible")
     addon.runtime_id = data["runtime_id"]
 
-    if "env" in addon_data:
-        addon.env = data["env"]
-    else:
-        addon.env = {}
+    addon.env = data["env"]
 
     if "opts" in data:
         opts = Option.create(data["opts"], data['runtime_id'], user.role)

@@ -1,5 +1,5 @@
 from app import oidc
-from tests.utils import api_version, dict_contains, bad_id
+from tests.utils import api_version, dict_contains, bad_id, unexisting_id
 from unittest.mock import patch
 from werkzeug.exceptions import Forbidden
 from models import capsule_output_schema
@@ -20,10 +20,6 @@ class TestCapsuleSshKeys:
         "xOTvEwP3o7ucfp/o7QRYPqL/OPXAN8pjzf8zZ2 toto@input",
     ]
 
-    _sshkey_bad_input = {
-        "public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQAB"
-    }
-
     @staticmethod
     def build_output(db):
         return json.loads(capsule_output_schema.dumps(db.capsule1).data)
@@ -31,17 +27,51 @@ class TestCapsuleSshKeys:
     #############################################################
     # Testing POST /capsules/{cId}/sshkeys
     #############################################################
+    # Response 201:
+    def test_create(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        capsule_output = self.build_output(db)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch.object(NATS, "publish_webapp_present") as publish_method:
+
+            res = testapp.post_json(
+                api_version + "/capsules/" + capsule_id + "/sshkeys",
+                self._sshkey_input,
+                status=201
+            ).json
+            publish_method.assert_called_once
+            assert dict_contains(res, capsule_output)
+
     # Response 400:
     def test_create_bad_json(self, testapp, db):
         capsule_id = str(db.capsule1.id)
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.user1):
 
+            _sshkey_bad_input = {
+                "public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQAB"
+            }
             testapp.post_json(
                 api_version + "/capsules/" + capsule_id + "/sshkeys",
-                self._sshkey_bad_input,
+                _sshkey_bad_input,
                 status=400
             )
+
+    def test_create_bad_sshkey(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1):
+
+            _sshkey_bad_input = [
+                "ssh-rsa AAAAB3NzaC1yc2EAAAADAQAB",
+            ]
+            res = testapp.post_json(
+                api_version + "/capsules/" + capsule_id + "/sshkeys",
+                _sshkey_bad_input,
+                status=400
+            ).json
+            assert 'not a valid ssh public key' in res["error_description"]
 
     def test_create_bad_capsule(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
@@ -62,7 +92,30 @@ class TestCapsuleSshKeys:
             status=401
         )
 
-    # Response 209:
+    # Response 403:
+    def test_create_forbidden(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user3):
+
+            testapp.post_json(
+                api_version + "/capsules/" + capsule_id + "/sshkeys",
+                self._sshkey_input,
+                status=403
+            )
+
+    # Response 404:
+    def test_create_unexisting_capsule(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1):
+
+            testapp.post_json(
+                api_version + "/capsules/" + unexisting_id + "/sshkeys",
+                self._sshkey_input,
+                status=404
+            )
+
+    # Response 409:
     def test_create_confilct(self, testapp, db):
         capsule_id = str(db.capsule1.id)
         with patch.object(oidc, "validate_token", return_value=True), \
@@ -85,22 +138,6 @@ class TestCapsuleSshKeys:
             ).json
             msg = "'public_key' already exist for this capsule"
             assert msg in res["error_description"]
-
-    # Response 201:
-    def test_create(self, testapp, db):
-        capsule_id = str(db.capsule1.id)
-        capsule_output = self.build_output(db)
-        with patch.object(oidc, "validate_token", return_value=True), \
-             patch("utils.check_user_role", return_value=db.user1), \
-             patch.object(NATS, "publish_webapp_present") as publish_method:
-
-            res = testapp.post_json(
-                api_version + "/capsules/" + capsule_id + "/sshkeys",
-                self._sshkey_input,
-                status=201
-            ).json
-            publish_method.assert_called_once
-            assert dict_contains(res, capsule_output)
     #############################################################
 
     #############################################################
@@ -135,6 +172,12 @@ class TestCapsuleSshKeys:
             for authorized_key in res["authorized_keys"]:
                 assert sshkey.public_key != authorized_key["public_key"]
 
+            sshkey2_id = str(db.sshkey2.id)
+            testapp.delete(
+                f"{api_version}/capsules/{capsule_id}/sshkeys/{sshkey2_id}",
+                status=204
+            )
+
     # Response 400:
     def test_delete_bad_sshkey(self, testapp, db):
         capsule_id = str(db.capsule1.id)
@@ -143,6 +186,34 @@ class TestCapsuleSshKeys:
 
             testapp.delete(
                 api_version + "/capsules/" + capsule_id + "/sshkeys/" + bad_id,
+                status=400
+            )
+
+    def test_delete_bad_sshkey_capsule(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.admin_user), \
+             patch("api.capsules.check_owners_on_keycloak"):
+
+            _capsule_input = {
+                "name": "test-capsule",
+                "owners": [
+                    "user1",
+                ],
+            }
+
+            temp_capsule = testapp.post_json(
+                api_version + "/capsules",
+                _capsule_input,
+                status=201
+            ).json
+        capsule_id = temp_capsule['id']
+
+        with patch.object(oidc, 'validate_token', return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1):
+
+            key_id = str(db.sshkey1.id)
+            testapp.delete(
+                api_version + "/capsules/" + capsule_id + "/sshkeys/" + key_id,
                 status=400
             )
 
@@ -169,5 +240,16 @@ class TestCapsuleSshKeys:
             testapp.delete(
                 f"{api_version}/capsules/{capsule_id}/sshkeys/{sshkey_id}",
                 status=403
+            )
+
+    # Response 404:
+    def test_delete_unexisting_sshkey(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, 'validate_token', return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1):
+
+            testapp.delete(
+                f"{api_version}/capsules/{capsule_id}/sshkeys/{unexisting_id}",
+                status=404
             )
     #############################################################

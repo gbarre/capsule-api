@@ -16,14 +16,6 @@ put:
         schema:
           $ref: "../../components/schemas.yaml#/AddOn"
   responses:
-    "400":
-      $ref: "../../components/responses.yaml#/BadRequest"
-    "401":
-      $ref: "../../components/responses.yaml#/Unauthorized"
-    "403":
-      $ref: "../../components/responses.yaml#/Forbidden"
-    "404":
-      $ref: "../../components/responses.yaml#/NotFound"
     "200":
       description: Addon updated for the capsule
       content:
@@ -36,6 +28,14 @@ put:
           schema:
             type: string
             format: uri
+    "400":
+      $ref: "../../components/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../../components/responses.yaml#/Unauthorized"
+    "403":
+      $ref: "../../components/responses.yaml#/Forbidden"
+    "404":
+      $ref: "../../components/responses.yaml#/NotFound"
 
 get:
   tags: [user]
@@ -47,18 +47,20 @@ get:
     - $ref: "../../components/parameters.yaml#/capsule_id"
     - $ref: "../../components/parameters.yaml#/addon_id"
   responses:
-    "404":
-      $ref: "../../components/responses.yaml#/NotFound"
-    "401":
-      $ref: "../../components/responses.yaml#/Unauthorized"
-    "403":
-      $ref: "../../components/responses.yaml#/Forbidden"
     "200":
       description: AddOn added to the capsule
       content:
         application/json:
           schema:
             $ref: "../../components/schemas.yaml#/AddOn"
+    "400":
+      $ref: "../../components/responses.yaml#/Unauthorized"
+    "401":
+      $ref: "../../components/responses.yaml#/Unauthorized"
+    "403":
+      $ref: "../../components/responses.yaml#/Forbidden"
+    "404":
+      $ref: "../../components/responses.yaml#/NotFound"
 
 delete:
   tags: [user]
@@ -70,11 +72,11 @@ delete:
     - $ref: "../../components/parameters.yaml#/capsule_id"
     - $ref: "../../components/parameters.yaml#/addon_id"
   responses:
-    "404":
-      $ref: "../../components/responses.yaml#/NotFound"
+    "204":
+      description: Successful deletion
     "401":
       $ref: "../../components/responses.yaml#/Unauthorized"
     "403":
       $ref: "../../components/responses.yaml#/Forbidden"
-    "204":
-      description: Successful deletion
+    "404":
+      $ref: "../../components/responses.yaml#/NotFound"
