@@ -12,7 +12,10 @@ Then:
 
 ```sh
 # You have to activate a virtualenv and install the required packages
+python3 -m venv ./venv
 . venv/bin/activate
+pip install --upgrade pip
+pip install --upgrade setuptools
 pip install -r requirements.txt
 pip install -r test-requirements.txt # If you want to be able to run tests too.
 
@@ -30,7 +33,7 @@ docker-compose up -d
 # To apply a migration of the database.
 FLASK_APP=server.py CAPSULE_API_CONFIG=config-dev.yml python -m flask db upgrade
 
-# And then, to run the capsule-api server.
+# And then, to run a dev/test capsule-api server (not relevant for a production server).
 python -Wd server.py -c config-dev.yml
 ```
 
@@ -67,27 +70,41 @@ FLASK_APP=server.py CAPSULE_API_CONFIG=config-dev.yml python -m flask db upgrade
 ```
 
 
-## Run unit tests
+
+## Run tests
 
 ```sh
-pytest -v
-
-# Or:
-coverage run -m pytest -v
-# Then:
-coverage report -m
-coverage html
-
-# Now there is tox:
+# To list all "tox" tasks.
 tox -a
-tox -e lint,cover,secaudit,py36
+
+# To run cover (which includes tests), lint and secaudit.
+tox -e cover,lint,secaudit
+
+### Normally, these commands are included in tox which is the only entry point for tests.
+
+    # Run test.
+    pytest -v
+
+    # Run coverage (which runs tests too).
+    coverage run -m pytest -v
+    # Then:
+    coverage report -m
+    coverage html
 ```
+
+
 
 ## Run production server
 
 ```sh
 gunicorn --access-logfile - --bind 0.0.0.0:5000 -w 4 --preload wsgi:app
 ```
+
+
+
+-------------------------------------------------------------------------------
+
+
 
 ## How to create a local and complete dev environment
 
