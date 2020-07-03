@@ -31,25 +31,31 @@ def post(runtime=None):
     # runtime could come from PUT
     if runtime is None:
         runtime_data = request.get_json()
+
+        # ensure uri_template is correct
+        if 'uri_template' in runtime_data \
+                and runtime_data['uri_template'] is not None:
+            try:
+                variables = runtime_data['uri_template']['variables']
+                for variable in variables:
+                    length = variable['length']
+                    unique = variable['unique']
+                    src = variable['src']
+                    if unique and src == 'random':
+                        raise BadRequest(description="Uniqueness is not taken "
+                                                    "into account for a random "
+                                                    "variable.")
+                    if unique and length < 16 and src == 'capsule':
+                        raise BadRequest(description="Uniqueness of a variable "
+                                                    "required a length greater "
+                                                    "or equal to 16.")
+            except KeyError:
+                raise BadRequest(description="Refer to specifications for "
+                                             "uri_template schema")
         try:
             data = runtime_schema.load(runtime_data).data
         except ValidationError:
             raise BadRequest("Please, refer to the API specification.")
-
-        if 'uri_template' in data and data['uri_template'] is not None:
-            variables = data['uri_template']['variables']
-            for variable in variables:
-                length = variable['length']
-                unique = variable['unique']
-                src = variable['src']
-                if unique and src == 'random':
-                    raise BadRequest(description="Uniqueness is not taken "
-                                                 "into account for a random "
-                                                 "variable.")
-                if unique and length < 16 and src == 'capsule':
-                    raise BadRequest(description="Uniqueness of a variable "
-                                                 "required a length greater "
-                                                 "or equal to 16.")
 
         if "available_opts" in data:
             available_opts = AvailableOption.create(data["available_opts"])
