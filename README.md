@@ -58,7 +58,7 @@ docker-compose down -v
 ```
 
 
-## Database migration
+# Database migration
 
 ```sh
 # To add a new migration :
@@ -70,7 +70,7 @@ FLASK_APP=server.py CAPSULE_API_CONFIG=config-dev.yml python -m flask db upgrade
 
 
 
-## Run tests
+# Run tests
 
 ```sh
 # To list all "tox" tasks.
@@ -93,7 +93,7 @@ tox -e cover,lint,secaudit
 
 
 
-# Update API spec
+# Update API specifications
 
 After updating the API spec, you must rebuild the `openapi.json` file with this command:
 
