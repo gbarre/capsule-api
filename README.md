@@ -1,44 +1,71 @@
-# Capsule API
+# Run the capsule API server in the development environment
 
-Before any command, don't forget to activate your Python virtual environment
-with something like that:
+**Requirements** : to run the full stack, you need to install:
+
+- docker
+- docker-compose
+- python3.6 (or higher)
+- python3.6-dev
+- jq
+
+Then:
 
 ```sh
+# You have to activate a virtualenv and install the required packages
 . venv/bin/activate
-```
+pip install -r requirements.txt
+pip install -r test-requirements.txt # If you want to be able to run tests too.
 
-## Local Environment
+# Run a docker instance of keycloak a valid config file ./config-dev.yml
+# for the capsule-api server will be created.
+./keycloak/start.sh
 
-```sh
-$ cp .env.local .env
-
-# To up the MySQL server.
-$ docker-compose up -d
-
-# If you want to remote the MySQL server and all its data:
-$ docker-compose down -v
+# To up the local MySQL server and the NATS server.
+docker-compose up -d
 
 # To open a mysql client in the docker.
-$ docker-compose exec db mysql -u root -p'password' capsule_local
+#
+#docker-compose exec db mysql -u root -p'local' capsule_local
 
-# To run the server.
-$ python server.py
+# To apply a migration of the database.
+FLASK_APP=server.py CAPSULE_API_CONFIG=config-dev.yml python -m flask db upgrade
+
+# And then, to run the capsule-api server.
+python -Wd server.py -c config-dev.yml
 ```
 
 **Remark:** if the server is running, you can view the API specification
 at the address [http://localhost:5000/v1/ui/](http://localhost:5000/v1/ui/).
 
+
+
+# To stop capsule API server and remove all docker instances
+
+Type `CTRL+c` to stop the current execution of capsule-api server.
+Then, to remove all docker instances (keyloack, MySQL and NATS):
+
+```sh
+# Remove the keycloak instance.
+docker stop keycloak_dev
+docker rm keycloak_dev
+
+# Remove the NATS and MySQL instances.
+# Warning, -v option remove the MySQL volume and you will lose all data.
+# Don't mention the -v option if you want to keep the MySQL volume.
+docker-compose down -v
+```
+
+
 ## Database migration
 
 ```sh
-$ export FLASK_APP=server.py
-
 # To add a new migration :
-$ python -m flask db migrate -m "My new migration"
+FLASK_APP=server.py CAPSULE_API_CONFIG=config-dev.yml python -m flask db migrate -m "My new migration"
 
 # To apply a migration.
-$ python -m flask db upgrade
+FLASK_APP=server.py CAPSULE_API_CONFIG=config-dev.yml python -m flask db upgrade
 ```
+
 
 ## Run unit tests
 
@@ -206,11 +233,4 @@ python publish_msg.py --nats=localhost:4222 --subject="capsule.addon.ecea7683-92
 python publish_msg.py --nats=localhost:4222 --subject="capsule.webapp" --state="?state" --data='{"id": "19129f93-b50c-4d06-9c96-d779d1dac467"}'
 ```
 
-## Requirements
 
-To run the full stack, you need to install :
-
-- docker
-- python3.6 (or higher)
-- python3.6-dev
-- jq

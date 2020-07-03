@@ -123,24 +123,28 @@ client_secret=$(curl -s -X POST "${KC_URL}/admin/realms/dev/clients/${client_id}
     -H "Accept: application/json" \
     -H "Authorization: Bearer $TKN" | jq --raw-output '.["value"]')
 
-echo "Put this in your 'client_secrets.json' to work with local keycloak:"
-echo "
-{
-    \"web\": {
-        \"issuer\": \"${KC_URL}/realms/dev\",
-        \"auth_uri\": \"${KC_URL}/realms/dev/protocol/openid-connect/auth\",
-        \"client_id\": \"dev-api\",
-        \"client_secret\": \"${client_secret}\",
-        \"redirect_uris\": [
-            \"http://localhost:5000/*\"
-        ],
-        \"userinfo_uri\": \"${KC_URL}/realms/dev/protocol/openid-connect/userinfo\",
-        \"token_uri\": \"${KC_URL}/realms/dev/protocol/openid-connect/token\",
-        \"token_introspection_uri\": \"${KC_URL}/realms/dev/protocol/openid-connect/token/introspect\",
-        \"admin_uri\": \"${KC_URL}/admin/realms/dev\"
-    }
-}"
+
+sed -r "s/__CLIENT_SECRET__/${client_secret}/g" "$script_dir/../config-dev.yml.sample" >  "$script_dir/../config-dev.yml"
+
+#echo "Put this in your 'client_secrets.json' to work with local keycloak:"
+#echo "
+#{
+#    \"web\": {
+#        \"issuer\": \"${KC_URL}/realms/dev\",
+#        \"auth_uri\": \"${KC_URL}/realms/dev/protocol/openid-connect/auth\",
+#        \"client_id\": \"dev-api\",
+#        \"client_secret\": \"${client_secret}\",
+#        \"redirect_uris\": [
+#            \"http://localhost:5000/*\"
+#        ],
+#        \"userinfo_uri\": \"${KC_URL}/realms/dev/protocol/openid-connect/userinfo\",
+#        \"token_uri\": \"${KC_URL}/realms/dev/protocol/openid-connect/token\",
+#        \"token_introspection_uri\": \"${KC_URL}/realms/dev/protocol/openid-connect/token/introspect\",
+#        \"admin_uri\": \"${KC_URL}/admin/realms/dev\"
+#    }
+#}"
 
 echo "Local Keycloak is available at ${KC_URL}."
 echo "Login = ${KC_ADMIN} / Password = ${KC_PWD}"
+echo "The file config-dev.yml has been created as config file of the capsule-api server."
 echo "Enjoy !"

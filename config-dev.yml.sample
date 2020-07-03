@@ -1,0 +1,74 @@
+---
+api:
+  host: localhost
+  app_name: 'capsule-api'
+  debug: true
+  sqlalchemy:
+    echo: false
+    track_modifications: false
+  secret_key: 'somesecretormaybenot'
+  admins:
+    - admin1
+  superadmins:
+    - superadmin1
+  oidc:
+    client_secrets:
+      web:
+        issuer: "http://localhost:8080/auth/realms/dev"
+        auth_uri: "http://localhost:8080/auth/realms/dev/protocol/openid-connect/auth"
+        client_id: "dev-api"
+        client_secret: "__CLIENT_SECRET__"
+        redirect_uris:
+          - "http://localhost:5000/*"
+        userinfo_uri: "http://localhost:8080/auth/realms/dev/protocol/openid-connect/userinfo"
+        token_uri: "http://localhost:8080/auth/realms/dev/protocol/openid-connect/token"
+        token_introspection_uri: "http://localhost:8080/auth/realms/dev/protocol/openid-connect/token/introspect"
+        admin_uri: "http://localhost:8080/auth/admin/realms/dev"
+    id_token_cookie_secure: false
+    require_verified_email: false
+    user_info_enabled: true
+    openid_realm: 'flask-demo'
+    scopes: ['openid', 'email', 'profile']
+    introspection_auth_method: 'client_secret_post'
+  env: 'development'
+  database_uri: 'mysql+pymysql://root:local@localhost:30306/capsule_local'
+  #database_uri: 'sqlite:///test_capsule.db'
+  nats:
+    uri: 'nats://localhost:4222'
+    log_level: 'WARN'
+  # This is a private just for local dev without any value.
+  rsa_private_key: |
+    -----BEGIN RSA PRIVATE KEY-----
+    MIIEowIBAAKCAQEA4MUnDktq5JQKsxrOFzED71YRp0AZPWqDe0BmKhRz1rE5oKlM
+    2p9FtRpe+eWuLdRIerRZ/8lqX3hC/HJ0YjzC9iL+YC4SNOecIBw5wW43r1seLfSm
+    YkL2N5lf4R1mVNWjMwjboIKKzDbe9uDy6NCgKwUg1/aK2gD5A3aepkZugVOm+trJ
+    RLoOusCuxSNbHPyWD7g65WUHY2p+i/eU+R230UvLAnBSl5Q+UuaA8ogH8zwAXpHr
+    qrc1rDfSMEM9RBY6FbH9LTHYVNvR9QVihEmaLJ9oIrBNq28kyED0d20gh0n+y1vn
+    yhISNQPtMGVhdX4KTyKD7epGN4msg6KGKm+TuQIDAQABAoIBACIciZLXyz8pYH5S
+    ARjv7WLzMvao+auicJXR7i9Qr0vT1aUWTH2ZUmDrwaI3QzndT6qfmFEDZkta2v+o
+    9xS5l/T21pgOJeE1jTIqVnGOopDQSUI8MMwU0X0an7xwU8loKr5iB8LSTPI1GZ1q
+    AjNnBgfBXXypA+WV5DSsWeNuKPMjUA8W4S/kFPemeXsstZjowMKTAQVWvGDuXWq6
+    /XDOYNgbRZ7N6b9C+XVGfD4rTdjycsbZubvJIWfGTc1aEdkf6LnThBxdKs8rnb78
+    bp3DXjcBbKOQDVBefuTe4mLDHBVxU0x6cNTWFKBdVwnZmDAxauGLgPCa5tZ4Alx6
+    CsBUUMkCgYEA9MZOM3zaUcp7p2PJa61SznC7ORtc7Q8x371Lgxk0RryzEMwY4juy
+    ohft1Ni+YLwhLsMM2i068uLikVI+tz0fv7WzRIFq4GOSGTzIBQowjF2YL/EDWuh6
+    YnNQhZsIHXxOzIiM4snuOvT+E0SLJIKoYRvRSk95Hxux8qWKMQpK9/8CgYEA6xP9
+    rNK0AtpAXd9QInXvO2mPa7jYIfTQNsspQobO41leQWQ4b1nAivqS6abMLNh7Ccm7
+    7cbsF4WLQ8JGOuPcbxutcHNTD7d3ncf8xUBkNl0d4QQz5qdEDd3F+5xec9EinAB1
+    03Ij5/gOuIhuperqym4yvNVfgpnxIoKBXhK7NEcCgYBDWgGQl003bkDCGWoF7+Y2
+    GbzahNX4ANNXXi3V/+xrfmbDO3WpYoXPpkfx5kXUNk/nHxJ9Qi7TQGzZUckiAHao
+    +KVAN2AiKCO+QARFpr0fEm3a2zVyIT/zsQk6CiOcgWTpULV7fdbIcDstMBIdVLpi
+    JhZbnSyVy7gWLUiuH8frHwKBgQC9gJULn6NrdUNUKTQxQ38CFvt97DmXTgIXWbk+
+    Huxiy+U2s7Lm2KRlpM+PuV14fV7aKhzr9mLWJ1p32gHBcXR+wQIU13LLBaxQrinv
+    XRQr2u6+OSQZuRccUn5KceiWVq4esiRJuwaE9ivvyFPiPrjdTO5r2VowLyb7Gddt
+    3Y25+wKBgC7ILXVv05sbEDXszauV4wMqplFre28h8m4oL/ALI7thH1T3LBe9IUBq
+    4jiC+7C510ZIxRN8YaNSXKT3U9hmbpbtm5PgpBLIc/wqD/Yu6u/0yvsd8Ue8O5Co
+    h4kCbzDGKP8Jy0CMwq7srJqFWwTX7ab4Ga0srpG3JfHR11LgwUuG
+    -----END RSA PRIVATE KEY-----
+
+drivers:
+  k8s: # in the "from" key of a NATS message.
+    rsa_public_key: |
+      -----BEGIN PUBLIC KEY-----
+      unused for tests
+      -----END PUBLIC KEY-----
