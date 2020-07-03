@@ -12,8 +12,9 @@ import os
 @pytest.fixture(scope='function')
 def app():
     yamlconfig = YamlConfig('./config-test.yml')
-    rand = random.randint(1,999999)
-    yamlconfig.SQLALCHEMY_DATABASE_URI = yamlconfig.SQLALCHEMY_DATABASE_URI.replace(".db",f"-{rand}.db")
+    rand = random.randint(1, 999999)
+    yamlconfig.SQLALCHEMY_DATABASE_URI = yamlconfig.SQLALCHEMY_DATABASE_URI\
+        .replace(".db", f"-{rand}.db")
     with patch("app.create_nats_listener", return_value=MagicMock()):
         connex_app = create_app(yamlconfig)
     return connex_app.app

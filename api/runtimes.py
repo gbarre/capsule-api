@@ -42,13 +42,13 @@ def post(runtime=None):
                     unique = variable['unique']
                     src = variable['src']
                     if unique and src == 'random':
-                        raise BadRequest(description="Uniqueness is not taken "
-                                                    "into account for a random "
-                                                    "variable.")
+                        msg = "Uniqueness is not taken into account "\
+                              "for a random variable."
+                        raise BadRequest(description=msg)
                     if unique and length < 16 and src == 'capsule':
-                        raise BadRequest(description="Uniqueness of a variable "
-                                                    "required a length greater "
-                                                    "or equal to 16.")
+                        msg = "Uniqueness of a variable required "\
+                              "a length greater or equal to 16."
+                        raise BadRequest(description=msg)
             except KeyError:
                 raise BadRequest(description="Refer to specifications for "
                                              "uri_template schema")
