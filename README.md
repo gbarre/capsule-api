@@ -11,7 +11,7 @@
 Then:
 
 ```sh
-# You have to activate a virtualenv and install the required packages
+# You have to activate a virtualenv and install the required packages.
 python3 -m venv ./venv
 . venv/bin/activate
 pip install --upgrade pip
@@ -49,8 +49,7 @@ Then, to remove all docker instances (keyloack, MySQL and NATS):
 
 ```sh
 # Remove the keycloak instance.
-docker stop keycloak_dev
-docker rm keycloak_dev
+docker stop keycloak_dev && docker rm keycloak_dev
 
 # Remove the NATS and MySQL instances.
 # Warning, -v option remove the MySQL volume and you will lose all data.
@@ -94,7 +93,17 @@ tox -e cover,lint,secaudit
 
 
 
-## Run production server
+# Update API spec
+
+After updating the API spec, you must rebuild the `openapi.json` file with this command:
+
+```sh
+docker run --rm -v "$PWD/spec:/spec" -it jeanberu/swagger-cli swagger-cli bundle -o /spec/openapi.json /spec/index.yaml
+```
+
+
+
+# Run production server
 
 ```sh
 gunicorn --access-logfile - --bind 0.0.0.0:5000 -w 4 --preload wsgi:app
@@ -209,13 +218,7 @@ cd keycloak
 ./start.sh
 ```
 
-## Update API spec
 
-After updating the API spec, you must rebuild the `openapi.json` file with this command :
-
-```sh
-swagger-cli bundle -o spec/openapi.json spec/index.yaml
-```
 
 ```sh
 git clone git@github.com:gbarre/capsule-api.git && cd capsule-api
