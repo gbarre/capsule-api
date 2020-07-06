@@ -205,10 +205,12 @@ WebApp:
     tls_crt:
       type: string
       writeOnly: true
+      example: "Base 64 encoded pem crt"
     tls_key:
       type: string
       format: password
       writeOnly: true
+      example: "Base 64 encoded pem key"
     fqdns:
       type: array
       items:
@@ -302,10 +304,12 @@ WebAppInVerbose:
     tls_crt:
       type: string
       writeOnly: true
+      example: "Base 64 encoded pem crt"
     tls_key:
       type: string
       format: password
       writeOnly: true
+      example: "Base 64 encoded pem key"
     fqdns:
       type: array
       items:

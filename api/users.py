@@ -14,8 +14,11 @@ def search(offset, limit, filters):
     except InvalidRequestError:
         raise BadRequest
 
-    if not results:
-        raise NotFound(description="No users have been found.")
+    # Impossible since at least the admin (or superadmin) that is requesting
+    # must be in database. Even if it has been manually removed, the
+    # oidc_require_role decorator will recreate the user.
+    # if not results:
+    #     raise NotFound(description="No users have been found.")
 
     return users_schema.dump(results).data
 

@@ -10,7 +10,7 @@ from werkzeug.exceptions import NotFound, BadRequest, Forbidden, Conflict
 from sqlalchemy.exc import StatementError
 import base64
 import binascii
-from exceptions import NotRSACertificate, NotValidPEMFile
+from exceptions import NotValidPEMFile
 
 
 def _get_capsule(capsule_id, user):
@@ -91,8 +91,8 @@ def post(capsule_id, user, webapp_data=None):
             if not is_keycert_associated(str_key, str_cert):
                 raise BadRequest(description="The certificate and the key "
                                              "are not associated")
-            # TODO: look for cert length (> 4096) or better than RSA
-        except (NotRSACertificate, NotValidPEMFile):
+        # TODO: look for cert length (> 4096) or better than RSA
+        except NotValidPEMFile:
             raise BadRequest
 
     webapp = WebApp(**data, **newArgs)
@@ -142,10 +142,9 @@ def put(capsule_id, user):
 
     data = webapp_schema.load(webapp_data).data
 
+    webapp.env = None
     if "env" in webapp_data:
         webapp.env = webapp_data["env"]
-    else:
-        webapp.env = None
 
     if "fqdns" in data:
         fqdns = FQDN.create(data["fqdns"])
@@ -167,11 +166,15 @@ def put(capsule_id, user):
                          f"to '{new_fam}' is not possible")
     webapp.runtime_id = data["runtime_id"]
 
+    webapp.opts = []
     if "opts" in data:
         opts = Option.create(data["opts"], data["runtime_id"], user.role)
         webapp.opts = opts
-    else:
-        webapp.opts = None
+
+    if ("tls_key" in data and "tls_crt" not in data) or \
+            ("tls_crt" in data and "tls_key" not in data):
+        raise BadRequest(description="Both tls_crt and tls_key are "
+                                     "required together")
 
     if "tls_crt" in data and "tls_key" in data:
         try:
@@ -185,7 +188,7 @@ def put(capsule_id, user):
             if not is_keycert_associated(str_key, str_cert):
                 raise BadRequest(description="The certificate and the key "
                                              "are not associated")
-        except (NotRSACertificate, NotValidPEMFile):
+        except NotValidPEMFile:
             raise BadRequest
         webapp.tls_crt = data["tls_crt"]
         webapp.tls_key = data["tls_key"]
@@ -193,10 +196,9 @@ def put(capsule_id, user):
         webapp.tls_crt = None
         webapp.tls_key = None
 
+    webapp.tls_redirect_https = False
     if "tls_redirect_https" in data:
         webapp.tls_redirect_https = data["tls_redirect_https"]
-    else:
-        webapp.tls_redirect_https = False
 
     # TODO: implement cron in an other file
     # for attribute in ['cron_cmd', 'cron_schedule']:

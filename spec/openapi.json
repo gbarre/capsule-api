@@ -466,12 +466,14 @@
           },
           "tls_crt": {
             "type": "string",
-            "writeOnly": true
+            "writeOnly": true,
+            "example": "Base 64 encoded pem crt"
           },
           "tls_key": {
             "type": "string",
             "format": "password",
-            "writeOnly": true
+            "writeOnly": true,
+            "example": "Base 64 encoded pem key"
           },
           "fqdns": {
             "type": "array",
@@ -588,12 +590,14 @@
           },
           "tls_crt": {
             "type": "string",
-            "writeOnly": true
+            "writeOnly": true,
+            "example": "Base 64 encoded pem crt"
           },
           "tls_key": {
             "type": "string",
             "format": "password",
-            "writeOnly": true
+            "writeOnly": true,
+            "example": "Base 64 encoded pem key"
           },
           "fqdns": {
             "type": "array",
@@ -1092,9 +1096,6 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
           }
         }
       }
@@ -2208,9 +2209,6 @@
           "401": {
             "$ref": "#/components/responses/Unauthorized"
           },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
           "404": {
             "$ref": "#/components/responses/NotFound"
           }
@@ -2244,11 +2242,11 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
           }
         }
       }
@@ -2278,6 +2276,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
           }
         }
       }

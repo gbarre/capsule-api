@@ -9,9 +9,35 @@ import pytest
 class TestRuntimes:
     _runtime_input = {
         "name": "Runtime Test",
-        "runtime_type": "webapp",
+        "runtime_type": "addon",
         "desc": "test runtime",
         "fam": "test",
+        "uri_template": {
+            "pattern": "mysql://{test}:{password}@host:port/{test}",
+            "variables": [
+                {
+                    "length": 16,
+                    "name": "test",
+                    "src": "capsule",
+                    "unique": True
+                },
+                {
+                    "length": 32,
+                    "name": "password",
+                    "src": "random",
+                    "unique": False
+                }
+            ]
+        },
+        "available_opts": [
+            {
+                "access_level": "user",
+                "tag": "SQL",
+                "field_name": "minTest",
+                "value_type": "integer",
+                "field_description": "option description",
+            },
+        ],
     }
 
     #################################
@@ -24,7 +50,7 @@ class TestRuntimes:
             runtime_schema.dump(db.runtime2).data,
         ]
         with patch.object(oidc, 'validate_token', return_value=True), \
-             patch("utils.check_user_role", return_value=db.fake_user):
+             patch("utils.check_user_role", return_value=db.user1):
 
             res = testapp.get(
                 api_version + '/runtimes',
@@ -32,12 +58,50 @@ class TestRuntimes:
             ).json
             assert dict_contains(res, runtime_output)
 
+    # Response 400:
+    def test_get_bad_request(self, testapp, db):
+        with patch.object(oidc, 'validate_token', return_value=True), \
+             patch("utils.check_user_role", return_value=db.fake_user):
+
+            testapp.get(
+                api_version + '/runtimes?filters[foo]=bar',
+                status=400
+            )
+
     # Response 401:
     def test_get_with_no_token(self, testapp, db):
         testapp.get(
             api_version + '/runtimes',
             status=401
         )
+
+    # Response 404:
+    @pytest.mark.filterwarnings(
+        "ignore:.*Content-Type header found in a 204 response.*:Warning"
+    )
+    def test_get_not_found(self, testapp, db):
+        # Delete all runtimes in db
+        with patch.object(oidc, 'validate_token', return_value=True), \
+             patch("utils.check_user_role", return_value=db.superadmin_user):
+
+            testapp.delete(
+                api_version + "/runtimes/" + str(db.runtime1.id),
+                status=204
+            )
+            testapp.delete(
+                api_version + "/runtimes/" + str(db.runtime2.id),
+                status=204
+            )
+
+        # Ensure no runtime exists in db
+        with patch.object(oidc, 'validate_token', return_value=True), \
+             patch("utils.check_user_role", return_value=db.superadmin_user):
+
+            res = testapp.get(
+                api_version + '/runtimes',
+                status=404
+            ).json
+            assert "No runtimes have been found." in res['error_description']
     #################################
 
     #################################
@@ -54,6 +118,20 @@ class TestRuntimes:
                 status=201
             ).json
             assert dict_contains(res, self._runtime_input)
+
+    def test_create_without_options(self, testapp, db):
+        with patch.object(oidc, 'validate_token', return_value=True), \
+             patch("utils.check_user_role", return_value=db.superadmin_user):
+
+            new_runtime = dict(self._runtime_input)
+            new_runtime.pop('available_opts')
+
+            res = testapp.post_json(
+                api_version + '/runtimes',
+                new_runtime,
+                status=201
+            ).json
+            assert dict_contains(res, new_runtime)
 
     # Response 400:
     def test_create_bad_json_missing_name(self, testapp, db):
@@ -109,6 +187,20 @@ class TestRuntimes:
             ).json
             assert "'fam' is a required property" in res["error_description"]
 
+    def test_create_uri_random_unique(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.superadmin_user):
+
+            temp_input = dict(self._runtime_input)
+            temp_input.pop("runtime_type")
+            res = testapp.post_json(
+                api_version + "/runtimes",
+                temp_input,
+                status=400
+            ).json
+            msg = "'runtime_type' is a required property"
+            assert msg in res["error_description"]
+
     # Response 401:
     def test_create_with_no_token(self, testapp, db):
         testapp.post_json(
@@ -146,6 +238,19 @@ class TestRuntimes:
                 api_version + "/runtimes/" + runtime_id, status=200).json
             assert dict_contains(runtime, runtime_output)
 
+    # Response 400:
+    def test_get_bad_runtime(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.fake_user):
+
+            # Get the runtime id
+            res = testapp.get(
+                api_version + "/runtimes/" + bad_id,
+                status=400
+            ).json
+            msg = f"'{bad_id}' is not a valid id."
+            assert msg in res["error_description"]
+
     # Response 401:
     def test_get_runtime_unauthenticated(self, testapp, db):
         runtime_id = str(db.runtime1.id)
@@ -154,7 +259,7 @@ class TestRuntimes:
             api_version + "/runtimes/" + runtime_id, status=401)
 
     # Response 404:
-    def test_get_bad_runtime(self, testapp, db):
+    def test_get_unexisting_runtime(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.fake_user):
 
@@ -177,7 +282,7 @@ class TestRuntimes:
              patch("utils.check_user_role", return_value=db.superadmin_user):
 
             # Get the runtime id
-            runtime_id = str(db.runtime1.id)
+            runtime_id = str(db.runtime2.id)
 
             # Update this runtime by id
             temp_runtime = dict(self._runtime_input)
@@ -239,7 +344,7 @@ class TestRuntimes:
     # Testing DELETE /runtimes/rId
     #################################
 
-    # Response 204
+    # Response 204:
     @pytest.mark.filterwarnings(
         "ignore:.*Content-Type header found in a 204 response.*:Warning"
     )
@@ -264,7 +369,20 @@ class TestRuntimes:
                   "has not been found."
             assert msg in res["error_description"]
 
-    # Response 401
+    # Response 400:
+    def test_delete_bad_runtime(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.superadmin_user):
+
+            # Get the runtime id
+            res = testapp.delete(
+                api_version + "/runtimes/" + bad_id,
+                status=400
+            ).json
+            msg = f"'{bad_id}' is not a valid id."
+            assert msg in res["error_description"]
+
+    # Response 401:
     def test_delete_unauthenticated(self, testapp, db):
         runtime_id = str(db.runtime1.id)
         # Delete this runtime
@@ -284,4 +402,18 @@ class TestRuntimes:
                 api_version + "/runtimes/" + runtime_id,
                 status=403
             )
+
+    # Response 404:
+    def test_delete_unexisting_runtime(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.fake_user):
+
+            # Get the runtime id
+            res = testapp.delete(
+                api_version + "/runtimes/" + unexisting_id,
+                status=404
+            ).json
+            msg = f"The requested runtime '{unexisting_id}' "\
+                  "has not been found."
+            assert msg in res["error_description"]
     #################################

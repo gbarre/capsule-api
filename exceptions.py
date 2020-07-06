@@ -11,7 +11,8 @@ def render_exception(exception):
         code = exception.status
     else:
         if not isinstance(exception, werkzeug.exceptions.HTTPException):
-            exception = werkzeug.exceptions.InternalServerError()
+            exception = werkzeug.exceptions\
+                .InternalServerError()  # pragma: no cover
         error = f"{exception.code} {exception.name}"
         error_description = exception.description
         code = exception.code
@@ -31,15 +32,15 @@ class KeycloakUserNotFound(Exception):
 
 class KeycloakIdNotFound(Exception):
     def __init__(self, missing_id):
-        self.missing_id = missing_id
+        self.missing_id = missing_id  # pragma: no cover
 
 
 class ConfigError(Exception):
     pass
 
 
-class NotRSACertificate(Exception):
-    pass
+# class NotRSACertificate(Exception):
+#     pass
 
 
 class NotValidPEMFile(Exception):

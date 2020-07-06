@@ -3,7 +3,8 @@ import re
 from models import RoleEnum
 from models import User, AppToken
 from flask import current_app, g, request
-from exceptions import KeycloakUserNotFound, KeycloakIdNotFound
+from exceptions import KeycloakIdNotFound, KeycloakUserNotFound
+from exceptions import NotValidPEMFile
 from werkzeug.exceptions import BadRequest, Forbidden
 from werkzeug.exceptions import ServiceUnavailable
 from cryptography import x509
@@ -255,16 +256,23 @@ def valid_sshkey(public_key):
 
 
 def is_keycert_associated(str_key, str_cert):
-    issuer_public_key = load_pem_private_key(
-        str_key,
-        password=None,
-        backend=default_backend(),
-    ).public_key()
 
-    cert_to_check = x509.load_pem_x509_certificate(
-        str_cert,
-        default_backend(),
-    )
+    try:
+        issuer_public_key = load_pem_private_key(
+            str_key,
+            password=None,
+            backend=default_backend(),
+        ).public_key()
+    except ValueError:
+        raise NotValidPEMFile('The private key is not a valid PEM file')
+
+    try:
+        cert_to_check = x509.load_pem_x509_certificate(
+            str_cert,
+            default_backend(),
+        )
+    except ValueError:
+        raise NotValidPEMFile('The certificate is not a valid PEM file')
 
     try:
         issuer_public_key.verify(

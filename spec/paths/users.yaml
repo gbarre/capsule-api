@@ -9,12 +9,6 @@ get:
     - $ref: "../components/parameters.yaml#/limit"
     - $ref: "../components/parameters.yaml#/filters"
   responses:
-    "404":
-      $ref: "../components/responses.yaml#/NotFound"
-    "403":
-      $ref: "../components/responses.yaml#/Forbidden"
-    "401":
-      $ref: "../components/responses.yaml#/Unauthorized"
     "200":
       description: The requested users
       content:
@@ -23,3 +17,7 @@ get:
             type: array
             items:
               $ref: "../components/schemas.yaml#/User"
+    "401":
+      $ref: "../components/responses.yaml#/Unauthorized"
+    "403":
+      $ref: "../components/responses.yaml#/Forbidden"

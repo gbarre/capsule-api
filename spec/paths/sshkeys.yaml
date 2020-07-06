@@ -7,18 +7,16 @@ get:
     - $ref: "../components/parameters.yaml#/offset"
     - $ref: "../components/parameters.yaml#/limit"
   responses:
-    "404":
-      $ref: "../components/responses.yaml#/NotFound"
-    "403":
-      $ref: "../components/responses.yaml#/Forbidden"
-    "401":
-      $ref: "../components/responses.yaml#/Unauthorized"
     "200":
       description: The requested SSH keys
       content:
         application/json:
           schema:
             $ref: "../components/schemas.yaml#/SSHKey"
+    "401":
+      $ref: "../components/responses.yaml#/Unauthorized"
+    "404":
+      $ref: "../components/responses.yaml#/NotFound"
 
 
 post:
@@ -33,13 +31,13 @@ post:
         schema:
             $ref: "../components/schemas.yaml#/SSHKeyPost"
   responses:
-    "403":
-      $ref: "../components/responses.yaml#/Forbidden"
-    "401":
-      $ref: "../components/responses.yaml#/Unauthorized"
     "201":
       description: The updated user profile
       content:
         application/json:
           schema:
             $ref: "../components/schemas.yaml#/User"
+    "400":
+      $ref: "../components/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../components/responses.yaml#/Unauthorized"

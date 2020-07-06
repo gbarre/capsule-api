@@ -153,11 +153,13 @@ class Runtime(db.Model):
         "WebApp",
         backref="runtime",
         single_parent=True,
+        cascade="all, delete, delete-orphan",
     )
     addons = db.relationship(
         "AddOn",
         backref="runtime",
         single_parent=True,
+        cascade="all, delete, delete-orphan",
     )
     available_opts = db.relationship(
         "AvailableOption",
@@ -583,6 +585,20 @@ class RuntimeSchema(ma.SQLAlchemyAutoSchema):
     @pre_load()
     def __pre_load(self, data):
         if 'uri_template' in data and data['uri_template'] is not None:
+            # ensure uri_template is correct
+            variables = data['uri_template']['variables']
+            for variable in variables:
+                length = variable['length']
+                unique = variable['unique']
+                src = variable['src']
+                if unique and src == 'random':
+                    msg = "Uniqueness is not taken into account "\
+                          "for a random variable."
+                    raise BadRequest(description=msg)
+                if unique and length < 16 and src == 'capsule':
+                    msg = "Uniqueness of a variable required "\
+                          "a length greater or equal to 16."
+                    raise BadRequest(description=msg)
             # json / object =====================> string
             data['uri_template'] = json.dumps(data['uri_template'])
 

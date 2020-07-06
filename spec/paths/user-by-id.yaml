@@ -7,15 +7,15 @@ get:
   parameters:
     - $ref: "../components/parameters.yaml#/user_id"
   responses:
-    "404":
-      $ref: "../components/responses.yaml#/NotFound"
-    "403":
-      $ref: "../components/responses.yaml#/Forbidden"
-    "401":
-      $ref: "../components/responses.yaml#/Unauthorized"
     "200":
       description: The requested user
       content:
         application/json:
           schema:
               $ref: "../components/schemas.yaml#/User"
+    "401":
+      $ref: "../components/responses.yaml#/Unauthorized"
+    "403":
+      $ref: "../components/responses.yaml#/Forbidden"
+    "404":
+      $ref: "../components/responses.yaml#/NotFound"

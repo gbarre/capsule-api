@@ -5,7 +5,6 @@ from models import webapp_schema
 import json
 import pytest
 from nats import NATS
-# import base64
 
 
 #
@@ -265,43 +264,67 @@ class TestCapsuleWebapp:
             msg = "Both tls_crt and tls_key are required together"
             assert msg in res['error_description']
 
-# @pytest.mark.filterwarnings(
-#     "ignore:.*Content-Type header found in a 204 response.*:Warning"
-# )
-# def test_create_tls_key_not_b64(self, testapp, db):
-#     with patch.object(oidc, "validate_token", return_value=True), \
-#          patch("utils.check_user_role", return_value=db.user1), \
-#          patch.object(NATS, "publish_webapp_absent") as publish_method1, \
-#          patch.object(NATS, "publish_webapp_present") as publish_method2:
-#         capsule_id = str(db.capsule1.id)
+    @pytest.mark.filterwarnings(
+        "ignore:.*Content-Type header found in a 204 response.*:Warning"
+    )
+    def test_create_tls_key_not_b64(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch.object(NATS, "publish_webapp_absent") as publish_method1, \
+             patch.object(NATS, "publish_webapp_present") as publish_method2:
+            capsule_id = str(db.capsule1.id)
 
-#         # Remove existing webapp
-#         testapp.delete(
-#             api_version + '/capsules/' + capsule_id + '/webapp',
-#             status=204
-#         )
-#         publish_method1.assert_called_once
+            # Remove existing webapp
+            testapp.delete(
+                api_version + '/capsules/' + capsule_id + '/webapp',
+                status=204
+            )
+            publish_method1.assert_called_once
 
-#         # Create webapp
-#         new_webapp = self.build_webapp(db)
-# TODO: put non base64 encoded crt, the line below does not work yet
-#         new_webapp['tls_crt'] = base64.b64decode(
-#             self._webapp_input['tls_crt']
-#         )
+            # Create webapp
+            new_webapp = self.build_webapp(db)
+            new_webapp['tls_crt'] = "totot"
 
-#         res = testapp.post_json(
-#             api_version + '/capsules/' + capsule_id + '/webapp',
-#             new_webapp,
-#             status=400
-#         ).json
-#         publish_method2.assert_called_once
-#         msg = "'tls_crt' and 'tls_key' must be base64 encoded."
-#         assert msg in res['error_description']
+            res = testapp.post_json(
+                api_version + '/capsules/' + capsule_id + '/webapp',
+                new_webapp,
+                status=400
+            ).json
+            publish_method2.assert_called_once
+            msg = "'tls_crt' and 'tls_key' must be base64 encoded."
+            assert msg in res['error_description']
 
     @pytest.mark.filterwarnings(
         "ignore:.*Content-Type header found in a 204 response.*:Warning"
     )
-    def test_create_tls_cert_key_not_paired(self, testapp, db):
+    def test_create_tls_key_invalid(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch.object(NATS, "publish_webapp_absent") as publish_method1, \
+             patch.object(NATS, "publish_webapp_present"):
+            capsule_id = str(db.capsule1.id)
+
+            # Remove existing webapp
+            testapp.delete(
+                api_version + '/capsules/' + capsule_id + '/webapp',
+                status=204
+            )
+            publish_method1.assert_called_once
+
+            # Create webapp
+            new_webapp = self.build_webapp(db)
+            new_webapp['tls_crt'] = "toto"
+
+            testapp.post_json(
+                api_version + '/capsules/' + capsule_id + '/webapp',
+                new_webapp,
+                status=400
+            )
+
+    @pytest.mark.filterwarnings(
+        "ignore:.*Content-Type header found in a 204 response.*:Warning"
+    )
+    def test_create_tls_crt_key_not_paired(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.user1), \
              patch.object(NATS, "publish_webapp_absent") as publish_method1, \
@@ -476,6 +499,26 @@ class TestCapsuleWebapp:
             publish_method.assert_called_once
             assert dict_contains(res, current_webapp)
 
+    def test_update_with_tls(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch.object(NATS, "publish_webapp_present") as publish_method:
+
+            current_webapp = self.build_output(db)
+            current_webapp.pop('id')
+            current_webapp.pop('created_at')
+            current_webapp.pop('updated_at')
+            current_webapp['tls_crt'] = self._webapp_input['tls_crt']
+            current_webapp['tls_key'] = self._webapp_input['tls_key']
+
+            testapp.put_json(
+                api_version + '/capsules/' + capsule_id + '/webapp',
+                current_webapp,
+                status=200
+            )
+            publish_method.assert_called_once
+
     # Response 201:
     @pytest.mark.filterwarnings(
         "ignore:.*Content-Type header found in a 204 response.*:Warning"
@@ -509,16 +552,6 @@ class TestCapsuleWebapp:
             new_webapp.pop('tls_crt')
             assert dict_contains(res, new_webapp)
 
-    # Response 401:
-    def test_update_unauthenticated(self, testapp, db):
-        capsule_id = str(db.capsule1.id)
-        new_webapp = self.build_webapp(db)
-        testapp.put_json(
-            api_version + "/capsules/" + capsule_id + '/webapp',
-            new_webapp,
-            status=401
-        )
-
     # Response 400:
     def test_update_bad_request(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
@@ -529,6 +562,173 @@ class TestCapsuleWebapp:
                 self._webapp_input,
                 status=400
             )
+
+    def test_update_bad_runtime_id(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch.object(NATS, "publish_webapp_present"):
+
+            current_webapp = self.build_output(db)
+            current_webapp.pop('id')
+            current_webapp.pop('created_at')
+            current_webapp.pop('updated_at')
+            current_webapp["runtime_id"] = bad_id
+
+            res = testapp.put_json(
+                api_version + '/capsules/' + capsule_id + '/webapp',
+                current_webapp,
+                status=400
+            ).json
+            msg = f"'{bad_id}' is not a valid id."
+            assert msg in res['error_description']
+
+    def test_update_unexisting_runtime_id(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch.object(NATS, "publish_webapp_present"):
+
+            current_webapp = self.build_output(db)
+            current_webapp.pop('id')
+            current_webapp.pop('created_at')
+            current_webapp.pop('updated_at')
+            current_webapp["runtime_id"] = unexisting_id
+
+            res = testapp.put_json(
+                api_version + '/capsules/' + capsule_id + '/webapp',
+                current_webapp,
+                status=400
+            ).json
+            msg = f"'{unexisting_id}' does not exist."
+            assert msg in res['error_description']
+
+    def test_update_with_addon_runtime_id(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch.object(NATS, "publish_webapp_present"):
+
+            current_webapp = self.build_output(db)
+            current_webapp.pop('id')
+            current_webapp.pop('created_at')
+            current_webapp.pop('updated_at')
+            current_webapp["runtime_id"] = str(db.runtime2.id)
+
+            res = testapp.put_json(
+                api_version + '/capsules/' + capsule_id + '/webapp',
+                current_webapp,
+                status=400
+            ).json
+            assert "Changing runtime familly" in res['error_description']
+
+    def test_update_only_tls_crt(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch.object(NATS, "publish_webapp_present"):
+
+            current_webapp = self.build_output(db)
+            current_webapp.pop('id')
+            current_webapp.pop('created_at')
+            current_webapp.pop('updated_at')
+            current_webapp['tls_crt'] = self._webapp_input['tls_crt']
+
+            res = testapp.put_json(
+                api_version + '/capsules/' + capsule_id + '/webapp',
+                current_webapp,
+                status=400
+            ).json
+            msg = "Both tls_crt and tls_key are required together"
+            assert msg in res['error_description']
+
+    def test_update_tls_key_not_b64(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch.object(NATS, "publish_webapp_present"):
+
+            current_webapp = self.build_output(db)
+            current_webapp.pop('id')
+            current_webapp.pop('created_at')
+            current_webapp.pop('updated_at')
+            current_webapp['tls_crt'] = self._webapp_input['tls_crt']
+            current_webapp['tls_key'] = "totot"
+
+            res = testapp.put_json(
+                api_version + '/capsules/' + capsule_id + '/webapp',
+                current_webapp,
+                status=400
+            ).json
+            msg = "'tls_crt' and 'tls_key' must be base64 encoded."
+            assert msg in res['error_description']
+
+    def test_update_tls_key_invalid(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch.object(NATS, "publish_webapp_present"):
+
+            current_webapp = self.build_output(db)
+            current_webapp.pop('id')
+            current_webapp.pop('created_at')
+            current_webapp.pop('updated_at')
+            current_webapp['tls_crt'] = self._webapp_input['tls_crt']
+            current_webapp['tls_key'] = "toto"
+
+            testapp.put_json(
+                api_version + '/capsules/' + capsule_id + '/webapp',
+                current_webapp,
+                status=400
+            )
+
+    def test_update_tls_crt_key_not_paired(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch.object(NATS, "publish_webapp_present"):
+
+            webapp = self.build_output(db)
+            webapp.pop('id')
+            webapp.pop('created_at')
+            webapp.pop('updated_at')
+            webapp['tls_crt'] = self._webapp_input['tls_crt']
+            webapp['tls_key'] = "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1J"\
+                                "SUJWUUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVND"\
+                                "QVQ4d2dnRTdBZ0VBQWtFQTdDYktkdW55RmlqVm9V"\
+                                "R0gKWDRhS1Q5Y0Q1SWw5OERZSUFabm9TbGJHeFYy"\
+                                "WUlsVXhZZ1JvYjRGRThYYXV6SVlqZWNFM2J3Tmlj"\
+                                "TkRxOU5SUAoxUlJvU3dJREFRQUJBa0VBcm81aDNC"\
+                                "SkRrdU91UFp0TmNHdm5zdXB4Z3kycWZMUERxVU5W"\
+                                "dEJWK3FnV0FYNDhHCmlhUjA1YXlhY0JiNTJtb2ZO"\
+                                "b0lZU3RUZHk5WkpsZFh2MlIxSDJRSWhBUFlrUDZX"\
+                                "TW93Q3NYdWxiZlViTUl5cVQKSllEL1ZkUXU2SGo5"\
+                                "ZHNMVzNhMTNBaUVBOVp3Y2tFanRiVy9xWTJ5cG90"\
+                                "ZlJNYit3N1FsbVU3b3JGaWd0R1NrVApnTTBDSUZq"\
+                                "UUJZTVhkcTFFaE02UXEyaERPaUVmalBXNXE5OXV1"\
+                                "WVVHZDdhZnpzYkxBaUJ4N3EzdFhIY08rZ2h2CmdK"\
+                                "dWNWNkxLQWhNUGtmbXV3MEJ6Y2NXaDAwVWh6UUlo"\
+                                "QUkydnE0aFBFMVkrMFJGVkpxaEJnVGFrQ1Nsb1ly"\
+                                "SzUKcTdXS1BLYTJRZG4zCi0tLS0tRU5EIFBSSVZB"\
+                                "VEUgS0VZLS0tLS0K"
+
+            res = testapp.put_json(
+                api_version + '/capsules/' + capsule_id + '/webapp',
+                webapp,
+                status=400
+            ).json
+            msg = "The certificate and the key are not associated"
+            assert msg in res['error_description']
+
+    # Response 401:
+    def test_update_unauthenticated(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        new_webapp = self.build_webapp(db)
+        testapp.put_json(
+            api_version + "/capsules/" + capsule_id + '/webapp',
+            new_webapp,
+            status=401
+        )
 
     # Response 403:
     def test_update_bad_owner(self, testapp, db):

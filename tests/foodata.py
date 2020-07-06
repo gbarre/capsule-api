@@ -66,6 +66,12 @@ class DBFooData:
             available_opts=[
                 self.available_opt3,
             ],
+            uri_template='{"pattern": "mysql://{username}:{password}@'
+                         'host:port/{username}",'
+                         '"variables": [{"length": 16, "name": "username", '
+                         '"src": "capsule", "unique": true},{"length": 32, '
+                         '"name": "password", "src": "random","unique": false'
+                         '}]}',
         )
 
         self.fqdn1 = FQDN(

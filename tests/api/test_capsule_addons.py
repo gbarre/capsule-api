@@ -181,7 +181,8 @@ class TestCapsuleAddons:
 
             # Build addon with correct runtime_id but no name
             new_addon = self.build_addon(db)
-            new_addon['name'] = "My Addon - with bad characters!"
+            new_addon['name'] = "My Addon - with bad characters,"\
+                                " and also more than 64 chars, this is stupid!"
 
             res = testapp.post_json(
                 api_version + '/capsules/' + capsule_id + '/addons',

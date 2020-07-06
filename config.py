@@ -8,8 +8,8 @@ class YamlConfig:
         try:
             with open(config_file) as f:
                 config = yaml.full_load(f)
-        except FileNotFoundError:
-            raise ConfigError(f"File {config_file} not found.")
+        except FileNotFoundError:  # pragma: no cover
+            raise ConfigError(f"File {config_file} not found.")  # pragma: no cover
 
         try:
             api = config['api']
@@ -27,9 +27,10 @@ class YamlConfig:
             if nats_log_level in ['DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL']:
                 self.NATS_LOG_LEVEL = nats_log_level
             else:
-                raise ConfigError("Config file must have api>nats>log_level "
-                                  "with a value setted in ['DEBUG', 'INFO', "
-                                  "'WARN', 'ERROR', 'FATAL'].")
+                raise ConfigError("Config file must have "  # pragma: no cover
+                                  "api>nats>log_level with a value setted in "
+                                  "['DEBUG', 'INFO', 'WARN', "
+                                  "'ERROR', 'FATAL'].")
 
             sqlalc = api['sqlalchemy']
             self.SQLALCHEMY_ECHO = sqlalc['echo']
@@ -56,18 +57,18 @@ class YamlConfig:
 
             # Drivers
             self.DRIVERS = config['drivers']
-        except KeyError as e:
+        except KeyError as e:  # pragma: no cover
             raise ConfigError(f"The key `{e}` is not present in the YAML "
                               "configuration file.")
 
     def get_pubkey_from_driver(self, drivername):
-        try:
+        try:  # pragma: no cover
             driver = self.DRIVERS[drivername]
-        except KeyError as d:
+        except KeyError as d:  # pragma: no cover
             raise ConfigError(f"The driver `{d}` is not present in the YAML "
                               "configuration file.")
-        try:
+        try:  # pragma: no cover
             return driver['rsa_public_key']
-        except KeyError as e:
+        except KeyError as e:  # pragma: no cover
             raise ConfigError(f"The key `{e}` is not present in the YAML "
                               f"configuration file for the driver {driver}.")
