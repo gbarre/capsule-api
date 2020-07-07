@@ -92,6 +92,10 @@ class TestRuntimes:
                 api_version + "/runtimes/" + str(db.runtime2.id),
                 status=204
             )
+            testapp.delete(
+                api_version + "/runtimes/" + str(db.runtime3.id),
+                status=204
+            )
 
         # Ensure no runtime exists in db
         with patch.object(oidc, 'validate_token', return_value=True), \

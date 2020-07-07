@@ -8,9 +8,9 @@ api:
     track_modifications: false
   secret_key: 'somesecretormaybenot'
   admins:
-    - admin
+    - admin_user
   superadmins:
-    - superadmin
+    - superadmin_user
   oidc:
     client_secrets:
       web:

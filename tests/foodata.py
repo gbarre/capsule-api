@@ -2,6 +2,7 @@ from models import RuntimeTypeEnum, RoleEnum, OptionValueTypeEnum, FQDN
 from models import ValidationRuleEnum, User, Runtime
 from models import AvailableOption, AvailableOptionValidationRule, Option
 from models import AddOn, WebApp, SSHKey, Capsule, AppToken
+from hashlib import sha512
 
 
 class DBFooData:
@@ -74,6 +75,13 @@ class DBFooData:
                          '}]}',
         )
 
+        self.runtime3 = Runtime(
+            name="MariaDB 12.1",
+            desc="SQL server",
+            fam="SQL",
+            runtime_type=RuntimeTypeEnum.addon,
+        )
+
         self.fqdn1 = FQDN(
             name="main.fqdn.ac-versailles.fr",
             alias=False,
@@ -141,9 +149,11 @@ class DBFooData:
                        " phpseclib-generated-key"
         )
 
+        token = "KDCte1raIV-ItPQf-sf_tapY4q-kLmvlcJ9yUKPlqbo"
+        hashed_token = sha512(token.encode('ascii')).hexdigest()
         self.apptoken1 = AppToken(
             app="My super app",
-            token="KDCte1raIV-ItPQf-sf_tapY4q-kLmvlcJ9yUKPlqbo")
+            token=hashed_token)
 
         # Users.
         self.admin_user = User(

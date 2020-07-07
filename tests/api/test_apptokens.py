@@ -191,3 +191,15 @@ class TestAppToken:
                 status=404
             )
     #################################
+
+    #################################
+    # Use apptoken
+    #################################
+    def test_apptoken_usage(self, testapp, db):
+        token = "KDCte1raIV-ItPQf-sf_tapY4q-kLmvlcJ9yUKPlqbo"  # from foodata
+        headers = {'Authorization': f'Bearer: {token}'}
+        testapp.get(
+            api_version + '/apptokens',
+            headers=headers,
+            status=200
+        )

@@ -9,7 +9,7 @@ class YamlConfig:
             with open(config_file) as f:
                 config = yaml.full_load(f)
         except FileNotFoundError:  # pragma: no cover
-            raise ConfigError(f"File {config_file} not found.")  # pragma: no cover
+            raise ConfigError(f"File {config_file} not found.")
 
         try:
             api = config['api']
