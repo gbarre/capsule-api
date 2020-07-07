@@ -1,4 +1,6 @@
-# Run the capsule API server in the development environment
+# Capsule-API Documentation
+
+## Run the capsule API server in the development environment
 
 **Requirements** : to run the full stack, you need to install:
 
@@ -40,9 +42,7 @@ python -Wd server.py -c config-dev.yml
 **Remark:** if the server is running, you can view the API specification
 at the address [http://localhost:5000/v1/ui/](http://localhost:5000/v1/ui/).
 
-
-
-# To stop capsule API server and remove all docker instances
+## To stop capsule API server and remove all docker instances
 
 Type `CTRL+c` to stop the current execution of capsule-api server.
 Then, to remove all docker instances (keyloack, MySQL and NATS):
@@ -57,8 +57,7 @@ docker stop keycloak_dev && docker rm keycloak_dev
 docker-compose down -v
 ```
 
-
-# Database migration
+## Database migration
 
 ```sh
 # To add a new migration :
@@ -68,9 +67,7 @@ FLASK_APP=server.py CAPSULE_API_CONFIG=config-dev.yml python -m flask db migrate
 FLASK_APP=server.py CAPSULE_API_CONFIG=config-dev.yml python -m flask db upgrade
 ```
 
-
-
-# Run tests
+## Run tests
 
 ```sh
 # To list all "tox" tasks.
@@ -81,8 +78,11 @@ tox -e cover,lint,secaudit
 
 ### Normally, these commands are included in tox which is the only entry point for tests.
 
-    # Run test.
+    # Run tests.
     pytest -v
+
+    # Run tests faster
+    pytest -v -n12  # run 12 tests in parallel, really faster !
 
     # Run coverage (which runs tests too).
     coverage run -m pytest -v
@@ -91,9 +91,7 @@ tox -e cover,lint,secaudit
     coverage html
 ```
 
-
-
-# Update API specifications
+## Update API specifications
 
 After updating the API spec, you must rebuild the `openapi.json` file with this command:
 
@@ -101,27 +99,27 @@ After updating the API spec, you must rebuild the `openapi.json` file with this 
 docker run --rm -v "$PWD/spec:/spec" -it jeanberu/swagger-cli swagger-cli bundle -o /spec/openapi.json /spec/index.yaml
 ```
 
-
-
-# Run production server
+## Run production server
 
 ```sh
-gunicorn --access-logfile - --bind 0.0.0.0:5000 -w 4 --preload wsgi:app
+gunicorn --access-logfile - --bind 0.0.0.0:5000 -w 4 --preload server:app
 ```
 
+## Run the docker production server
 
+```sh
+docker run --rm \
+  -v $PWD/config.yml:/etc/capsule-api/config.yml \
+  --net=host \
+  -e WORKERS=8 \
+  -e DB_MIGRATE=upgrade \
+  --name capsule-api \
+  gbarre2/capsule-api
+```
 
--------------------------------------------------------------------------------
+## A few usefull commands
 
-
-
-## How to create a local and complete dev environment
-
-TODO...
-
-Docker compose with a Keykloak and how install it...
-
-Hack the code and create capsules and users...
+### Hack the code and create capsules and users
 
 ```sh
 curl --location --request POST 'http://localhost:5000/v1/capsules' \
@@ -130,7 +128,7 @@ curl --location --request POST 'http://localhost:5000/v1/capsules' \
     --data-raw '{ "name": "Test-Capsule-1", "owners": [ "userfoo", "userbar" ] }'
 ```
 
-## Get keycloak users
+### Get keycloak users
 
 ```sh
 #!/bin/sh
@@ -165,96 +163,12 @@ curl -s -X GET "${KEYCLOAK_URL}/admin/realms/${KEYCLOAK_REALM}/users/${FILTER}" 
 
 ```
 
-$ docker-compose exec db mysql -u root -p'XXXXX' capsule_local
+### Send Nats request to simulate a driver
+
+**Warning**: ensure all private/public keys are setted in the `config.ylm`.
 
 ```sh
-Reading table information for completion of table and column names
-You can turn off this feature to get a quicker startup with -A
-
-Welcome to the MariaDB monitor.  Commands end with ; or \g.
-Your MariaDB connection id is 16
-Server version: 10.1.44-MariaDB-1~bionic mariadb.org binary distribution
-
-Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
-
-Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
-
-MariaDB [capsule_local]> select * from users;
-+----------------------------------+----------+------+---------------------+---------------------+
-| id                               | name     | role | created_at          | updated_at          |
-+----------------------------------+----------+------+---------------------+---------------------+
-| d889ead765e24d3581bfe10c98d53f41 | flafont2 | user | 2020-05-13 13:21:12 | 2020-05-13 13:21:12 |
-| facb518592364fd7a2d7f07fe3cbb522 | gbarre2  | user | 2020-05-13 13:21:12 | 2020-05-13 13:21:12 |
-+----------------------------------+----------+------+---------------------+---------------------+
-2 rows in set (0.00 sec)
-
-MariaDB [capsule_local]> update users set role = 'superadmin' where name = 'flafont2';
-Query OK, 1 row affected (0.00 sec)
-Rows matched: 1  Changed: 1  Warnings: 0
-
-MariaDB [capsule_local]> update users set role = 'admin' where name = 'gbarre2';
-Query OK, 1 row affected (0.00 sec)
-Rows matched: 1  Changed: 1  Warnings: 0
-
-MariaDB [capsule_local]> select * from users;
-+----------------------------------+----------+------------+---------------------+---------------------+
-| id                               | name     | role       | created_at          | updated_at          |
-+----------------------------------+----------+------------+---------------------+---------------------+
-| d889ead765e24d3581bfe10c98d53f41 | flafont2 | superadmin | 2020-05-13 13:21:12 | 2020-05-13 13:21:12 |
-| facb518592364fd7a2d7f07fe3cbb522 | gbarre2  | admin      | 2020-05-13 13:21:12 | 2020-05-13 13:21:12 |
-+----------------------------------+----------+------------+---------------------+---------------------+
-2 rows in set (0.00 sec)
-
-MariaDB [capsule_local]> quit;
-Bye
-```
-
-## Use local Keycloak
-
-```sh
-## Ensure docker & jq are installed before !!
-
-cd keycloak
-./start.sh
-```
-
-
-
-```sh
-git clone git@github.com:gbarre/capsule-api.git && cd capsule-api
-
-# Virtual env Python.
-python3 -m venv venv
-. venv/bin/activate
-pip install --upgrade pip
-pip install --upgrade setuptools
-pip install tox
-pip install -r requirements.txt
-pip install -r test-requirements.txt
-
-docker stop $(docker ps -qa)
-docker rm $(docker ps -qa) # /!\ ONLY TO (RE)START FROM SCRATCH /!\
-
-# Run a docker instance
-./keycloak/start.sh
-vim config-local.yml # Adapt the json displayed by the previous command...
-
-# Run database which is currently empty without structure.
-cp .env.local .env
-docker-compose up -d
-
-# Set the database schema.
-FLASK_APP=server.py python -m flask db upgrade
-
-# You have to add some users in the database to have an available API.
-
-# Run the server.
-python server.py --config config-local.yml
-
-# Send Nats request to simulate a driver
 cd dev-tools
 python publish_msg.py --nats=localhost:4222 --subject="capsule.addon.ecea7683-92a8-4e2d-a846-be3c92f01308" --state="?list" --data='{}'
 python publish_msg.py --nats=localhost:4222 --subject="capsule.webapp" --state="?state" --data='{"id": "19129f93-b50c-4d06-9c96-d779d1dac467"}'
 ```
-
-

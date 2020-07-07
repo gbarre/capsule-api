@@ -423,6 +423,11 @@
       "Cron": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true,
+            "example": "9140f660-a8bf-4cca-b4e7-4db336e23d22"
+          },
           "minute": {
             "type": "string",
             "default": "0"
@@ -446,6 +451,18 @@
           "command": {
             "type": "string",
             "example": "/usr/bin/php /app/data/www/admin/cli/cron.php"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "example": "2017-07-21T17:32:28Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "example": "2020-03-17T15:32:28Z"
           }
         },
         "required": [
@@ -533,6 +550,13 @@
                   "example": "42"
                 }
               }
+            },
+            "default": []
+          },
+          "crons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Cron"
             },
             "default": []
           },
@@ -657,6 +681,13 @@
                   "example": "42"
                 }
               }
+            },
+            "default": []
+          },
+          "crons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Cron"
             },
             "default": []
           },
@@ -1641,6 +1672,229 @@
         "responses": {
           "204": {
             "description": "Successful deletion"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/capsules/{capsule_id}/webapp/crons": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "description": "Gets the crons of a webapp.\n",
+        "summary": "Get the crons of a webapp",
+        "operationId": "api.capsules.webapp.crons.search",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/capsule_id"
+          },
+          {
+            "$ref": "#/components/parameters/offset"
+          },
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/filters"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The requested crons of a webapp",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Cron"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "description": "Add a new cron to a webapp.\n",
+        "summary": "Add a cron to a webapp",
+        "operationId": "api.capsules.webapp.crons.post",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/capsule_id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Cron"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Cron added to the webapp",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cron"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/capsules/{capsule_id}/webapp/crons/{cron_id}": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "description": "Gets details about a cron for a webapp.\n",
+        "summary": "Get a cron for a webapp",
+        "operationId": "api.capsules.webapp.crons.get",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/capsule_id"
+          },
+          {
+            "$ref": "#/components/parameters/cron_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The requested cron for a webapp",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cron"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "user"
+        ],
+        "description": "Only updates a cron for a webapp.\\\nA **NotFound** error will be returned\nif the cron does not exist.\n",
+        "summary": "Update a cron for a webapp",
+        "operationId": "api.capsules.webapp.crons.put",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/capsule_id"
+          },
+          {
+            "$ref": "#/components/parameters/cron_id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Cron"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cron updated for the webapp",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cron"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "user"
+        ],
+        "description": "Deletes a cron for a webapp.\n",
+        "summary": "Delete a cron for a webapp",
+        "operationId": "api.capsules.webapp.crons.delete",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/capsule_id"
+          },
+          {
+            "$ref": "#/components/parameters/cron_id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful deletion"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"

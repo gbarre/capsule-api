@@ -171,6 +171,10 @@ UriVariables:
 Cron:
   type: object
   properties:
+    id:
+      type: string
+      readOnly: true
+      example: 9140f660-a8bf-4cca-b4e7-4db336e23d22
     minute:
       type: string
       default: "0"
@@ -189,6 +193,16 @@ Cron:
     command:
       type: string
       example: "/usr/bin/php /app/data/www/admin/cli/cron.php"
+    created_at:
+      type: string
+      format: date-time
+      readOnly: true
+      example : "2017-07-21T17:32:28Z"
+    updated_at:
+      type: string
+      format: date-time
+      readOnly: true
+      example : "2020-03-17T15:32:28Z"
   required:
     - command
 
@@ -253,11 +267,11 @@ WebApp:
             type: string # can be any value
             example: "42"
       default: []
-    # crons:
-    #   type: array
-    #   items:
-    #     $ref: "./schemas.yaml#/Cron"
-    #   default: []
+    crons:
+      type: array
+      items:
+        $ref: "./schemas.yaml#/Cron"
+      default: []
     quota:
       description: quota obtained from the capsule declaration
       type: object
@@ -352,11 +366,11 @@ WebAppInVerbose:
             type: string # can be any value
             example: "42"
       default: []
-    # crons:
-    #   type: array
-    #   items:
-    #     $ref: "./schemas.yaml#/Cron"
-    #   default: []
+    crons:
+      type: array
+      items:
+        $ref: "./schemas.yaml#/Cron"
+      default: []
     quota:
       description: quota obtained from the capsule declaration
       type: object

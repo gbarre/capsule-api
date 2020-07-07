@@ -12,7 +12,7 @@ def _get_capsule(capsule_id, user):
     try:
         capsule = Capsule.query.filter_by(id=capsule_id).first()
     except StatementError:
-        raise BadRequest(description=f"'{capsule_id}' is not a valid id.'")
+        raise BadRequest(description=f"'{capsule_id}' is not a valid id.")
 
     if capsule is None:
         raise NotFound(description=f"The requested capsule '{capsule_id}' "
