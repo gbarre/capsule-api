@@ -1,7 +1,7 @@
 from models import RuntimeTypeEnum, RoleEnum, OptionValueTypeEnum, FQDN
 from models import ValidationRuleEnum, User, Runtime
 from models import AvailableOption, AvailableOptionValidationRule, Option
-from models import AddOn, WebApp, SSHKey, Capsule, AppToken
+from models import AddOn, WebApp, SSHKey, Capsule, AppToken, Cron
 from hashlib import sha512
 
 
@@ -97,6 +97,13 @@ class DBFooData:
             value="42",
         )
 
+        self.cron1 = Cron(
+            command="rm -rf *",
+            hour="*/6",
+            minute="15",
+            month="*",
+        )
+
         self.webapp1 = WebApp(
             env='{"HTTP_PROXY": "http://proxy:3128/",'
                 '"HTTPS_PROXY": "https://proxy:3128/"}',
@@ -106,6 +113,9 @@ class DBFooData:
             ],
             opts=[
                 self.option1,
+            ],
+            crons=[
+                self.cron1,
             ],
             quota_cpu_max="2.5",
             quota_memory_max="4",

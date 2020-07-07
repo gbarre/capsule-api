@@ -58,7 +58,7 @@ def delete(apptoken_id, user):
     try:
         apptoken = AppToken.query.get(apptoken_id)
     except StatementError:
-        raise BadRequest(description=f"'{apptoken_id}' is not a valid id.'")
+        raise BadRequest(description=f"'{apptoken_id}' is not a valid id.")
 
     if apptoken is None:
         raise NotFound(description=f"The requested apptoken '{apptoken_id}' "

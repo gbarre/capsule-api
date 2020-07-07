@@ -340,6 +340,12 @@ class WebApp(db.Model):
         cascade="all, delete, delete-orphan",
         single_parent=True,
     )
+    crons = db.relationship(
+        "Cron",
+        backref="webapp",
+        cascade="all, delete, delete-orphan",
+        single_parent=True,
+    )
     quota_volume_size = db.Column(db.String(256))
     quota_memory_max = db.Column(db.String(256))
     quota_cpu_max = db.Column(db.String(256))
@@ -547,6 +553,25 @@ class AppToken(db.Model):
     )
 
 
+class Cron(db.Model):
+    __tablename__ = "crons"
+    id = db.Column(GUID, nullable=False, unique=True,
+                   default=uuid.uuid4, primary_key=True)
+    webapp_id = db.Column(GUID, db.ForeignKey('webapps.id'))
+    command = db.Column(db.String(256), nullable=False)
+    hour = db.Column(db.String(256), default="*")
+    minute = db.Column(db.String(256), default="0")
+    month = db.Column(db.String(256), default="*")
+    month_day = db.Column(db.String(256), default="*")
+    week_day = db.Column(db.String(256), default="*")
+    created_at = db.Column(
+        db.DateTime, default=datetime.utcnow
+    )
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+
 class RuntimeSchema(ma.SQLAlchemyAutoSchema):
     def __init__(self, **kwargs):
         super().__init__(strict=True, **kwargs)
@@ -639,9 +664,9 @@ class WebAppSchema(ma.SQLAlchemyAutoSchema):
 
     class Meta:
         model = WebApp
-        # include_relationships = True
+        include_relationships = True
         include_fk = True
-        # exclude = ('runtime',)
+        exclude = ('runtime',)
         sqla_session = db.session
 
     id = ma.auto_field(dump_only=True)
@@ -651,6 +676,12 @@ class WebAppSchema(ma.SQLAlchemyAutoSchema):
         default=[],
         many=True,
         only=('tag', 'field_name', 'value'),
+    )
+    crons = fields.Nested(
+        "CronSchema",
+        default=[],
+        many=True,
+        exclude=('id', 'created_at', 'updated_at'),
     )
     tls_crt = ma.auto_field(load_only=True)
     tls_key = ma.auto_field(load_only=True)
@@ -690,7 +721,12 @@ class WebAppNatsSchema(ma.SQLAlchemyAutoSchema):
         many=True,
         only=('tag', 'field_name', 'value'),
     )
-
+    crons = fields.Nested(
+        "CronSchema",
+        default=[],
+        many=True,
+        exclude=('id', 'created_at', 'updated_at'),
+    )
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
 
@@ -943,6 +979,19 @@ class AppTokenSchema(ma.SQLAlchemyAutoSchema):
     updated_at = ma.auto_field(dump_only=True)
 
 
+class CronSchema(ma.SQLAlchemyAutoSchema):
+    def __init__(self, **kwargs):
+        super().__init__(strict=True, **kwargs)
+
+    class Meta:
+        model = Cron
+        sqla_session = db.session
+
+    id = ma.auto_field(dump_only=True)
+    created_at = ma.auto_field(dump_only=True)
+    updated_at = ma.auto_field(dump_only=True)
+
+
 capsule_input_schema = CapsuleInputSchema()
 capsule_output_schema = CapsuleOutputSchema()
 capsules_output_schema = CapsuleOutputSchema(many=True)
@@ -960,3 +1009,5 @@ addon_schema = AddOnSchema()
 addons_schema = AddOnSchema(many=True)
 apptoken_schema = AppTokenSchema()
 apptokens_schema = AppTokenSchema(many=True)
+cron_schema = CronSchema()
+crons_schema = CronSchema(many=True)
