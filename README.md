@@ -81,7 +81,7 @@ tox -e cover,lint,secaudit
     # Run tests.
     pytest -v
 
-    # Run tests faster
+    # Run tests with 12 workers
     pytest -v -n12  # run 12 tests in parallel, really faster !
 
     # Run coverage (which runs tests too).
@@ -89,6 +89,9 @@ tox -e cover,lint,secaudit
     # Then:
     coverage report -m
     coverage html
+
+    # Run tests with coverage, reports and 12 workers
+    pytest -v -n8 --cov=. --cov-report html --cov-report term tests/
 ```
 
 ## Update API specifications
