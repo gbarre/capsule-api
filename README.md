@@ -1,6 +1,5 @@
 # Capsule-API Documentation [![pipeline status](https://git.in.ac-versailles.fr/system/capsule-api/badges/master/pipeline.svg)](https://git.in.ac-versailles.fr/system/capsule-api/commits/master) [![coverage report](https://git.in.ac-versailles.fr/system/capsule-api/badges/master/coverage.svg)](https://git.in.ac-versailles.fr/system/capsule-api/commits/master)
 
-
 ## Run the capsule API server in the development environment
 
 **Requirements** : to run the full stack, you need to install:
