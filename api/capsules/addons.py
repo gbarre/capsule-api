@@ -159,20 +159,8 @@ def put(capsule_id, addon_id, user):
         raise BadRequest(description=msg)
     addon.name = data["name"]
 
-    # Ensure new runtime_id has same familly
-    new_runtime_id = str(data["runtime_id"])
-    try:
-        new_runtime = Runtime.query.get(new_runtime_id)
-    except StatementError:
-        raise BadRequest(description=f"'{new_runtime_id}' is not a valid id.")
-    if new_runtime is None:
-        raise BadRequest(description=f"The runtime_id '{new_runtime_id}' "
-                         "does not exist.")
-    new_fam = new_runtime.fam
-    old_fam = addon.runtime.fam
-    if new_fam is not old_fam:
-        raise BadRequest(f"Changing runtime familly from '{old_fam}' "
-                         f"to '{new_fam}' is not possible")
+    if data["runtime_id"] != str(addon.runtime_id):
+        raise BadRequest(description="The runtime_id cannot be changed.")
     addon.runtime_id = data["runtime_id"]
 
     addon.env = data["env"]

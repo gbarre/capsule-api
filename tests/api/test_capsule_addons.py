@@ -387,26 +387,7 @@ class TestCapsuleAddons:
             msg = "'runtime_id' is a required property"
             assert msg in res["error_description"]
 
-    def test_update_invalid_runtime_id(self, testapp, db):
-        capsule_id = str(db.capsule1.id)
-        addon_id = str(db.addon1.id)
-        with patch.object(oidc, 'validate_token', return_value=True), \
-             patch("utils.check_user_role", return_value=db.user1):
-
-            new_addon = self.build_addon(db)
-            new_addon['runtime_id'] = bad_id
-            from pprint import pprint
-            pprint(new_addon)
-
-            res = testapp.put_json(
-                f"{api_version}/capsules/{capsule_id}/addons/{addon_id}",
-                new_addon,
-                status=400
-            ).json
-            msg = f"'{bad_id}' is not a valid id."
-            assert msg in res["error_description"]
-
-    def test_update_unexisting_runtime_id(self, testapp, db):
+    def test_update_change_runtime_id(self, testapp, db):
         capsule_id = str(db.capsule1.id)
         addon_id = str(db.addon1.id)
         with patch.object(oidc, 'validate_token', return_value=True), \
@@ -420,24 +401,8 @@ class TestCapsuleAddons:
                 new_addon,
                 status=400
             ).json
-            msg = f"The runtime_id '{unexisting_id}' does not exist."
+            msg = "The runtime_id cannot be changed."
             assert msg in res["error_description"]
-
-    def test_update_with_webapp_runtime_id(self, testapp, db):
-        capsule_id = str(db.capsule1.id)
-        addon_id = str(db.addon1.id)
-        with patch.object(oidc, 'validate_token', return_value=True), \
-             patch("utils.check_user_role", return_value=db.user1):
-
-            new_addon = self.build_addon(db)
-            new_addon['runtime_id'] = str(db.runtime1.id)
-
-            res = testapp.put_json(
-                f"{api_version}/capsules/{capsule_id}/addons/{addon_id}",
-                new_addon,
-                status=400
-            ).json
-            assert "Changing runtime familly" in res["error_description"]
 
     def test_update_missing_name(self, testapp, db):
         capsule_id = str(db.capsule1.id)
