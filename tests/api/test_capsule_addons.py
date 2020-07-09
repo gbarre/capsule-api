@@ -16,7 +16,7 @@ class TestCapsuleAddons:
             "REDIS_SERVER_HOST": "my-redis-host",
             "REDIS_SERVER_PORT": "6379",
         },
-        "name": "redis-1",
+        "name": "redis-2",
         "opts": [
             {
                 "tag": "SQL",
@@ -209,6 +209,24 @@ class TestCapsuleAddons:
                 status=400
             ).json
             assert "invalid" in res["error_description"]
+
+    def test_create_duplicate_name(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, 'validate_token', return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1):
+
+            # Build addon with correct runtime_id but no name
+            new_addon = self.build_addon(db)
+            addon1_name = db.addon1.name
+            new_addon['name'] = addon1_name
+
+            res = testapp.post_json(
+                api_version + '/capsules/' + capsule_id + '/addons',
+                new_addon,
+                status=400
+            ).json
+            msg = f"This capsule already have an addon named '{addon1_name}'."
+            assert msg in res["error_description"]
 
     # Response 401:
     def test_create_with_no_token(self, testapp, db):

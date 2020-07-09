@@ -41,6 +41,21 @@ def post(capsule_id, user, addon_data=None):
 
     data = addon_schema.load(addon_data).data
 
+    addon_name = data['name']
+    if not is_valid_name(addon_name):
+        msg = f'The addon name "{addon_name}" is invalid: only lowercase '\
+            'alphanumeric characters or "-" are allowed, the first and the '\
+            'last characters must be alphanumeric, the name must have at '\
+            'least 2 characters and less than 64 characters.'
+        raise BadRequest(description=msg)
+
+    # Ensure the addon name is unique for this capsule
+    capsule_addons = AddOn.query.filter_by(capsule_id=capsule.id).all()
+    for addon in capsule_addons:
+        if addon.name == addon_name:
+            raise BadRequest(description="This capsule already have an "
+                             f"addon named '{addon_name}'.")
+
     runtime_id = data["runtime_id"]
     runtime = Runtime.query.get(runtime_id)
 
@@ -59,14 +74,6 @@ def post(capsule_id, user, addon_data=None):
         addon = AddOn(**data, opts=opts)
     else:
         addon = AddOn(**data)
-
-    addon_name = data['name']
-    if not is_valid_name(addon_name):
-        msg = f'The addon name "{addon_name}" is invalid: only lowercase '\
-            'alphanumeric characters or "-" are allowed, the first and the '\
-            'last characters must be alphanumeric, the name must have at '\
-            'least 2 characters and less than 64 characters.'
-        raise BadRequest(description=msg)
 
     addon.uri = runtime.generate_uri(capsule)
 

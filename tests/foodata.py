@@ -129,7 +129,7 @@ class DBFooData:
             description="Service de base de données pour ma capsule",
             env='{"HTTP_PROXY": "http://proxy:3128/", '
                 '"HTTPS_PROXY": "https://proxy:3128/"}',
-            name="MySQL-1",
+            name="mysql-1",
             opts=[],
             # "runtime_id": "10f6e1d7-2976-43e4-a4a5-bab833cb3241",
             runtime=self.runtime2,
