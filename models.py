@@ -410,11 +410,17 @@ class Option(db.Model):
                             raise BadRequest(description=f"'{opt_name}' must "
                                              f"match python regex {rule.arg}")
                     elif rule.type == ValidationRuleEnum.min\
-                            and opt_value < rule.arg:
+                            and __class__.is_less_than(
+                                option_value_type=available_opt.value_type,
+                                option_value=opt_value,
+                                rule_value=rule.arg):
                         raise BadRequest(description=f"'{opt_name}' cannot be "
                                          f"less than {rule.arg}")
                     elif rule.type == ValidationRuleEnum.max\
-                            and opt_value > rule.arg:
+                            and __class__.is_greater_than(
+                                option_value_type=available_opt.value_type,
+                                option_value=opt_value,
+                                rule_value=rule.arg):
                         raise BadRequest(description=f"'{opt_name}' cannot be "
                                          f"greater than {rule.arg}")
                     elif rule.type == ValidationRuleEnum.eq\
@@ -437,6 +443,42 @@ class Option(db.Model):
 
             opts_array.append(Option(**opt))
         return opts_array
+
+    @staticmethod
+    def is_less_than(option_value_type, option_value, rule_value):
+        if option_value_type is OptionValueTypeEnum.integer:
+            try:
+                return int(option_value) < int(rule_value)
+            except ValueError:
+                raise BadRequest(description=f"'{option_value}' is not "
+                                 "an integer")
+        elif option_value_type is OptionValueTypeEnum.float:
+            try:
+                return float(option_value) < float(rule_value)
+            except ValueError:
+                raise BadRequest(description=f"'{option_value}' is not "
+                                 "a float")
+        else:
+            raise BadRequest(description="Something went wrong while "
+                             "convert string...")
+
+    @staticmethod
+    def is_greater_than(option_value_type, option_value, rule_value):
+        if option_value_type is OptionValueTypeEnum.integer:
+            try:
+                return int(option_value) > int(rule_value)
+            except ValueError:
+                raise BadRequest(description=f"'{option_value}' is not "
+                                 "an integer")
+        elif option_value_type is OptionValueTypeEnum.float:
+            try:
+                return float(option_value) > float(rule_value)
+            except ValueError:
+                raise BadRequest(description=f"'{option_value}' is not "
+                                 "a float")
+        else:
+            raise BadRequest(description="Something went wrong while "
+                             "convert string...")
 
 
 class FQDN(db.Model):
