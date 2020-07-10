@@ -36,6 +36,12 @@ class TestRuntimes:
                 "field_name": "minTest",
                 "value_type": "integer",
                 "field_description": "option description",
+                "validation_rules": [
+                    {
+                        "type": "max",
+                        "arg": "10",
+                    },
+                ],
             },
         ],
     }
@@ -84,18 +90,11 @@ class TestRuntimes:
         with patch.object(oidc, 'validate_token', return_value=True), \
              patch("utils.check_user_role", return_value=db.superadmin_user):
 
-            testapp.delete(
-                api_version + "/runtimes/" + str(db.runtime1.id),
-                status=204
-            )
-            testapp.delete(
-                api_version + "/runtimes/" + str(db.runtime2.id),
-                status=204
-            )
-            testapp.delete(
-                api_version + "/runtimes/" + str(db.runtime3.id),
-                status=204
-            )
+            for runtime in db.runtimes:
+                testapp.delete(
+                    api_version + "/runtimes/" + str(runtime.id),
+                    status=204
+                )
 
         # Ensure no runtime exists in db
         with patch.object(oidc, 'validate_token', return_value=True), \
@@ -129,6 +128,20 @@ class TestRuntimes:
 
             new_runtime = dict(self._runtime_input)
             new_runtime.pop('available_opts')
+
+            res = testapp.post_json(
+                api_version + '/runtimes',
+                new_runtime,
+                status=201
+            ).json
+            assert dict_contains(res, new_runtime)
+
+    def test_create_without_rules(self, testapp, db):
+        with patch.object(oidc, 'validate_token', return_value=True), \
+             patch("utils.check_user_role", return_value=db.superadmin_user):
+
+            new_runtime = dict(self._runtime_input)
+            new_runtime['available_opts'][0].pop('validation_rules')
 
             res = testapp.post_json(
                 api_version + '/runtimes',

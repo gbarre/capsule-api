@@ -1,0 +1,3 @@
+[run]
+source=.
+omit=./.tox/*,./venv/*,tests/*,server.py,nats/*

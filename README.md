@@ -1,4 +1,11 @@
-# Capsule-API Documentation [![pipeline status](https://git.in.ac-versailles.fr/system/capsule-api/badges/master/pipeline.svg)](https://git.in.ac-versailles.fr/system/capsule-api/commits/master) [![coverage report](https://git.in.ac-versailles.fr/system/capsule-api/badges/master/coverage.svg)](https://git.in.ac-versailles.fr/system/capsule-api/commits/master)
+# Capsule-API Documentation
+
+![python versions](https://img.shields.io/badge/Python-3.6%20%7C%203.7%20%7C%203.8-blue.svg)
+
+| CI | Pipeline / build | Coverage |
+|----|------------------|----------|
+| Gitlab (internal) | [![pipeline status](https://git.in.ac-versailles.fr/system/capsule-api/badges/master/pipeline.svg)](https://git.in.ac-versailles.fr/system/capsule-api/commits/master) | [![coverage report](https://git.in.ac-versailles.fr/system/capsule-api/badges/master/coverage.svg)](https://git.in.ac-versailles.fr/system/capsule-api/commits/master) |
+| Github (travis) | [![Build Status](https://travis-ci.com/gbarre/capsule-api.svg?branch=master)](https://travis-ci.com/gbarre/capsule-api) | N/A |
 
 ## Run the capsule API server in the development environment
 
