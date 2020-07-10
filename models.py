@@ -223,7 +223,7 @@ class Runtime(db.Model):
                     .filter_by(runtime_id=self.id)\
                     .filter(AddOn.uri.like(f"%{res}%")).one_or_none()
                 if addon is not None:
-                    return self._generate_variable(
+                    return self._generate_variable(  # pragma: no cover
                         src=src,
                         length=length,
                         unique=unique,
@@ -435,7 +435,7 @@ class Option(db.Model):
                     # elif rule.type == ValidationRuleEnum.format:
                     #     opt_value must be base64 encoded
                     #     and opt_value is not rule.arg
-                        raise BadRequest
+                    #     raise BadRequest
                     elif rule.type == ValidationRuleEnum.into\
                             and opt_value not in rule.arg:
                         raise BadRequest(description=f"'{opt_name}' must be "
@@ -449,16 +449,17 @@ class Option(db.Model):
         if option_value_type is OptionValueTypeEnum.integer:
             try:
                 return int(option_value) < int(rule_value)
-            except ValueError:
+            except ValueError:  # pragma: no cover
                 raise BadRequest(description=f"'{option_value}' is not "
                                  "an integer")
-        elif option_value_type is OptionValueTypeEnum.float:
+        elif option_value_type \
+                is OptionValueTypeEnum.float:  # pragma: no cover
             try:
                 return float(option_value) < float(rule_value)
             except ValueError:
                 raise BadRequest(description=f"'{option_value}' is not "
                                  "a float")
-        else:
+        else:  # pragma: no cover
             raise BadRequest(description="Something went wrong while "
                              "convert string...")
 
@@ -467,16 +468,17 @@ class Option(db.Model):
         if option_value_type is OptionValueTypeEnum.integer:
             try:
                 return int(option_value) > int(rule_value)
-            except ValueError:
+            except ValueError:  # pragma: no cover
                 raise BadRequest(description=f"'{option_value}' is not "
                                  "an integer")
-        elif option_value_type is OptionValueTypeEnum.float:
+        elif option_value_type \
+                is OptionValueTypeEnum.float:  # pragma: no cover
             try:
                 return float(option_value) > float(rule_value)
-            except ValueError:
+            except ValueError:  # pragma: no cover
                 raise BadRequest(description=f"'{option_value}' is not "
                                  "a float")
-        else:
+        else:  # pragma: no cover
             raise BadRequest(description="Something went wrong while "
                              "convert string...")
 

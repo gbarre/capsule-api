@@ -89,5 +89,6 @@ encoded_signature = base64.b64encode(signature)
 response = encoded_signature + b'^' + json_bytes
 
 msg = response.decode('utf-8')
-cmd = f"./nats-basic-pub -s nats://{args.nats} '{args.subject}' '{msg}'"
+cwd = os.path.dirname(os.path.realpath(__file__))
+cmd = f"{cwd}/nats-basic-pub -s nats://{args.nats} '{args.subject}' '{msg}'"
 os.system(cmd)

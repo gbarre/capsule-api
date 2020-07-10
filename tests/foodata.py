@@ -9,6 +9,51 @@ class DBFooData:
 
     def __init__(self, db):
 
+        self.validation_rule1 = AvailableOptionValidationRule(
+            type=ValidationRuleEnum.min,
+            arg="1",
+        )
+
+        self.validation_rule2 = AvailableOptionValidationRule(
+            type=ValidationRuleEnum.max,
+            arg="42",
+        )
+
+        self.validation_rule1bis = AvailableOptionValidationRule(
+            type=ValidationRuleEnum.min,
+            arg="1",
+        )
+
+        self.validation_rule2bis = AvailableOptionValidationRule(
+            type=ValidationRuleEnum.max,
+            arg="42",
+        )
+
+        self.validation_rule3 = AvailableOptionValidationRule(
+            type=ValidationRuleEnum.regex,
+            arg="^[a-z0-9][-a-z0-9]*[a-z0-9]$",
+        )
+
+        self.validation_rule4 = AvailableOptionValidationRule(
+            type=ValidationRuleEnum.eq,
+            arg="foobar",
+        )
+
+        self.validation_rule5 = AvailableOptionValidationRule(
+            type=ValidationRuleEnum.neq,
+            arg="barfoo",
+        )
+
+        self.validation_rule6 = AvailableOptionValidationRule(
+            type=ValidationRuleEnum.format,
+            arg="json",
+        )
+
+        self.validation_rule7 = AvailableOptionValidationRule(
+            type=ValidationRuleEnum.into,
+            arg="[a, b, c]",
+        )
+
         self.available_opt1 = AvailableOption(
             access_level=RoleEnum.user,
             tag="Apache",
@@ -16,15 +61,6 @@ class DBFooData:
             value_type=OptionValueTypeEnum.file,
             field_description="Apache2 vhost configuration file.",
             default_value="",
-        )
-
-        self.validation_rule1 = AvailableOptionValidationRule(
-            type=ValidationRuleEnum.min,
-            arg="1",
-        )
-        self.validation_rule2 = AvailableOptionValidationRule(
-            type=ValidationRuleEnum.max,
-            arg="42",
         )
 
         self.available_opt2 = AvailableOption(
@@ -40,12 +76,80 @@ class DBFooData:
             ],
         )
 
+        self.available_opt2bis = AvailableOption(
+            access_level=RoleEnum.user,
+            tag="PHP",
+            field_name="test_min_max",
+            value_type=OptionValueTypeEnum.integer,
+            field_description="Test min and max option rules",
+            default_value="6",
+            validation_rules=[
+                self.validation_rule1bis,
+                self.validation_rule2bis,
+            ],
+        )
+
         self.available_opt3 = AvailableOption(
             access_level=RoleEnum.user,
             tag="SQL",
             field_name="my.cnf",
             value_type=OptionValueTypeEnum.file,
             field_description="MySQL configuration file.",
+        )
+
+        self.available_opt4 = AvailableOption(
+            access_level=RoleEnum.admin,
+            tag="PHP",
+            field_name="test_regex",
+            value_type=OptionValueTypeEnum.string,
+            field_description="Test regex option rule",
+            validation_rules=[
+                self.validation_rule3,
+            ]
+        )
+
+        self.available_opt5 = AvailableOption(
+            access_level=RoleEnum.admin,
+            tag="PHP",
+            field_name="test_eq",
+            value_type=OptionValueTypeEnum.string,
+            field_description="Test eq option rule",
+            validation_rules=[
+                self.validation_rule4,
+            ]
+        )
+
+        self.available_opt6 = AvailableOption(
+            access_level=RoleEnum.admin,
+            tag="PHP",
+            field_name="test_neq",
+            value_type=OptionValueTypeEnum.string,
+            field_description="Test neq option rule",
+            validation_rules=[
+                self.validation_rule5,
+            ]
+        )
+
+        self.available_opt7 = AvailableOption(
+            access_level=RoleEnum.admin,
+            tag="PHP",
+            field_name="test_format",
+            value_type=OptionValueTypeEnum.string,
+            field_description="Test format option rule",
+            validation_rules=[
+                self.validation_rule6,
+            ]
+        )
+
+        self.available_opt8 = AvailableOption(
+            access_level=RoleEnum.admin,
+            tag="PHP",
+            field_name="test_into",
+            value_type=OptionValueTypeEnum.string,
+            field_description="Test into option rule",
+            validation_rules=[
+                self.validation_rule7,
+            ]
         )
 
         self.runtime1 = Runtime(
@@ -80,6 +184,21 @@ class DBFooData:
             desc="SQL server",
             fam="SQL",
             runtime_type=RuntimeTypeEnum.addon,
+        )
+
+        self.runtime4 = Runtime(
+            name="apache-3.1 php-9.3.x",
+            desc="Stack web futuriste Apache 3.1 + PHP 9.3.x",
+            fam="Apache PHP",
+            runtime_type=RuntimeTypeEnum.webapp,
+            available_opts=[
+                self.available_opt2bis,
+                self.available_opt4,
+                self.available_opt5,
+                self.available_opt6,
+                self.available_opt7,
+                self.available_opt8,
+            ],
         )
 
         self.fqdn1 = FQDN(
@@ -216,4 +335,11 @@ class DBFooData:
             self.user1,
             self.user2,
             self.user3,
+        ]
+
+        self.runtimes = [
+            self.runtime1,
+            self.runtime2,
+            self.runtime3,
+            self.runtime4,
         ]

@@ -41,7 +41,7 @@ def is_valid_name(name):
         return False
 
 
-def check_owners_on_keycloak(usernames):
+def check_owners_on_keycloak(usernames):  # pragma: no cover
     oidc_client_secrets = current_app.config['OIDC_CLIENT_SECRETS']['web']
     token_uri = oidc_client_secrets['token_uri']
     admin_uri = oidc_client_secrets['admin_uri']
@@ -111,7 +111,7 @@ def check_apptoken(token):
     hashed_token = sha512(token.encode('ascii')).hexdigest()
     try:
         apptoken = AppToken.query.filter_by(token=hashed_token).first()
-    except OperationalError:
+    except OperationalError:  # pragma: no cover
         raise ServiceUnavailable("The database is unreachable.")
     if apptoken is not None:
         username = apptoken.user.name
@@ -123,7 +123,7 @@ def check_apptoken(token):
 def check_user_role(min_role=RoleEnum.admin):
     if hasattr(g, 'capsule_app_token'):  # Get user name from application token
         name = g.capsule_app_token
-    else:  # Keycloak auth
+    else:  # Keycloak auth  # pragma: no cover
         kc_user_id = g.oidc_token_info['sub']
         try:
             name = get_user_from_keycloak(kc_user_id)
@@ -133,7 +133,7 @@ def check_user_role(min_role=RoleEnum.admin):
     # Look for user role
     user = User.query.filter_by(name=name).one_or_none()
 
-    if user is None:
+    if user is None:  # pragma: no cover
         if name in current_app.config['ADMINS']:
             user = User(name=name, role=RoleEnum.admin)
         elif name in current_app.config['SUPERADMINS']:
@@ -149,7 +149,7 @@ def check_user_role(min_role=RoleEnum.admin):
     return user
 
 
-def get_user_from_keycloak(id, by_name=False):
+def get_user_from_keycloak(id, by_name=False):  # pragma: no cover
     oidc_client_secrets = current_app.config['OIDC_CLIENT_SECRETS']['web']
     token_uri = oidc_client_secrets['token_uri']
     admin_uri = oidc_client_secrets['admin_uri']

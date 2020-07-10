@@ -28,9 +28,9 @@ class NATSNoEchoClient(NATSClient):
         }
 
         if self._conn_options.username and self._conn_options.password:
-            options["user"] = self._conn_options.username
-            options["pass"] = self._conn_options.password
-        elif self._conn_options.username:
+            options["user"] = self._conn_options.username  # pragma: no cover
+            options["pass"] = self._conn_options.password  # pragma: no cover
+        elif self._conn_options.username:  # pragma: no cover
             options["auth_token"] = self._conn_options.username
 
         self._send(b"CONNECT", json.dumps(options))
@@ -39,7 +39,7 @@ class NATSNoEchoClient(NATSClient):
         sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
 
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-        if self._socket_options["keepalive"]:
+        if self._socket_options["keepalive"]:  # pragma: no cover
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
 
         self._socket = sock
@@ -53,15 +53,15 @@ class NATSNoEchoClient(NATSClient):
 
         if scheme == "nats":
             self._try_connection(tls_required=False)
-        elif scheme == "tls":
+        elif scheme == "tls":  # pragma: no cover
             self._try_connection(tls_required=True)
             self._connect_tls()
-        else:
+        else:  # pragma: no cover
             raise NATSInvalidSchemeError("got unsupported URI "
                                          f"scheme: {scheme}")
 
         self._send_connect_command()
-        if self._conn_options.verbose:
+        if self._conn_options.verbose:  # pragma: no cover
             OK_RE = re.compile(rb"^\+OK\s*\r\n")
             self._recv(OK_RE)
 
@@ -76,7 +76,7 @@ class NATS(object):
 
     def __init__(self, app=None):
         if app is not None:
-            self.init_app(app)
+            self.init_app(app)  # pragma: no cover
 
     # def __del__(self):
     #     if self.client is not None:
@@ -108,7 +108,7 @@ class NATS(object):
         self.logger.debug(f"payload {signed_payload} published on {subject}.")
         try:
             self.client.publish(subject, payload=signed_payload)
-        except (BrokenPipeError, OSError):
+        except (BrokenPipeError, OSError):  # pragma: no cover
             self.logger.error(f"payload {signed_payload} has not been "
                               f"published on {subject}.")
 
