@@ -81,14 +81,14 @@ FLASK_APP=server.py CAPSULE_API_CONFIG=config-dev.yml python -m flask db upgrade
 tox -a
 
 # To run cover (which includes tests), lint and secaudit.
-tox -e cover,lint,secaudit
+tox -e apicover,lint,secaudit
 
 ### Normally, these commands are included in tox which is the only entry point for tests.
 
     # Run tests.
     pytest -v
 
-    # Run tests with 12 workers
+    # Run tests with 12 workers (some alerts appears due to nats)
     pytest -v -n12  # run 12 tests in parallel, really faster !
 
     # Run coverage (which runs tests too).
@@ -97,8 +97,8 @@ tox -e cover,lint,secaudit
     coverage report -m
     coverage html
 
-    # Run tests with coverage, reports and 12 workers
-    pytest -v -n8 --cov=. --cov-report html --cov-report term tests/
+    # Run tests for the api (ignoring nats) with coverage, reports and 12 workers
+    pytest -v -n12 --cov=. --cov-report html --cov-report term tests/api/
 ```
 
 ## Update API specifications
