@@ -145,7 +145,7 @@ class Runtime(db.Model):
     id = db.Column(GUID, nullable=False, unique=True,
                    default=uuid.uuid4, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
-    desc = db.Column(db.String(256), nullable=False)
+    description = db.Column(db.String(256), nullable=False)
     fam = db.Column(db.String(256), nullable=False)
     runtime_type = db.Column(db.Enum(RuntimeTypeEnum), nullable=False)
     uri_template = db.Column(db.Text, nullable=True)
@@ -852,10 +852,10 @@ class SSHKeySchema(ma.SQLAlchemyAutoSchema):
 
     class Meta:
         model = SSHKey
-        include_relationships = True
+        include_relationships = False
         sqla_session = db.session
 
-    owner = fields.String()
+    # owner = fields.String()
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
 
@@ -905,7 +905,6 @@ class CapsuleOutputSchema(ma.SQLAlchemyAutoSchema):
         "SSHKeySchema",
         default=[],
         many=True,
-        only=('id', 'public_key'),
     )
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
@@ -954,7 +953,6 @@ class CapsuleSchemaVerbose(ma.SQLAlchemyAutoSchema):
         "SSHKeySchema",
         default=[],
         many=True,
-        only=('id', 'public_key'),
     )
     created_at = ma.auto_field(dump_only=True)
     updated_at = ma.auto_field(dump_only=True)
@@ -1003,7 +1001,6 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
         "SSHKeySchema",
         default=[],
         many=True,
-        only=('id', 'public_key'),
     )
     role = EnumField(RoleEnum, by_value=True)
     created_at = ma.auto_field(dump_only=True)

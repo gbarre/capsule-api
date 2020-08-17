@@ -154,7 +154,7 @@ class DBFooData:
 
         self.runtime1 = Runtime(
             name="apache-2.4 php-7.2.x",
-            desc="Stack web classique Apache 2.4 + PHP 7.2.x",
+            description="Stack web classique Apache 2.4 + PHP 7.2.x",
             fam="Apache PHP",
             runtime_type=RuntimeTypeEnum.webapp,
             available_opts=[
@@ -165,7 +165,7 @@ class DBFooData:
 
         self.runtime2 = Runtime(
             name="MariaDB 10.1",
-            desc="SQL server",
+            description="SQL server",
             fam="SQL",
             runtime_type=RuntimeTypeEnum.addon,
             available_opts=[
@@ -181,14 +181,14 @@ class DBFooData:
 
         self.runtime3 = Runtime(
             name="MariaDB 12.1",
-            desc="SQL server",
+            description="SQL server",
             fam="SQL",
             runtime_type=RuntimeTypeEnum.addon,
         )
 
         self.runtime4 = Runtime(
             name="apache-3.1 php-9.3.x",
-            desc="Stack web futuriste Apache 3.1 + PHP 9.3.x",
+            description="Stack web futuriste Apache 3.1 + PHP 9.3.x",
             fam="Apache PHP",
             runtime_type=RuntimeTypeEnum.webapp,
             available_opts=[

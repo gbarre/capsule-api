@@ -80,7 +80,7 @@ def put(runtime_id):
 
     data = runtime_schema.load(runtime_data).data
 
-    runtime.desc = data["desc"]
+    runtime.description = data["description"]
     runtime.fam = data["fam"]
     runtime.name = data["name"]
     runtime.runtime_type = data["runtime_type"]

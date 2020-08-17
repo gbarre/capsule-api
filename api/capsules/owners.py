@@ -63,7 +63,8 @@ def patch(capsule_id, user):
     try:  # Check if owners exist on Keycloak
         check_owners_on_keycloak([new_owner])
     except KeycloakUserNotFound as e:
-        raise NotFound(description=f'{e.missing_username} is an invalid user.')
+        raise NotFound(description=f'{e.missing_username} was not '
+                                   'found in Keycloak.')
 
     # Get existent users, create the others
     user = User.query.filter_by(name=new_owner).one_or_none()

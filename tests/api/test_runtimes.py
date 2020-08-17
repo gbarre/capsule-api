@@ -10,7 +10,7 @@ class TestRuntimes:
     _runtime_input = {
         "name": "Runtime Test",
         "runtime_type": "addon",
-        "desc": "test runtime",
+        "description": "test runtime",
         "fam": "test",
         "uri_template": {
             "pattern": "mysql://{test}:{password}@host:port/{test}",
@@ -183,13 +183,14 @@ class TestRuntimes:
              patch("utils.check_user_role", return_value=db.superadmin_user):
 
             temp_input = dict(self._runtime_input)
-            temp_input.pop("desc")
+            temp_input.pop("description")
             res = testapp.post_json(
                 api_version + "/runtimes",
                 temp_input,
                 status=400
             ).json
-            assert "'desc' is a required property" in res["error_description"]
+            msg = "'description' is a required property"
+            assert msg in res["error_description"]
 
     def test_create_bad_json_missing_runtime_familly(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \

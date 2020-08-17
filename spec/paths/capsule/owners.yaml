@@ -44,7 +44,7 @@ patch:
           properties:
             newOwner:
               type: string
-              example: foobar
+              example: userId
   responses:
     "400":
       $ref: "../../components/responses.yaml#/BadRequest"
