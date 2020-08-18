@@ -106,7 +106,7 @@ def delete(capsule_id, user_id, user):
         raise Forbidden()
 
     user = User.query.filter_by(name=user_id).one_or_none()
-    if user is None: # pragma: no cover
+    if user is None:  # pragma: no cover
         raise NotFound(description=f'{user} is an invalid user.')
 
     capsule.owners.remove(user)
