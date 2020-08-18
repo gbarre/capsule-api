@@ -242,40 +242,10 @@ class TestCapsuleOwners:
                 status=404
             )
 
-    def test_delete_not_found_owner(self, testapp, db):
-        capsule_id = str(db.capsule1.id)
-        with patch.object(oidc, "validate_token", return_value=True), \
-             patch("utils.check_user_role", return_value=db.user1), \
-             patch(
-                 "api.capsules.owners.check_owners_on_keycloak",
-                 side_effect=KeycloakUserNotFound("tutu3")):
-
-            owner = self._owners_input["newOwner"]
-            testapp.delete(
-                f"{api_version}/capsules/{capsule_id}/owners/{owner}",
-                status=404
-            )
-
-    def test_delete_invalid_user(self, testapp, db):
-        capsule_id = str(db.capsule1.id)
-        with patch.object(oidc, "validate_token", return_value=True), \
-             patch("utils.check_user_role", return_value=db.user1), \
-             patch(
-                 "api.capsules.owners.check_owners_on_keycloak",
-                 return_value=True):
-
-            testapp.delete(
-                f"{api_version}/capsules/{capsule_id}/owners/toto",
-                status=404
-            )
-
     def test_delete_invalid_owner(self, testapp, db):
         capsule_id = str(db.capsule1.id)
         with patch.object(oidc, "validate_token", return_value=True), \
-             patch("utils.check_user_role", return_value=db.user1), \
-             patch(
-                 "api.capsules.owners.check_owners_on_keycloak",
-                 return_value=True):
+             patch("utils.check_user_role", return_value=db.user1):
 
             admin = db.admin_user.name
             res = testapp.delete(
@@ -304,7 +274,6 @@ class TestCapsuleOwners:
         capsule_id = str(db.capsule1.id)
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.user1), \
-             patch("api.capsules.owners.check_owners_on_keycloak"), \
              patch.object(NATS, "publish_webapp_present") as publish_method:
 
             # Delete owner

@@ -105,13 +105,8 @@ def delete(capsule_id, user_id, user):
     if (not user_is_owner) and (user.role == RoleEnum.user):
         raise Forbidden()
 
-    try:  # Check if owners exist on Keycloak
-        check_owners_on_keycloak([user_id])
-    except KeycloakUserNotFound as e:
-        raise NotFound(description=f'{e.missing_username} is an invalid user.')
-
     user = User.query.filter_by(name=user_id).one_or_none()
-    if user is None:
+    if user is None: # pragma: no cover
         raise NotFound(description=f'{user} is an invalid user.')
 
     capsule.owners.remove(user)
