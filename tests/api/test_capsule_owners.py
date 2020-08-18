@@ -269,6 +269,22 @@ class TestCapsuleOwners:
                 status=404
             )
 
+    def test_delete_invalid_owner(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch(
+                 "api.capsules.owners.check_owners_on_keycloak",
+                 return_value=True):
+
+            admin = db.admin_user.name
+            res = testapp.delete(
+                f"{api_version}/capsules/{capsule_id}/owners/{admin}",
+                status=404
+            ).json
+            msg = f'{admin} is not in owners.'
+            assert msg in res["error_description"]
+
     # Response 409:
     def test_delete_conflict(self, testapp, db):
         capsule_id = str(db.capsule1.id)

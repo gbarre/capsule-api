@@ -92,9 +92,15 @@ def delete(capsule_id, user_id, user):
 
     capsule = _get_capsule(capsule_id, user)
     user_is_owner = False
+    user_id_in_owners = False
     for owner in capsule.owners:
         if user.name == owner.name:
             user_is_owner = True
+        if user_id == owner.name:
+            user_id_in_owners = True
+
+    if not user_id_in_owners:
+        raise NotFound(description=f'{user_id} is not in owners.')
 
     if (not user_is_owner) and (user.role == RoleEnum.user):
         raise Forbidden()
