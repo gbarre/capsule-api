@@ -95,7 +95,7 @@ class RoleEnum(str, enum.Enum):
 class OptionValueTypeEnum(str, enum.Enum):
     integer = "integer"
     float = "float"
-    boolean = "bloolean"
+    boolean = "boolean"
     string = "string"
     file = "file"
 
