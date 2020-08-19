@@ -1,8 +1,10 @@
+from app import db
 from models import RoleEnum
 from models import User, user_schema, users_schema
-from utils import oidc_require_role
+from utils import check_owners_on_keycloak, oidc_require_role
 from werkzeug.exceptions import NotFound, BadRequest
 from sqlalchemy.exc import InvalidRequestError
+from exceptions import KeycloakUserNotFound
 
 
 # GET /users
@@ -29,6 +31,17 @@ def get(user_id):
     user = User.query.filter_by(name=user_id).first()
 
     if user is None:
+        try:  # Check if user_id exist on Keycloak
+            check_owners_on_keycloak([user_id])
+            new_user = User(name=user_id, role=RoleEnum.user)
+            db.session.add(new_user)
+            db.session.commit()
+        except KeycloakUserNotFound as e:
+            raise NotFound(description=f'{e.missing_username} was not '
+                                       'found in Keycloak.')
+
+    user = User.query.filter_by(name=user_id).first()
+    if user is None:  # pragma: no cover
         raise NotFound(description=f"The requested user '{user_id}' "
                        "has not been found.")
 

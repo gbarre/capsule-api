@@ -3,6 +3,7 @@ from app import oidc
 from unittest.mock import patch
 from models import user_schema, users_schema
 from werkzeug.exceptions import Forbidden
+from exceptions import KeycloakUserNotFound
 
 
 class TestUsers:
@@ -68,6 +69,17 @@ class TestUsers:
             ).json
             assert dict_contains(user, user_output)
 
+    def test_get_keycloak_user(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.admin_user), \
+             patch("api.users.check_owners_on_keycloak"):
+
+            res = testapp.get(
+                api_version + "/users/new_user",
+                status=200
+            ).json
+            assert 'new_user' in res['name']
+
     # Response 401:
     def test_get_with_no_token(self, testapp, db):
         user_id = db.user1.name
@@ -90,12 +102,15 @@ class TestUsers:
     # Response 404:
     def test_get_bad_user(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
-             patch("utils.check_user_role", return_value=db.admin_user):
+             patch("utils.check_user_role", return_value=db.admin_user), \
+             patch(
+                 "api.users.check_owners_on_keycloak",
+                 side_effect=KeycloakUserNotFound(bad_id)):
 
             res = testapp.get(
                 api_version + "/users/" + bad_id,
                 status=404
             ).json
-            msg = f"The requested user '{bad_id}' has not been found."
+            msg = f"{bad_id} was not found in Keycloak."
             assert msg in res["error_description"]
     #################################
