@@ -37,7 +37,7 @@ WORKDIR /capsule-api
 COPY --from=build /opt/venv /opt/venv
 COPY --from=build /capsule-api .
 
-RUN groupadd --gid 65432 -r capsule-api && useradd --uid 65432 -r -g capsule-api capsule-api
+RUN groupadd --gid 3210 -r capsule-api && useradd --uid 65432 -r -g capsule-api capsule-api
 RUN chown -R capsule-api:capsule-api /capsule-api
 RUN chmod u+x entrypoint.sh
 
