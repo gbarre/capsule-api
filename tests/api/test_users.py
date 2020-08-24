@@ -3,7 +3,6 @@ from app import oidc
 from unittest.mock import patch
 from models import user_schema, users_schema
 from werkzeug.exceptions import Forbidden
-from exceptions import KeycloakUserNotFound
 
 
 class TestUsers:
@@ -23,6 +22,17 @@ class TestUsers:
                 status=200
             ).json
             assert dict_contains(res, users_output)
+
+    def test_get_self_user(self, testapp, db):
+        user_output = user_schema.dump(db.user1).data
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1):
+
+            res = testapp.get(
+                api_version + "/users",
+                status=200
+            ).json
+            assert dict_contains(res[0], user_output)
 
     # Response 400:
     def test_get_bad_request(self, testapp, db):
@@ -69,17 +79,6 @@ class TestUsers:
             ).json
             assert dict_contains(user, user_output)
 
-    def test_get_keycloak_user(self, testapp, db):
-        with patch.object(oidc, "validate_token", return_value=True), \
-             patch("utils.check_user_role", return_value=db.admin_user), \
-             patch("api.users.check_owners_on_keycloak"):
-
-            res = testapp.get(
-                api_version + "/users/new_user",
-                status=200
-            ).json
-            assert 'new_user' in res['name']
-
     # Response 401:
     def test_get_with_no_token(self, testapp, db):
         user_id = db.user1.name
@@ -91,9 +90,9 @@ class TestUsers:
     # Response 403:
     def test_get_raises_on_invalid_role(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
-             patch("utils.check_user_role", side_effect=Forbidden):
+             patch("utils.check_user_role", return_value=db.user1):
 
-            user_id = db.user1.name
+            user_id = db.user2.name
             testapp.get(
                 api_version + "/users/" + user_id,
                 status=403
@@ -102,15 +101,12 @@ class TestUsers:
     # Response 404:
     def test_get_bad_user(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
-             patch("utils.check_user_role", return_value=db.admin_user), \
-             patch(
-                 "api.users.check_owners_on_keycloak",
-                 side_effect=KeycloakUserNotFound(bad_id)):
+             patch("utils.check_user_role", return_value=db.admin_user):
 
             res = testapp.get(
                 api_version + "/users/" + bad_id,
                 status=404
             ).json
-            msg = f"{bad_id} was not found in Keycloak."
+            msg = f"The requested user '{bad_id}' has not been found."
             assert msg in res["error_description"]
     #################################

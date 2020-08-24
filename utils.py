@@ -139,7 +139,7 @@ def check_user_role(min_role=RoleEnum.admin):
         elif name in current_app.config['SUPERADMINS']:
             user = User(name=name, role=RoleEnum.superadmin)
         else:
-            raise Forbidden
+            user = User(name=name, role=RoleEnum.user)
         db.session.add(user)
         db.session.commit()
 
