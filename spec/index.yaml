@@ -79,3 +79,7 @@ paths:
     $ref: ./paths/app-tokens.yaml
   /apptokens/{apptoken_id}:
     $ref: ./paths/app-token-by-id.yaml
+
+  # self endpoints
+  /me:
+    $ref: ./paths/me.yaml

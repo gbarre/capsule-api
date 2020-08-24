@@ -1,5 +1,5 @@
 get:
-  tags: [admin]
+  tags: [user]
   description: |
     Gets the users.
   summary: Get users

@@ -1106,7 +1106,7 @@
     "/users": {
       "get": {
         "tags": [
-          "admin"
+          "user"
         ],
         "description": "Gets the users.\n",
         "summary": "Get users",
@@ -1148,7 +1148,7 @@
     "/users/{user_id}": {
       "get": {
         "tags": [
-          "admin"
+          "user"
         ],
         "description": "Gets a user.\n",
         "summary": "Get a user",
@@ -2676,6 +2676,31 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/me": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "description": "Gets user info.\n",
+        "summary": "Get user info.",
+        "operationId": "api.me.search",
+        "responses": {
+          "200": {
+            "description": "The user informations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         }
       }
