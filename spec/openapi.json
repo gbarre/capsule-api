@@ -328,8 +328,8 @@
           "runtime_type": {
             "type": "string",
             "enum": [
-              "webapp",
-              "addon"
+              "addon",
+              "webapp"
             ]
           },
           "uri_template": {
@@ -550,15 +550,7 @@
                   "example": "42"
                 }
               }
-            },
-            "default": []
-          },
-          "crons": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Cron"
-            },
-            "default": []
+            }
           },
           "quota": {
             "description": "quota obtained from the capsule declaration",

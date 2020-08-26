@@ -107,7 +107,7 @@ Runtime:
       example: Database
     runtime_type:
       type: string
-      enum: [webapp, addon]
+      enum: [addon, webapp]
     uri_template:
       nullable: true
       type: object
@@ -266,12 +266,6 @@ WebApp:
           value:
             type: string # can be any value
             example: "42"
-      default: []
-    crons:
-      type: array
-      items:
-        $ref: "./schemas.yaml#/Cron"
-      default: []
     quota:
       description: quota obtained from the capsule declaration
       type: object
