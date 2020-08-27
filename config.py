@@ -23,6 +23,7 @@ class YamlConfig:
             self.SUPERADMINS = api['superadmins']
 
             self.NATS_URI = api['nats']['uri']
+            self.NATS_CA_CERT = api['nats']['ca_cert']
             nats_log_level = api['nats']['log_level']
             if nats_log_level in ['DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL']:
                 self.NATS_LOG_LEVEL = nats_log_level

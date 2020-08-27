@@ -10,6 +10,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from models import webapp_nats_schema, capsule_verbose_schema, addon_schema
+import ssl
 
 
 class NATSNoEchoClient(NATSClient):
@@ -65,6 +66,32 @@ class NATSNoEchoClient(NATSClient):
             OK_RE = re.compile(rb"^\+OK\s*\r\n")
             self._recv(OK_RE)
 
+    def _connect_tls(self) -> None:
+        ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
+        if not self._conn_options.tls_verify:
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+
+        # HACK: replace cafile by cadata
+        if self._conn_options.tls_cacert is not None:
+            ctx.load_verify_locations(cadata=self._conn_options.tls_cacert)
+
+        if (
+            self._conn_options.tls_client_cert is not None
+            and self._conn_options.tls_client_key is not None
+        ):
+            ctx.load_cert_chain(
+                certfile=self._conn_options.tls_client_cert,
+                keyfile=self._conn_options.tls_client_key,
+            )
+
+        hostname = self._conn_options.hostname
+        if self._conn_options.tls_hostname is not None:
+            hostname = self._conn_options.tls_hostname
+
+        self._socket = ctx.wrap_socket(self._socket, server_hostname=hostname)
+        self._socket_file = self._socket.makefile("rb")
+
 
 class NATS(object):
     client = None
@@ -86,6 +113,7 @@ class NATS(object):
         self.client = NATSNoEchoClient(
             url=app.config['NATS_URI'],
             name=app.config['APP_NAME'],
+            tls_cacert=app.config['NATS_CA_CERT'],
         )
         __class__._PRIVATE_KEY = app.config['PRIVATE_KEY']
         self.logger = logging.getLogger('NATS')

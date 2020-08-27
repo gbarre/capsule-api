@@ -36,6 +36,7 @@ api:
   nats:
     uri: 'nats://localhost:4222'
     log_level: 'WARN'
+    ca_cert: null
   # This is a private just for local dev without any value.
   rsa_private_key: |
     -----BEGIN RSA PRIVATE KEY-----
