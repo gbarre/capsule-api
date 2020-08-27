@@ -251,7 +251,7 @@ class AvailableOption(db.Model):
     field_name = db.Column(db.String(256), nullable=False)
     field_description = db.Column(db.String(256))
     value_type = db.Column(db.Enum(OptionValueTypeEnum), nullable=False)
-    default_value = db.Column(db.String(256), nullable=True)
+    default_value = db.Column(db.Text, nullable=True)
     validation_rules = db.relationship(
         "AvailableOptionValidationRule",
         backref="available_option",
@@ -367,7 +367,7 @@ class Option(db.Model):
         'addons.id'), nullable=True)
     tag = db.Column(db.String(256))
     field_name = db.Column(db.String(256))
-    value = db.Column(db.String(256))
+    value = db.Column(db.Text)
 
     @hybrid_property  # @property compliant with SQLAlchemy
     def instance_id(self):
