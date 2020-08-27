@@ -76,10 +76,8 @@ class NATSNoEchoClient(NATSClient):
         if self._conn_options.tls_cacert is not None:
             ctx.load_verify_locations(cadata=self._conn_options.tls_cacert)
 
-        if (
-            self._conn_options.tls_client_cert is not None
-            and self._conn_options.tls_client_key is not None
-        ):
+        if self._conn_options.tls_client_cert is not None and \
+           self._conn_options.tls_client_key is not None:
             ctx.load_cert_chain(
                 certfile=self._conn_options.tls_client_cert,
                 keyfile=self._conn_options.tls_client_key,
