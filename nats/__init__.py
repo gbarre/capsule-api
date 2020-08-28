@@ -128,7 +128,7 @@ class NATS(object):
 
     def subscribe(self, subject, *, callback):
         self.logger.debug(f"subscribed to {subject}.")
-        self.client.subscribe(subject, callback=callback)
+        self.client.subscribe(subject, callback=callback, queue="capsule-api")
 
     def publish(self, subject, signed_payload):
         self.logger.debug(f"payload {signed_payload} published on {subject}.")
