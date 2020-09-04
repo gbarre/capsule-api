@@ -7,7 +7,6 @@ services:
       - .env
     ports:
       - '127.0.0.1:30306:3306'
-      - '10.142.242.42:30306:3306'
     volumes:
       - db_data:/var/lib/mysql
 

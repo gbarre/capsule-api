@@ -127,6 +127,34 @@ docker run --rm \
   gbarre2/capsule-api
 ```
 
+To use with HTTPS **in development** run:
+
+```sh
+docker run --rm \
+  -v $PWD/config.yml:/etc/capsule-api/config.yml \
+  --net=host \
+  -e WORKERS=8 \
+  -e DB_MIGRATE=upgrade \
+  -e SSL=true \
+  --name capsule-api \
+  gbarre2/capsule-api
+```
+
+To use with HTTPS **with your certificate** run:
+
+```sh
+docker run --rm \
+  -v $PWD/config.yml:/etc/capsule-api/config.yml \
+  --net=host \
+  -e WORKERS=8 \
+  -e DB_MIGRATE=upgrade \
+  -e SSL=true \
+  -v ${PATH_TO_CRT_FILE}:/capsule-api/cert/capsule.crt \
+  -v ${PATH_TO_KEY_FILE}:/capsule-api/cert/capsule.key \
+  --name capsule-api \
+  gbarre2/capsule-api
+```
+
 ## A few usefull commands
 
 ### Hack the code and create capsules and users

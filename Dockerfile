@@ -13,6 +13,7 @@ RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 COPY api api
+COPY cert cert
 COPY migrations migrations
 COPY nats nats
 COPY spec/openapi.json spec/openapi.json
@@ -43,10 +44,12 @@ RUN chmod u+x entrypoint.sh
 
 USER capsule-api:capsule-api
 
-EXPOSE 5000
+EXPOSE 5080
+EXPOSE 5443
 
 ENV PATH="/opt/venv/bin:$PATH"
 ENV WORKERS="4"
+ENV SSL="false"
 # ENV DB_MIGRATE="upgrade" # or "downgrade"
 
 ENTRYPOINT ["/capsule-api/entrypoint.sh"]
