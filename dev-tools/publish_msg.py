@@ -89,6 +89,9 @@ encoded_signature = base64.b64encode(signature)
 response = encoded_signature + b'^' + json_bytes
 
 msg = response.decode('utf-8')
+# uncomment to use tls or not
 cwd = os.path.dirname(os.path.realpath(__file__))
-cmd = f"{cwd}/nats-basic-pub -s nats://{args.nats} '{args.subject}' '{msg}'"
+cmd = f"{cwd}/main -s nats://{args.nats} '{args.subject}' '{msg}'"
+# cwd = "/home/gbarre2/git/nats.go/examples/nats-pub"
+# cmd = f"{cwd}/main -s tls://{args.nats} '{args.subject}' '{msg}'"
 os.system(cmd)

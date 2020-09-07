@@ -200,13 +200,6 @@ def put(capsule_id, user):
     if "tls_redirect_https" in data:
         webapp.tls_redirect_https = data["tls_redirect_https"]
 
-    # TODO: implement cron in an other file
-    # for attribute in ['cron_cmd', 'cron_schedule']:
-    #     if attribute in data:
-    #         setattr(webapp, attribute, data[attribute])
-    #     else:
-    #         setattr(webapp, attribute, None)
-
     capsule.webapp = webapp
     db.session.commit()
 
