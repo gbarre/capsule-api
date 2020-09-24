@@ -19,13 +19,15 @@ class TestRuntimes:
                     "length": 16,
                     "name": "test",
                     "src": "capsule",
-                    "unique": True
+                    "unique": True,
+                    "set_name": True,
                 },
                 {
                     "length": 32,
                     "name": "password",
                     "src": "random",
-                    "unique": False
+                    "unique": False,
+                    "set_name": False,
                 }
             ]
         },

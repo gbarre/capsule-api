@@ -359,13 +359,15 @@
                   "name": "username",
                   "src": "capsule",
                   "length": 16,
-                  "unique": true
+                  "unique": true,
+                  "set_name": true
                 },
                 {
                   "name": "password",
                   "src": "random",
                   "length": 32,
-                  "unique": false
+                  "unique": false,
+                  "set_name": false
                 }
               ]
             }
@@ -411,13 +413,17 @@
           },
           "unique": {
             "type": "boolean"
+          },
+          "set_name": {
+            "type": "boolean"
           }
         },
         "required": [
           "name",
           "src",
           "length",
-          "unique"
+          "unique",
+          "set_name"
         ]
       },
       "Cron": {
@@ -729,7 +735,8 @@
           },
           "name": {
             "type": "string",
-            "example": "mysql1"
+            "example": "database-name",
+            "readOnly": true
           },
           "description": {
             "type": "string",
@@ -811,7 +818,6 @@
           }
         },
         "required": [
-          "name",
           "runtime_id"
         ]
       },

@@ -128,10 +128,12 @@ Runtime:
             src: "capsule" # currently "capsule" or "random"
             length: 16
             unique: true
+            set_name: true
           - name: password
             src: "random"
             length: 32
             unique: false
+            set_name: false
     available_opts:
       $ref: "./schemas.yaml#/AvailableOpt"
     created_at:
@@ -162,11 +164,14 @@ UriVariables:
       type: integer
     unique:
       type: boolean
+    set_name:
+      type: boolean
   required:
     - name
     - src
     - length
     - unique
+    - set_name
 
 Cron:
   type: object
@@ -404,7 +409,8 @@ AddOn:
       example: e461015b-7820-4693-87d3-3e05cc490006
     name:
       type: string
-      example: mysql1
+      example: database-name
+      readOnly: true
     description:
       type: string
       default: ""
@@ -469,7 +475,6 @@ AddOn:
       readOnly: true
       example : "2020-03-17T15:32:28Z"
   required:
-    - name
     - runtime_id
 
 Capsule:

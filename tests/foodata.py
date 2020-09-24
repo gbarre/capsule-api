@@ -171,12 +171,13 @@ class DBFooData:
             available_opts=[
                 self.available_opt3,
             ],
-            uri_template='{"pattern": "mysql://{username}:{password}@'
-                         'host:port/{username}",'
-                         '"variables": [{"length": 16, "name": "username", '
-                         '"src": "capsule", "unique": true},{"length": 32, '
-                         '"name": "password", "src": "random","unique": false'
-                         '}]}',
+            uri_template='{"pattern": "mysql://{udbname}:{password}@'
+                         'host:port/{udbname}",'
+                         '"variables": [{"length": 16, "name": "udbname", '
+                         '"src": "capsule", "unique": true, "set_name": true},'
+                         '{"length": 32, "name": "password", '
+                         '"set_name": false, "src": "random", '
+                         '"unique": false}]}',
         )
 
         self.runtime3 = Runtime(

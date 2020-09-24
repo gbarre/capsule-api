@@ -5,7 +5,7 @@ from models import AddOn, addon_schema, addons_schema
 from models import Option
 from models import Runtime, RuntimeTypeEnum
 from app import db, nats
-from utils import build_query_filters, is_valid_name, oidc_require_role
+from utils import build_query_filters, oidc_require_role
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 from sqlalchemy.exc import StatementError
 
@@ -41,21 +41,6 @@ def post(capsule_id, user, addon_data=None):
 
     data = addon_schema.load(addon_data).data
 
-    addon_name = data['name']
-    if not is_valid_name(addon_name):
-        msg = f'The addon name "{addon_name}" is invalid: only lowercase '\
-            'alphanumeric characters or "-" are allowed, the first and the '\
-            'last characters must be alphanumeric, the name must have at '\
-            'least 2 characters and less than 64 characters.'
-        raise BadRequest(description=msg)
-
-    # Ensure the addon name is unique for this capsule
-    capsule_addons = AddOn.query.filter_by(capsule_id=capsule.id).all()
-    for addon in capsule_addons:
-        if addon.name == addon_name:
-            raise BadRequest(description="This capsule already have an "
-                             f"addon named '{addon_name}'.")
-
     runtime_id = data["runtime_id"]
     runtime = Runtime.query.get(runtime_id)
 
@@ -75,12 +60,20 @@ def post(capsule_id, user, addon_data=None):
     else:
         addon = AddOn(**data)
 
-    addon.uri = runtime.generate_uri(capsule)
+    (addon.uri, addon.name) = runtime.generate_uri_dbname(capsule)
+
+    # HACK: if addon.name is not setted, we will use addon.id after commit
+    if addon.name is None:
+        addon.name = "changeme"
 
     capsule.addons.append(addon)
 
     db.session.add(addon)
     db.session.commit()
+
+    if addon.name == "changeme":
+        addon.name = str(addon.id)
+        db.session.commit()
 
     nats.publish_addon_present(addon, capsule.name)
 
@@ -156,15 +149,6 @@ def put(capsule_id, addon_id, user):
         raise Forbidden(description="bad capsule id")
 
     addon.description = data["description"]
-
-    addon_name = data['name']
-    if not is_valid_name(addon_name):
-        msg = f'The addon name "{addon_name}" is invalid: only lowercase '\
-            'alphanumeric characters or "-" are allowed, the first and the '\
-            'last characters must be alphanumeric, the name must have at '\
-            'least 2 characters and less than 64 characters.'
-        raise BadRequest(description=msg)
-    addon.name = data["name"]
 
     if data["runtime_id"] != str(addon.runtime_id):
         raise BadRequest(description="The runtime_id cannot be changed.")

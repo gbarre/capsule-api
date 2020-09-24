@@ -16,7 +16,6 @@ class TestCapsuleAddons:
             "REDIS_SERVER_HOST": "my-redis-host",
             "REDIS_SERVER_PORT": "6379",
         },
-        "name": "redis-2",
         "opts": [
             {
                 "tag": "SQL",
@@ -175,57 +174,6 @@ class TestCapsuleAddons:
                 status=400
             ).json
             msg = f"The runtime_id '{runtime_id}' has not type 'addon'."
-            assert msg in res["error_description"]
-
-    def test_create_missing_name(self, testapp, db):
-        capsule_id = str(db.capsule1.id)
-        with patch.object(oidc, 'validate_token', return_value=True), \
-             patch("utils.check_user_role", return_value=db.user1):
-
-            # Build addon with correct runtime_id but no name
-            new_addon = self.build_addon(db)
-            new_addon.pop("name")
-
-            res = testapp.post_json(
-                api_version + '/capsules/' + capsule_id + '/addons',
-                new_addon,
-                status=400
-            ).json
-            assert "'name' is a required property" in res["error_description"]
-
-    def test_create_bad_name(self, testapp, db):
-        capsule_id = str(db.capsule1.id)
-        with patch.object(oidc, 'validate_token', return_value=True), \
-             patch("utils.check_user_role", return_value=db.user1):
-
-            # Build addon with correct runtime_id but no name
-            new_addon = self.build_addon(db)
-            new_addon['name'] = "My Addon - with bad characters,"\
-                                " and also more than 64 chars, this is stupid!"
-
-            res = testapp.post_json(
-                api_version + '/capsules/' + capsule_id + '/addons',
-                new_addon,
-                status=400
-            ).json
-            assert "invalid" in res["error_description"]
-
-    def test_create_duplicate_name(self, testapp, db):
-        capsule_id = str(db.capsule1.id)
-        with patch.object(oidc, 'validate_token', return_value=True), \
-             patch("utils.check_user_role", return_value=db.user1):
-
-            # Build addon with correct runtime_id but no name
-            new_addon = self.build_addon(db)
-            addon1_name = db.addon1.name
-            new_addon['name'] = addon1_name
-
-            res = testapp.post_json(
-                api_version + '/capsules/' + capsule_id + '/addons',
-                new_addon,
-                status=400
-            ).json
-            msg = f"This capsule already have an addon named '{addon1_name}'."
             assert msg in res["error_description"]
 
     # Response 401:
@@ -421,40 +369,6 @@ class TestCapsuleAddons:
             ).json
             msg = "The runtime_id cannot be changed."
             assert msg in res["error_description"]
-
-    def test_update_missing_name(self, testapp, db):
-        capsule_id = str(db.capsule1.id)
-        addon_id = str(db.addon1.id)
-        with patch.object(oidc, 'validate_token', return_value=True), \
-             patch("utils.check_user_role", return_value=db.user1):
-
-            # Build addon with correct runtime_id but no name
-            new_addon = self.build_addon(db)
-            new_addon.pop("name")
-
-            res = testapp.put_json(
-                f"{api_version}/capsules/{capsule_id}/addons/{addon_id}",
-                new_addon,
-                status=400
-            ).json
-            assert "'name' is a required property" in res["error_description"]
-
-    def test_update_bad_name(self, testapp, db):
-        capsule_id = str(db.capsule1.id)
-        addon_id = str(db.addon1.id)
-        with patch.object(oidc, 'validate_token', return_value=True), \
-             patch("utils.check_user_role", return_value=db.user1):
-
-            # Build addon with correct runtime_id but no name
-            new_addon = self.build_addon(db)
-            new_addon['name'] = "Bad addon Name"
-
-            res = testapp.put_json(
-                f"{api_version}/capsules/{capsule_id}/addons/{addon_id}",
-                new_addon,
-                status=400
-            ).json
-            assert "invalid: only lowercase" in res["error_description"]
 
     # Response 401:
     def test_update_with_no_token(self, testapp, db):

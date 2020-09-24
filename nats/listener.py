@@ -129,7 +129,11 @@ class NATSListener(threading.Thread):
         result = None
         try:
             if query_id is not None:
-                result = __class__.session.query(obj).get(query_id)
+                if len(query_id) == 36:
+                    result = __class__.session.query(obj).get(query_id)
+                else:
+                    result = __class__.session.query(obj)\
+                        .filter_by(name=query_id).first()
             elif runtime_id is not None:
                 result = __class__.session.query(obj)\
                     .filter_by(runtime_id=runtime_id).all()

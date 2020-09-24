@@ -178,7 +178,8 @@ class Runtime(db.Model):
     def instances(self):
         return self.webapps or self.addons  # pragma: no cover
 
-    def generate_uri(self, capsule):
+    def generate_uri_dbname(self, capsule):
+        dbname = None
         if self.uri_template is not None:
             template = json.loads(self.uri_template)
             pattern = template['pattern']
@@ -192,11 +193,15 @@ class Runtime(db.Model):
                     capsule=capsule,
                 )
                 d_vars[variable['name']] = value
+                if variable['set_name'] and \
+                   (variable['src'] == 'capsule') and \
+                   variable['unique']:
+                    dbname = value
 
             res = pattern.format(**d_vars)
-            return res
+            return (res, dbname)
         else:
-            return None
+            return (None, dbname)
 
     def _generate_variable(self, src, length, unique=None,
                            capsule=None, offset=1):
@@ -802,6 +807,7 @@ class AddOnSchema(ma.SQLAlchemyAutoSchema):
         sqla_session = db.session
 
     id = ma.auto_field(dump_only=True)
+    name = ma.auto_field(dump_only=True)
     uri = ma.auto_field(dump_only=True)
     opts = fields.Nested(
         "OptionSchema",
