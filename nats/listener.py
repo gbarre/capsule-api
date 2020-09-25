@@ -14,6 +14,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.exceptions import InvalidSignature
 from pynats.exceptions import NATSReadSocketError
+from exceptions import ConfigError
 
 
 class NATSListener(threading.Thread):
@@ -223,10 +224,15 @@ class NATSDriverMsg:
                 return
 
         driver = self.json['from']
-        public_key = serialization.load_pem_public_key(
-            self.config.get_pubkey_from_driver(driver).encode('utf8'),
-            backend=default_backend(),
-        )
+        try:
+            public_key = serialization.load_pem_public_key(
+                self.config.get_pubkey_from_driver(driver).encode('utf8'),
+                backend=default_backend(),
+            )
+        except ConfigError:
+            self.is_msg_valid = False
+            self.error = f'Unknown driver: {driver}'
+            return
 
         signature = base64.b64decode(self.signature)
         try:
