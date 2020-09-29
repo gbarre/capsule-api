@@ -225,7 +225,6 @@ class Runtime(db.Model):
             #       in the same moment (race conditions etc).
             if unique:
                 addon = AddOn.query\
-                    .filter_by(runtime_id=self.id)\
                     .filter(AddOn.uri.like(f"%{res}%")).one_or_none()
                 if addon is not None:
                     return self._generate_variable(  # pragma: no cover
