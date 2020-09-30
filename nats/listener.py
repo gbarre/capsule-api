@@ -36,6 +36,7 @@ class NATSListener(threading.Thread):
     def listen(msg):
 
         nats.logger.info('msg received')
+        nats.logger.debug(msg)
 
         msg = NATSDriverMsg(msg, __class__.config)
 
