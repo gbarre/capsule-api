@@ -36,9 +36,12 @@ class NATSListener(threading.Thread):
     def listen(msg):
 
         nats.logger.info('msg received')
-        nats.logger.debug(msg)
+        # nats.logger.debug(msg)
 
         msg = NATSDriverMsg(msg, __class__.config)
+        if msg.json['from'] == 'api':
+            nats.logger.debug("ignore self message")
+            return
 
         origin_subject = msg.subject
 
