@@ -28,7 +28,11 @@ class NATSListener(threading.Thread):
 
     def init_session(self, uri):
         session_factory = orm.sessionmaker(
-            bind=create_engine(uri, pool_pre_ping=True)
+            bind=create_engine(
+                uri,
+                pool_pre_ping=True,
+                isolation_level="READ_UNCOMMITTED",
+            )
         )
         __class__.session = orm.scoped_session(session_factory)
 
@@ -36,12 +40,13 @@ class NATSListener(threading.Thread):
     def listen(msg):
 
         nats.logger.info('msg received')
-        nats.logger.debug(msg)
 
         msg = NATSDriverMsg(msg, __class__.config)
         if msg.json['from'] == 'api':
             nats.logger.debug("ignore self message")
             return
+        else:
+            nats.logger.debug(msg.payload)
 
         origin_subject = msg.subject
 
@@ -65,6 +70,7 @@ class NATSListener(threading.Thread):
                     query_id=query_id,
                 )
                 if webapp is None:
+                    msg.publish_response(data=None)
                     return
 
                 try:
@@ -84,6 +90,7 @@ class NATSListener(threading.Thread):
                     query_id=query_id,
                 )
                 if addon is None:
+                    msg.publish_response(data=None)
                     return
 
                 try:
