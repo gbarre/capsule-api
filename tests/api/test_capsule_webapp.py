@@ -328,7 +328,8 @@ class TestCapsuleWebapp:
     # def test_create_tls_crt_key_not_paired(self, testapp, db):
     #     with patch.object(oidc, "validate_token", return_value=True), \
     #          patch("utils.check_user_role", return_value=db.user1), \
-    #          patch.object(NATS, "publish_webapp_absent") as publish_method1, \
+    #          patch.object(NATS, "publish_webapp_absent")\
+    #          as publish_method1, \
     #          patch.object(NATS, "publish_webapp_present") as publish_method2:
     #         capsule_id = str(db.capsule1.id)
 
@@ -341,24 +342,25 @@ class TestCapsuleWebapp:
 
     #         # Create webapp
     #         new_webapp = self.build_webapp(db)
-    #         new_webapp['tls_key'] = "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1J"\
-    #                                 "SUJWUUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVND"\
-    #                                 "QVQ4d2dnRTdBZ0VBQWtFQTdDYktkdW55RmlqVm9V"\
-    #                                 "R0gKWDRhS1Q5Y0Q1SWw5OERZSUFabm9TbGJHeFYy"\
-    #                                 "WUlsVXhZZ1JvYjRGRThYYXV6SVlqZWNFM2J3Tmlj"\
-    #                                 "TkRxOU5SUAoxUlJvU3dJREFRQUJBa0VBcm81aDNC"\
-    #                                 "SkRrdU91UFp0TmNHdm5zdXB4Z3kycWZMUERxVU5W"\
-    #                                 "dEJWK3FnV0FYNDhHCmlhUjA1YXlhY0JiNTJtb2ZO"\
-    #                                 "b0lZU3RUZHk5WkpsZFh2MlIxSDJRSWhBUFlrUDZX"\
-    #                                 "TW93Q3NYdWxiZlViTUl5cVQKSllEL1ZkUXU2SGo5"\
-    #                                 "ZHNMVzNhMTNBaUVBOVp3Y2tFanRiVy9xWTJ5cG90"\
-    #                                 "ZlJNYit3N1FsbVU3b3JGaWd0R1NrVApnTTBDSUZq"\
-    #                                 "UUJZTVhkcTFFaE02UXEyaERPaUVmalBXNXE5OXV1"\
-    #                                 "WVVHZDdhZnpzYkxBaUJ4N3EzdFhIY08rZ2h2CmdK"\
-    #                                 "dWNWNkxLQWhNUGtmbXV3MEJ6Y2NXaDAwVWh6UUlo"\
-    #                                 "QUkydnE0aFBFMVkrMFJGVkpxaEJnVGFrQ1Nsb1ly"\
-    #                                 "SzUKcTdXS1BLYTJRZG4zCi0tLS0tRU5EIFBSSVZB"\
-    #                                 "VEUgS0VZLS0tLS0K"
+    #         new_webapp['tls_key'] = "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk"\
+    #                                 "1JSUJWUUlCQURBTkJna3Foa2lHOXcwQkFRRUZB"\
+    #                                 "QVNDQVQ4d2dnRTdBZ0VBQWtFQTdDYktkdW55Rm"\
+    #                                 "lqVm9VR0gKWDRhS1Q5Y0Q1SWw5OERZSUFabm9T"\
+    #                                 "bGJHeFYyWUlsVXhZZ1JvYjRGRThYYXV6SVlqZW"\
+    #                                 "M2J3TmljTkRxOU5SUAoxUlJvU3dJREFRQUJBa0"\
+    #                                 "VBcm81aDNCSkRrdU91UFp0TmNHdm5zdXB4Z3ky"\
+    #                                 "cWZMUERxVU5WdEJWK3FnV0FYNDhHCmlhUjA1YX"\
+    #                                 "lhY0JiNTJtb2ZOb0lZU3RUZHk5WkpsZFh2MlIx"\
+    #                                 "SDJRSWhBUFlrUDZXTW93Q3NYdWxiZlViTUl5cV"\
+    #                                 "QKSllEL1ZkUXU2SGo5ZHNMVzNhMTNBaUVBOVp3"\
+    #                                 "Y2tFanRiVy9xWTJ5cG90ZlJNYit3N1FsbVU3b3"\
+    #                                 "JGaWd0R1NrVApnTTBDSUZqUUJZTVhkcTFFaE02"\
+    #                                 "UXEyaERPaUVmalBXNXE5OXV1WVVHZDdhZnpzYk"\
+    #                                 "xBaUJ4N3EzdFhIY08rZ2h2CmdKdWNWNkxLQWhN"\
+    #                                 "UGtmbXV3MEJ6Y2NXaDAwVWh6UUloQUkydnE0aF"\
+    #                                 "BFMVkrMFJGVkpxaEJnVGFrQ1Nsb1lySzUKcTdX"\
+    #                                 "S1BLYTJRZG4zCi0tLS0tRU5EIFBSSVZBVEUgS0"\
+    #                                 "VZLS0tLS0K"
 
     #         res = testapp.post_json(
     #             api_version + '/capsules/' + capsule_id + '/webapp',
