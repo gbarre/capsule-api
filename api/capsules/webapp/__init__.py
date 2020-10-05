@@ -193,8 +193,13 @@ def put(capsule_id, user):
         webapp.tls_crt = data["tls_crt"]
         webapp.tls_key = data["tls_key"]
     else:
-        webapp.tls_crt = None
-        webapp.tls_key = None
+        # PATCH: Look for existing certificate in DB
+        if "tls_redirect_https" in data and data["tls_redirect_https"]:
+            webapp.tls_crt = capsule.webapp.tls_crt
+            webapp.tls_key = capsule.webapp.tls_key
+        else:
+            webapp.tls_crt = None
+            webapp.tls_key = None
 
     webapp.tls_redirect_https = False
     if "tls_redirect_https" in data:

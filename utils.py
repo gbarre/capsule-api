@@ -10,8 +10,8 @@ from werkzeug.exceptions import ServiceUnavailable
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.exceptions import InvalidSignature
+# from cryptography.hazmat.primitives.asymmetric import padding
+# from cryptography.exceptions import InvalidSignature
 from functools import wraps
 from app import oidc, db
 from inspect import signature
@@ -258,7 +258,8 @@ def valid_sshkey(public_key):
 def is_keycert_associated(str_key, str_cert):
 
     try:
-        issuer_public_key = load_pem_private_key(
+        # issuer_public_key = load_pem_private_key(
+        load_pem_private_key(
             str_key,
             password=None,
             backend=default_backend(),
@@ -267,21 +268,24 @@ def is_keycert_associated(str_key, str_cert):
         raise NotValidPEMFile('The private key is not a valid PEM file')
 
     try:
-        cert_to_check = x509.load_pem_x509_certificate(
+        # cert_to_check = x509.load_pem_x509_certificate(
+        x509.load_pem_x509_certificate(
             str_cert,
             default_backend(),
         )
     except ValueError:
         raise NotValidPEMFile('The certificate is not a valid PEM file')
 
-    try:
-        issuer_public_key.verify(
-            cert_to_check.signature,
-            cert_to_check.tbs_certificate_bytes,
-            # Depends on the algorithm used to create the certificate
-            padding.PKCS1v15(),
-            cert_to_check.signature_hash_algorithm,
-        )
-        return True
-    except InvalidSignature:
-        return False
+    # TODO: Fix https://git.in.ac-versailles.fr/system/capsule-api/issues/3
+    # try:
+    #     issuer_public_key.verify(
+    #         cert_to_check.signature,
+    #         cert_to_check.tbs_certificate_bytes,
+    #         # Depends on the algorithm used to create the certificate
+    #         padding.PKCS1v15(),
+    #         cert_to_check.signature_hash_algorithm,
+    #     )
+    #     return True
+    # except InvalidSignature:
+    #     return False
+    return True
