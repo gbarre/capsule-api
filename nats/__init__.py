@@ -9,7 +9,8 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
-from models import webapp_nats_schema, capsule_verbose_schema, addon_schema
+from models import webapp_nats_schema, capsule_verbose_schema
+from models import addon_schema, crons_schema
 import ssl
 
 
@@ -147,6 +148,8 @@ class NATS(object):
             "data": data,
             "time": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
+        from pprint import pprint
+        pprint(data)
         json_bytes = bytes(json.dumps(res), 'utf-8')
 
         private_key = serialization.load_pem_private_key(
@@ -201,6 +204,7 @@ class NATS(object):
 
         data = {
             "authorized_keys": [],
+            "crons": crons_schema.dump(capsule.webapp.crons).data,
             "env": webapp_data['env'],
             "fqdns": webapp_data['fqdns'],
             "id": webapp_data['id'],
