@@ -1751,7 +1751,7 @@
         "tags": [
           "user"
         ],
-        "description": "Add a new cron to a webapp.\\\n**Only one cron by webapp!**\n",
+        "description": "Add a new cron to a webapp.\\\n**Only one cron per webapp!**\n",
         "summary": "Add a cron to a webapp",
         "operationId": "api.capsules.webapp.crons.post",
         "parameters": [
