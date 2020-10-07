@@ -37,7 +37,7 @@ post:
 get:
   tags: [user]
   description: |
-    Gets the web application for a capsule.\
+    Gets the web application for a capsule.
   summary: Get a webapp for a capsule
   operationId: api.capsules.webapp.get
   parameters:

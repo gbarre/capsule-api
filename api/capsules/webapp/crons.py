@@ -58,6 +58,9 @@ def post(capsule_id, user, cron_data=None):
     capsule = _get_capsule(capsule_id, user)
     webapp = capsule.webapp
 
+    if len(webapp.crons) > 0:
+        raise Forbidden(description="Only one cron by webapp is allowed")
+
     if cron_data is None:
         cron_data = request.get_json()
 
