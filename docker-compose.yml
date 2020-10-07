@@ -3,6 +3,15 @@ version: "3"
 services:
   db:
     image: mariadb:10.1
+    command:
+      - --innodb_file_per_table=1
+      - --innodb_large_prefix=1
+      - --default_storage_engine=InnoDB
+      - --innodb_file_format=Barracuda
+      - --collation-server=utf8_unicode_ci
+      - --character-set-server=utf8
+      - --default_storage_engine=InnoDB
+      - --innodb_default_row_format=dynamic
     env_file:
       - .env
     ports:
