@@ -31,7 +31,7 @@ post:
   tags: [user]
   description: |
     Add a new cron to a webapp.\
-    **Only one cron by webapp!**
+    **Only one cron per webapp!**
   summary: Add a cron to a webapp
   operationId: api.capsules.webapp.crons.post
   parameters:

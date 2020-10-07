@@ -191,12 +191,22 @@ class TestCapsuleWepappCron:
     # Testing POST /capsules/{cId}/webapp/crons
     #####################################################
     # Response 201:
+    @pytest.mark.filterwarnings(
+        "ignore:.*Content-Type header found in a 204 response.*:Warning"
+    )
     def test_create(self, testapp, db):
         capsule_id = str(db.capsule1.id)
+        cron_id = str(db.cron1.id)
 
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.user1), \
              patch.object(NATS, "publish_webapp_present") as publish_method:
+
+            # Remove existing cron (only one cron per webapp)
+            testapp.delete(
+                f"{api_version}/capsules/{capsule_id}/webapp/crons/{cron_id}",
+                status=204
+            )
 
             res = testapp.post_json(
                 f"{api_version}/capsules/{capsule_id}/webapp/crons",
@@ -241,6 +251,20 @@ class TestCapsuleWepappCron:
                 self._cron_input,
                 status=403
             )
+
+    def test_create_second_cron(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1):
+
+            res = testapp.post_json(
+                f"{api_version}/capsules/{capsule_id}/webapp/crons",
+                self._cron_input,
+                status=403
+            ).json
+            msg = "Only one cron per webapp is allowed"
+            assert msg in res['error_description']
 
     # Response 404:
     def test_create_unexisting_capsule_id(self, testapp, db):
