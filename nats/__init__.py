@@ -209,6 +209,7 @@ class NATS(object):
             "fqdns": webapp_data['fqdns'],
             "id": webapp_data['id'],
             "name": capsule.name,
+            "opts": webapp_data['opts'],
             "runtime_id": webapp_data['runtime_id'],
             "uid": capsule.uid,
         }
