@@ -23,20 +23,18 @@ class NATSListener(threading.Thread):
         super().__init__(daemon=True)
         nats.subscribe(nats.SUBJECT, callback=self.listen)
         nats.logger.info('NATS listener initialized.')
-        # self.init_session(config.SQLALCHEMY_DATABASE_URI)
+        self.init_session(config.SQLALCHEMY_DATABASE_URI)
         __class__.config = config
 
-    @staticmethod
-    def init_session(uri):
+    def init_session(self, uri):
         session_factory = orm.sessionmaker(
             bind=create_engine(
                 uri,
                 pool_pre_ping=True,
-                isolation_level="READ_UNCOMMITTED",
+                isolation_level="AUTOCOMMIT",
             )
         )
-        # __class__.session = orm.scoped_session(session_factory)
-        return orm.scoped_session(session_factory)
+        __class__.session = orm.scoped_session(session_factory)
 
     @staticmethod
     def listen(msg):
@@ -141,28 +139,23 @@ class NATSListener(threading.Thread):
     @staticmethod
     def get_sqlalchemy_obj(subj, obj, query_id=None, runtime_id=None):
         result = None
-        session = __class__.init_session(
-            uri=__class__.config.SQLALCHEMY_DATABASE_URI
-        )
         try:
             if query_id is not None:
                 if len(query_id) == 36:
-                    result = session.query(obj).get(query_id)
+                    result = __class__.session.query(obj).get(query_id)
                 else:
-                    result = session.query(obj)\
+                    result = __class__.session.query(obj)\
                         .filter_by(name=query_id).first()
             elif runtime_id is not None:
-                result = session.query(obj)\
+                result = __class__.session.query(obj)\
                     .filter_by(runtime_id=runtime_id).all()
             else:
-                result = session.query(obj).all()
+                result = __class__.session.query(obj).all()
         except OperationalError:
             nats.logger.error(f"{subj}: database unreachable.")
-            session.rollback()
+            __class__.session.rollback()
         except StatementError:
             nats.logger.error(f"{subj}: invalid id submitted.")
-
-        session.close()
 
         return result
 
