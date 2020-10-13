@@ -35,7 +35,7 @@ api:
   #database_uri: 'sqlite:///test_capsule.db'
   nats:
     uri: 'nats://localhost:4222'
-    log_level: 'WARN'
+    log_level: 'DEBUG'
     ca_cert: null
   # This is a private just for local dev without any value.
   rsa_private_key: |
@@ -72,4 +72,12 @@ drivers:
     rsa_public_key: |
       -----BEGIN PUBLIC KEY-----
       unused for tests
+      -----END PUBLIC KEY-----
+  sshp:
+    rsa_public_key: |
+      -----BEGIN PUBLIC KEY-----
+      MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC905ANojWuwJ1IztAU07c/5UzY
+      uUO2akOlPRXtD7EUqECcBUk5n60dMOlg1S2+ccPiTEX/Thmfce++O5t571cCq2Av
+      08xIYfl2bl7dVyqI0TsJgRLEc3n+DCBVk0lVUpEMwqOdLofonLD6r8ZD0AMCW1Gt
+      PZOpQf7YDmFJVUgATwIDAQAB
       -----END PUBLIC KEY-----
