@@ -21,9 +21,39 @@ import base64
 import struct
 import binascii
 from sqlalchemy.exc import OperationalError
-
+import os
+from pathlib import Path
+from config import YamlConfig
+# import parser
+import argparse
 
 OIDC_CONFIG = None
+
+
+def get_config():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--config', '-c',
+        dest='config_file',
+        type=str,
+        required=False,
+        help="The YAML configuration file of the API server.",
+    )
+    # Parse only known arguments because others arguments are added during
+    # a DB migration.
+    args, unknown = parser.parse_known_args()
+    config_file = args.config_file
+    # The default YAML config file is the option is not provided.
+    if config_file is None:
+        config_file = os.environ.get('CAPSULE_API_CONFIG')
+
+    if config_file is None:
+        if Path('config.yml').is_file():
+            config_file = 'config.yml'
+        else:
+            config_file = '/etc/capsule-api/config.yml'
+
+    return YamlConfig(config_file)
 
 
 def is_valid_name(name):

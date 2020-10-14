@@ -148,8 +148,6 @@ class NATS(object):
             "data": data,
             "time": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
-        from pprint import pprint
-        pprint(data)
         json_bytes = bytes(json.dumps(res), 'utf-8')
 
         private_key = serialization.load_pem_private_key(
