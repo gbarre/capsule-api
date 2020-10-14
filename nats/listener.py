@@ -31,9 +31,7 @@ class NATSListener(threading.Thread):
             bind=create_engine(
                 uri,
                 pool_pre_ping=True,
-                isolation_level="REPEATABLE READ",
             ),
-            autocommit=True,
         )
         __class__.session = orm.scoped_session(session_factory)
 
@@ -140,6 +138,7 @@ class NATSListener(threading.Thread):
     @staticmethod
     def get_sqlalchemy_obj(subj, obj, query_id=None, runtime_id=None):
         result = None
+        __class__.session.expire_all()
         try:
             if query_id is not None:
                 if len(query_id) == 36:
