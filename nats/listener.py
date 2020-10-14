@@ -31,8 +31,9 @@ class NATSListener(threading.Thread):
             bind=create_engine(
                 uri,
                 pool_pre_ping=True,
-                isolation_level="AUTOCOMMIT",
-            )
+                isolation_level="REPEATABLE READ",
+            ),
+            autocommit=True,
         )
         __class__.session = orm.scoped_session(session_factory)
 
