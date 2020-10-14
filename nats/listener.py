@@ -138,7 +138,6 @@ class NATSListener(threading.Thread):
     @staticmethod
     def get_sqlalchemy_obj(subj, obj, query_id=None, runtime_id=None):
         result = None
-        __class__.session.commit()
         try:
             if query_id is not None:
                 if len(query_id) == 36:
