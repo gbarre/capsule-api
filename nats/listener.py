@@ -138,7 +138,7 @@ class NATSListener(threading.Thread):
     @staticmethod
     def get_sqlalchemy_obj(subj, obj, query_id=None, runtime_id=None):
         result = None
-        __class__.session.expire_all()
+        __class__.session.commit()
         try:
             if query_id is not None:
                 if len(query_id) == 36:
@@ -157,6 +157,7 @@ class NATSListener(threading.Thread):
         except StatementError:
             nats.logger.error(f"{subj}: invalid id submitted.")
 
+        __class__.session.commit()
         return result
 
     def run(self):
