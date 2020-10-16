@@ -228,6 +228,7 @@ def delete(capsule_id, user):
     db.session.delete(webapp)
     db.session.commit()
 
-    nats.publish_webapp_absent(webapp_id)
+    if not capsule.no_update:
+        nats.publish_webapp_absent(webapp_id)
 
     return None, 204

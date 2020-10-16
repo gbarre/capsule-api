@@ -75,7 +75,8 @@ def post(capsule_id, user, addon_data=None):
         addon.name = str(addon.id)
         db.session.commit()
 
-    nats.publish_addon_present(addon, capsule.name)
+    if not capsule.no_update:
+        nats.publish_addon_present(addon, capsule.name)
 
     result_json = addon_schema.dump(addon).data
     return result_json, 201, {
@@ -164,7 +165,8 @@ def put(capsule_id, addon_id, user):
 
     db.session.commit()
 
-    nats.publish_addon_present(addon, capsule.name)
+    if not capsule.no_update:
+        nats.publish_addon_present(addon, capsule.name)
 
     return get(capsule_id, addon_id)
 
@@ -172,7 +174,7 @@ def put(capsule_id, addon_id, user):
 # DELETE /capsules/{cID}/addons/{aID}
 @oidc_require_role(min_role=RoleEnum.user)
 def delete(capsule_id, addon_id, user):
-    _get_capsule(capsule_id, user)
+    capsule = _get_capsule(capsule_id, user)
 
     addon = AddOn.query.get(addon_id)
     if not addon:
@@ -186,6 +188,7 @@ def delete(capsule_id, addon_id, user):
     db.session.delete(addon)
     db.session.commit()
 
-    nats.publish_addon_absent(addon_id, runtime_id)
+    if not capsule.no_update:
+        nats.publish_addon_absent(addon_id, runtime_id)
 
     return None, 204

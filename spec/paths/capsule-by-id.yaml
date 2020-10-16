@@ -42,3 +42,37 @@ delete:
       $ref: "../components/responses.yaml#/Forbidden"
     "404":
       $ref: "../components/responses.yaml#/NotFound"
+
+patch:
+  tags: [user]
+  description: |
+    Enable/disable capsule auto-update.
+  summary: Enable/disable capsule auto-update
+  operationId: api.capsules.patch
+  parameters:
+    - $ref: "../components/parameters.yaml#/capsule_id"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            no_update:
+              type: boolean
+              example: true
+  responses:
+    "400":
+      $ref: "../components/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../components/responses.yaml#/Unauthorized"
+    "403":
+      $ref: "../components/responses.yaml#/Forbidden"
+    "404":
+      $ref: "../components/responses.yaml#/NotFound"
+    "200":
+      description: Capsule configured
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas.yaml#/Capsule"

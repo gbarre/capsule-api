@@ -113,6 +113,38 @@ def get(capsule_id, verbose, user):
     else:
         return capsule_output_schema.dump(capsule).data
 
+# PATCH /capsules/{cID}
+@oidc_require_role(min_role=RoleEnum.user)
+def patch(capsule_id, user):
+    try:
+        capsule = Capsule.query.filter_by(id=capsule_id).first()
+    except StatementError:
+        raise BadRequest(description=f"'{capsule_id}' is not a valid id.")
+
+    if capsule is None:
+        raise NotFound(description=f"The requested capsule '{capsule_id}' "
+                       "has not been found.")
+
+    owners = capsule_output_schema.dump(capsule).data['owners']
+    if (user.role is RoleEnum.user) and (user.name not in owners):
+        raise Forbidden
+
+    data = request.get_json()
+    try:
+        no_update = data['no_update']
+    except KeyError:
+        raise BadRequest(description="'no_update' is a required property.")
+
+    capsule.no_update = no_update
+    db.session.commit()
+
+    caps = Capsule.query.filter_by(id=capsule_id).first()
+    result = capsule_output_schema.dump(caps).data
+
+    return result, 200, {
+        'Location': f'{request.base_url}/capsules/{capsule.id}',
+    }
+
 
 # DELETE /capsules/{cID}
 @oidc_require_role(min_role=RoleEnum.superadmin)
@@ -141,10 +173,11 @@ def delete(capsule_id):
     db.session.delete(capsule)
     db.session.commit()
 
-    if webapp_id is not None:
-        nats.publish_webapp_absent(webapp_id)
+    if not capsule.no_update:
+        if webapp_id is not None:
+            nats.publish_webapp_absent(webapp_id)
 
-    for addon in addons_infos:
-        nats.publish_addon_absent(addon['id'], addon['runtime_id'])
+        for addon in addons_infos:
+            nats.publish_addon_absent(addon['id'], addon['runtime_id'])
 
     return None, 204

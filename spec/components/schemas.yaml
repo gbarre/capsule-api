@@ -491,6 +491,10 @@ Capsule:
     name:
       type: string
       example: lyc-vernes-osny
+    no_update:
+      type: boolean
+      default: false
+      example: false
     owners:
       type: array
       items:
@@ -546,6 +550,10 @@ CapsuleVerbose:
     name:
       type: string
       example: lyc-vernes-osny
+    no_update:
+      type: boolean
+      default: false
+      example: false
     owners:
       type: array
       items:
@@ -586,6 +594,10 @@ CapsulePost:
     name:
       type: string
       example: lyc-vernes-osny
+    no_update:
+      type: boolean
+      default: false
+      example: false
     owners:
       type: array
       items:

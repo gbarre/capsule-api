@@ -80,7 +80,7 @@ class NATSListener(threading.Thread):
                     return
 
                 data = nats.build_nats_webapp_data(webapp, capsule)
-                msg.publish_response(data=data)
+                msg.publish_response(data=data, no_update=capsule.no_update)
 
             elif "capsule.addon" in msg.subject:
                 addon = __class__.get_sqlalchemy_obj(
@@ -99,7 +99,7 @@ class NATSListener(threading.Thread):
                     return
 
                 data = nats.build_nats_addon_data(addon, capsule.name)
-                msg.publish_response(data=data)
+                msg.publish_response(data=data, no_update=capsule.no_update)
 
             else:
                 nats.logger.error(msg_invalid_subject)
@@ -274,7 +274,7 @@ class NATSDriverMsg:
             self.error = 'Data value must be an object with the key "id"'
             return
 
-    def publish_response(self, data):
+    def publish_response(self, data, no_update=False):
         if self.json["state"] == "?list":
             state = "list"
         else:
@@ -283,8 +283,10 @@ class NATSDriverMsg:
                 data = {"id": query_id}
                 state = "absent"
             else:
-
-                state = "present"
+                if no_update:
+                    state = "no_update"
+                else:
+                    state = "present"
         response = nats.generate_response(
             to=self.json['from'],
             state=state,

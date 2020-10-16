@@ -544,6 +544,7 @@ class Capsule(db.Model):
     uid = db.Column(db.Integer, primary_key=True,
                     unique=True, autoincrement=True)
     name = db.Column(db.String(256), nullable=False, unique=True)
+    no_update = db.Column(db.Boolean, nullable=False, default=False)
     webapp_id = db.Column(GUID, db.ForeignKey(
         'webapps.id'), nullable=True)
 

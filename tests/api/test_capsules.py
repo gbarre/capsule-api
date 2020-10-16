@@ -41,6 +41,8 @@ class TestCapsules:
         ]
     }
 
+    _new_patch = {"no_update": True}
+
     @staticmethod
     def build_output(db):
         return json.loads(capsule_output_schema.dumps(db.capsule1).data)
@@ -364,4 +366,83 @@ class TestCapsules:
                 api_version + "/capsules/" + unexisting_id,
                 status=404
             )
+    #################################
+
+#################################
+    # Testing PATCH /capsules/cId
+    #################################
+    # Response 200:
+    def test_patch(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch("api.capsules.check_owners_on_keycloak"):
+
+            res = testapp.patch_json(
+                api_version + "/capsules/" + str(db.capsule1.id),
+                self._new_patch,
+                status=200
+            ).json
+
+            assert res["no_update"] == True
+
+    # Response 400:
+    def test_patch_bad_json_input(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch("api.capsules.check_owners_on_keycloak"):
+
+            new_patch = {"update": True}
+            res = testapp.patch_json(
+                api_version + "/capsules/" + str(db.capsule1.id),
+                new_patch,
+                status=400
+            ).json
+            msg = "'no_update' is a required property"
+            assert msg in res["error_description"]
+
+    def test_patch_bad_capsule_id(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch("api.capsules.check_owners_on_keycloak"):
+
+            res = testapp.patch_json(
+                api_version + "/capsules/" + bad_id,
+                self._new_patch,
+                status=400
+            ).json
+            msg = f"'{bad_id}' is not a valid id."
+            assert msg in res["error_description"]
+
+    # Response 401:
+    def test_patch_with_no_token(self, testapp, db):
+        testapp.patch_json(
+            api_version + "/capsules/" + str(db.capsule1.id),
+            self._new_patch,
+            status=401
+        )
+
+    # Response 403:
+    def test_patch_raises_on_invalid_role(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+            patch("utils.check_user_role", return_value=db.user3):
+
+            testapp.patch_json(
+                api_version + "/capsules/" + str(db.capsule1.id),
+                self._new_patch,
+                status=403
+            )
+
+    # Response 404:
+    def test_patch_not_found(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1):
+
+            res = testapp.patch_json(
+                api_version + "/capsules/" + unexisting_id,
+                self._new_patch,
+                status=404
+            ).json
+            msg = f"The requested capsule '{unexisting_id}' "\
+                       "has not been found."
+            assert msg in res['error_description']
     #################################

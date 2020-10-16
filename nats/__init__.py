@@ -180,7 +180,7 @@ class NATS(object):
         self.publish(subject, signed_payload)
 
     def publish_webapp_present(self, capsule):
-        if capsule.webapp is not None:
+        if capsule.webapp is not None and not capsule.no_update:
             data = self.build_nats_webapp_data(capsule.webapp, capsule)
             self._publish_response_after_api_request(
                 data,
