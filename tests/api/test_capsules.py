@@ -383,7 +383,7 @@ class TestCapsules:
                 status=200
             ).json
 
-            assert res["no_update"] == True
+            assert res["no_update"]
 
     # Response 400:
     def test_patch_bad_json_input(self, testapp, db):
@@ -424,7 +424,7 @@ class TestCapsules:
     # Response 403:
     def test_patch_raises_on_invalid_role(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
-            patch("utils.check_user_role", return_value=db.user3):
+             patch("utils.check_user_role", return_value=db.user3):
 
             testapp.patch_json(
                 api_version + "/capsules/" + str(db.capsule1.id),
@@ -443,6 +443,6 @@ class TestCapsules:
                 status=404
             ).json
             msg = f"The requested capsule '{unexisting_id}' "\
-                       "has not been found."
+                  "has not been found."
             assert msg in res['error_description']
     #################################

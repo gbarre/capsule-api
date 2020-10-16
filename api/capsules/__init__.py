@@ -113,6 +113,7 @@ def get(capsule_id, verbose, user):
     else:
         return capsule_output_schema.dump(capsule).data
 
+
 # PATCH /capsules/{cID}
 @oidc_require_role(min_role=RoleEnum.user)
 def patch(capsule_id, user):
