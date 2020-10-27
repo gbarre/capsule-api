@@ -40,7 +40,7 @@ class TestCapsuleSshKeys:
                 self._sshkey_input,
                 status=201
             ).json
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
             assert dict_contains(res, capsule_output)
 
     # Response 400:
@@ -128,7 +128,7 @@ class TestCapsuleSshKeys:
                 self._sshkey_input,
                 status=201
             )
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
 
             # Try to add again
             res = testapp.post_json(
@@ -162,7 +162,7 @@ class TestCapsuleSshKeys:
                 f"{api_version}/capsules/{capsule_id}/sshkeys/{sshkey_id}",
                 status=204
             )
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
 
             # Ensure this sshkey is not present anymore
             res = testapp.get(

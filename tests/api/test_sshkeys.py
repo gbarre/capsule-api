@@ -90,7 +90,7 @@ class TestSshKeys:
                 self._sshkey_input,
                 status=201
             ).json
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
             assert dict_contains(res, self._sshkey_input)
 
     # Response 400:

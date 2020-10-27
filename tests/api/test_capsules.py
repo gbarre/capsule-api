@@ -313,7 +313,7 @@ class TestCapsules:
                 api_version + "/capsules/" + capsule_id,
                 status=204
             )
-            publish_method1.assert_called_once
+            publish_method1.assert_called_once()
             assert publish_method2.call_count > 0
 
             # No more capsule

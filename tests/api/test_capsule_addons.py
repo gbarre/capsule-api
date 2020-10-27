@@ -78,7 +78,7 @@ class TestCapsuleAddons:
                 new_addon,
                 status=201
             ).json
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
             assert dict_contains(res, new_addon)
 
     def test_create_without_opts(self, testapp, db):
@@ -96,7 +96,7 @@ class TestCapsuleAddons:
                 new_addon,
                 status=201
             ).json
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
             assert dict_contains(res, new_addon)
 
     def test_create_without_uri_in_runtime(self, testapp, db):
@@ -115,7 +115,7 @@ class TestCapsuleAddons:
                 new_addon,
                 status=201
             ).json
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
             assert dict_contains(res, new_addon)
 
     # Response 400:
@@ -267,7 +267,7 @@ class TestCapsuleAddons:
                 f"{api_version}/capsules/{capsule_id}/addons/{addon_id}",
                 status=204
             )
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
 
             testapp.get(
                 api_version + "/capsules/" + capsule_id + "/addons",
@@ -293,7 +293,7 @@ class TestCapsuleAddons:
                 new_addon,
                 status=200
             ).json
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
             dict_contains(res, new_addon)
 
     def test_update_without_opts(self, testapp, db):
@@ -311,7 +311,7 @@ class TestCapsuleAddons:
                 new_addon,
                 status=200
             ).json
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
             dict_contains(res, new_addon)
 
     # Response 400:
@@ -553,7 +553,7 @@ class TestCapsuleAddons:
                 f"{api_version}/capsules/{capsule_id}/addons/{addon_id}",
                 status=204
             )
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
 
             # Check addon is not present anymore
             testapp.get(

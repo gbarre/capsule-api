@@ -178,7 +178,7 @@ class TestCapsuleOwners:
                 self._owners_input,
                 status=200
             ).json
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
             assert self._owners_input["newOwner"] in res["owners"]
 
     def test_patch_with_existing_user(self, testapp, db):
@@ -196,7 +196,7 @@ class TestCapsuleOwners:
                 owner_input,
                 status=200
             ).json
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
             assert db.user3.name in res["owners"]
     ################################################
 
@@ -281,7 +281,7 @@ class TestCapsuleOwners:
                 f"{api_version}/capsules/{capsule_id}/owners/{db.user2.name}",
                 status=204
             )
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
 
             # Check owner is not present anymore
             res = testapp.get(

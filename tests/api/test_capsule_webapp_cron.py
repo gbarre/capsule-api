@@ -207,13 +207,13 @@ class TestCapsuleWepappCron:
                 f"{api_version}/capsules/{capsule_id}/webapp/crons/{cron_id}",
                 status=204
             )
+            publish_method.assert_called_once()
 
             res = testapp.post_json(
                 f"{api_version}/capsules/{capsule_id}/webapp/crons",
                 self._cron_input,
                 status=201
             ).json
-            publish_method.assert_called_once
             assert dict_contains(res, self._cron_input)
 
     # Response 400:
@@ -476,7 +476,7 @@ class TestCapsuleWepappCron:
                 cron,
                 status=200
             ).json
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
             assert dict_contains(res, cron)
 
     def test_update_cron_with_only_command(self, testapp, db):
@@ -494,7 +494,7 @@ class TestCapsuleWepappCron:
                 cron,
                 status=200
             ).json
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
             assert dict_contains(res, cron)
 
     # Response 201:
@@ -658,7 +658,7 @@ class TestCapsuleWepappCron:
                 f"{api_version}/capsules/{capsule_id}/webapp/crons/{cron_id}",
                 status=204
             )
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
 
     # Response 400:
     def test_delete_cron_invalid_id(self, testapp, db):

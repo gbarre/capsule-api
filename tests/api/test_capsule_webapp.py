@@ -140,7 +140,7 @@ class TestCapsuleWebapp:
                 api_version + '/capsules/' + capsule_id + '/webapp',
                 status=204
             )
-            publish_method1.assert_called_once
+            publish_method1.assert_called_once()
 
             # Create webapp
             new_webapp = self.build_webapp(db)
@@ -150,7 +150,7 @@ class TestCapsuleWebapp:
                 new_webapp,
                 status=201
             ).json
-            publish_method2.assert_called_once
+            publish_method2.assert_called_once()
 
             # tls crt & key are not displayed in res
             new_webapp.pop('tls_key')
@@ -281,7 +281,7 @@ class TestCapsuleWebapp:
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.user1), \
              patch.object(NATS, "publish_webapp_absent") as publish_method1, \
-             patch.object(NATS, "publish_webapp_present") as publish_method2:
+             patch.object(NATS, "publish_webapp_present"):
             capsule_id = str(db.capsule1.id)
 
             # Remove existing webapp
@@ -289,7 +289,7 @@ class TestCapsuleWebapp:
                 api_version + '/capsules/' + capsule_id + '/webapp',
                 status=204
             )
-            publish_method1.assert_called_once
+            publish_method1.assert_called_once()
 
             # Create webapp
             new_webapp = self.build_webapp(db)
@@ -300,7 +300,6 @@ class TestCapsuleWebapp:
                 new_webapp,
                 status=400
             ).json
-            publish_method2.assert_called_once
             msg = "Both tls_crt and tls_key are required together"
             assert msg in res['error_description']
 
@@ -311,7 +310,7 @@ class TestCapsuleWebapp:
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.user1), \
              patch.object(NATS, "publish_webapp_absent") as publish_method1, \
-             patch.object(NATS, "publish_webapp_present") as publish_method2:
+             patch.object(NATS, "publish_webapp_present"):
             capsule_id = str(db.capsule1.id)
 
             # Remove existing webapp
@@ -319,7 +318,7 @@ class TestCapsuleWebapp:
                 api_version + '/capsules/' + capsule_id + '/webapp',
                 status=204
             )
-            publish_method1.assert_called_once
+            publish_method1.assert_called_once()
 
             # Create webapp
             new_webapp = self.build_webapp(db)
@@ -330,7 +329,6 @@ class TestCapsuleWebapp:
                 new_webapp,
                 status=400
             ).json
-            publish_method2.assert_called_once
             msg = "'tls_crt' and 'tls_key' must be base64 encoded."
             assert msg in res['error_description']
 
@@ -349,7 +347,7 @@ class TestCapsuleWebapp:
                 api_version + '/capsules/' + capsule_id + '/webapp',
                 status=204
             )
-            publish_method1.assert_called_once
+            publish_method1.assert_called_once()
 
             # Create webapp
             new_webapp = self.build_webapp(db)
@@ -369,7 +367,7 @@ class TestCapsuleWebapp:
              patch("utils.check_user_role", return_value=db.user1), \
              patch.object(NATS, "publish_webapp_absent")\
              as publish_method1, \
-             patch.object(NATS, "publish_webapp_present") as publish_method2:
+             patch.object(NATS, "publish_webapp_present"):
             capsule_id = str(db.capsule1.id)
 
             # Remove existing webapp
@@ -377,7 +375,7 @@ class TestCapsuleWebapp:
                 api_version + '/capsules/' + capsule_id + '/webapp',
                 status=204
             )
-            publish_method1.assert_called_once
+            publish_method1.assert_called_once()
 
             # Create webapp
             new_webapp = self.build_webapp(db)
@@ -419,7 +417,6 @@ class TestCapsuleWebapp:
                 new_webapp,
                 status=400
             ).json
-            publish_method2.assert_called_once
             msg = "The certificate and the key are not associated"
             assert msg in res['error_description']
 
@@ -502,7 +499,7 @@ class TestCapsuleWebapp:
                 api_version + '/capsules/' + capsule_id + '/webapp',
                 status=204
             )
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
 
             testapp.get(
                 api_version + "/capsules/" + capsule_id + "/webapp",
@@ -551,7 +548,7 @@ class TestCapsuleWebapp:
                 current_webapp,
                 status=200
             ).json
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
             assert dict_contains(res, current_webapp)
 
     def test_update_with_tls(self, testapp, db):
@@ -572,7 +569,7 @@ class TestCapsuleWebapp:
                 current_webapp,
                 status=200
             )
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
 
     # Response 201:
     @pytest.mark.filterwarnings(
@@ -591,7 +588,7 @@ class TestCapsuleWebapp:
                 api_version + '/capsules/' + capsule_id + '/webapp',
                 status=204
             )
-            publish_method1.assert_called_once
+            publish_method1.assert_called_once()
 
             new_webapp = self.build_webapp(db)
 
@@ -600,7 +597,7 @@ class TestCapsuleWebapp:
                 new_webapp,
                 status=201
             ).json
-            publish_method2.assert_called_once
+            publish_method2.assert_called_once()
 
             # tls crt & key are not displayed in res
             new_webapp.pop('tls_key')
@@ -819,7 +816,7 @@ class TestCapsuleWebapp:
                 api_version + "/capsules/" + capsule_id + "/webapp",
                 status=204
             )
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
 
             # Check webapp is not present anymore
             testapp.get(
@@ -871,7 +868,7 @@ class TestCapsuleWebapp:
                 api_version + "/capsules/" + capsule_id + "/webapp",
                 status=204
             )
-            publish_method.assert_called_once
+            publish_method.assert_called_once()
 
             # Try to delete an unexisting webapp
             res = testapp.delete(
