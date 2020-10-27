@@ -4,14 +4,9 @@ from models import RoleEnum
 from models import User, AppToken
 from flask import current_app, g, request
 from exceptions import KeycloakIdNotFound, KeycloakUserNotFound
-from exceptions import NotValidPEMFile
 from werkzeug.exceptions import BadRequest, Forbidden
 from werkzeug.exceptions import ServiceUnavailable
-from cryptography import x509
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.serialization import load_pem_private_key
-# from cryptography.hazmat.primitives.asymmetric import padding
-# from cryptography.exceptions import InvalidSignature
+import OpenSSL
 from functools import wraps
 from app import oidc, db
 from inspect import signature
@@ -257,35 +252,34 @@ def valid_sshkey(public_key):
 
 def is_keycert_associated(str_key, str_cert):
 
+    """
+    :type cert: str
+    :type private_key: str
+    :rtype: bool
+    """
     try:
-        # issuer_public_key = load_pem_private_key(
-        load_pem_private_key(
+        private_key_obj = OpenSSL.crypto.load_privatekey(
+            OpenSSL.crypto.FILETYPE_PEM,
+            # str_key.decode('ascii'),
             str_key,
-            password=None,
-            backend=default_backend(),
-        ).public_key()
-    except ValueError:
-        raise NotValidPEMFile('The private key is not a valid PEM file')
+        )
+    except OpenSSL.crypto.Error:
+        raise BadRequest('The private key is not a valid PEM file')
 
     try:
-        # cert_to_check = x509.load_pem_x509_certificate(
-        x509.load_pem_x509_certificate(
+        cert_obj = OpenSSL.crypto.load_certificate(
+            OpenSSL.crypto.FILETYPE_PEM,
+            # str_cert.decode('ascii'),
             str_cert,
-            default_backend(),
         )
-    except ValueError:
-        raise NotValidPEMFile('The certificate is not a valid PEM file')
+    except OpenSSL.crypto.Error:
+        raise BadRequest('The certificate is not a valid PEM file')
 
-    # TODO: Fix https://git.in.ac-versailles.fr/system/capsule-api/issues/3
-    # try:
-    #     issuer_public_key.verify(
-    #         cert_to_check.signature,
-    #         cert_to_check.tbs_certificate_bytes,
-    #         # Depends on the algorithm used to create the certificate
-    #         padding.PKCS1v15(),
-    #         cert_to_check.signature_hash_algorithm,
-    #     )
-    #     return True
-    # except InvalidSignature:
-    #     return False
-    return True
+    context = OpenSSL.SSL.Context(OpenSSL.SSL.TLSv1_METHOD)
+    context.use_privatekey(private_key_obj)
+    context.use_certificate(cert_obj)
+    try:
+        context.check_privatekey()
+        return True
+    except OpenSSL.SSL.Error:
+        return False

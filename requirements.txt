@@ -25,6 +25,7 @@ nats-python==0.8.0
 openapi-spec-validator==0.2.4
 pathlib==1.0.1
 pymysql==0.9.3
+pyOpenSSL==19.1.0
 python-dotenv==0.13.0
 PyYAML==5.3.1
 requests==2.21.0
