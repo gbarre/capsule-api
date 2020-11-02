@@ -1,7 +1,7 @@
 ---
 api:
   host: api.domain.tld
-  app_name: 'capsule-api'
+  app_name: 'capsapi'
   debug: false
   sqlalchemy:
     echo: false
