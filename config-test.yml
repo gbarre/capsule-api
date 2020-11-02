@@ -2,7 +2,7 @@
 api:
   host: api.domain.tld
   app_name: 'capsapi'
-  debug: false
+  debug: true
   sqlalchemy:
     echo: false
     track_modifications: false
