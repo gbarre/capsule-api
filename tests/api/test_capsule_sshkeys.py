@@ -116,7 +116,7 @@ class TestCapsuleSshKeys:
             )
 
     # Response 409:
-    def test_create_confilct(self, testapp, db):
+    def test_create_conflict(self, testapp, db):
         capsule_id = str(db.capsule1.id)
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.user1), \
