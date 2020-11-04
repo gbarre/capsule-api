@@ -7,39 +7,57 @@ variables:
   # CI_REGISTRY_USER: toto
   # CI_REGISTRY_PASSWORD: tata
   #########################################
-  API_VERSION: "1.5"
+  API_VERSION: "1.6"
   REPOSITORY_NAME: $CI_REGISTRY/$CI_PROJECT
 
 stages:
-  - tox
+  - tests
   - deploy
 
-tox:py36:
-  stage: tox
+tests:lint-secaudit:
+  stage: tests
   image: ubuntu:18.04
   script:
     - DEBIAN_FRONTEND=noninteractive apt-get update -qy
     - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python3-pip
-    - python3 -m pip install --upgrade tox
-    - tox -e apicover,lint,secaudit
+    - python3 -m venv venv
+    - . venv/bin/activate
+    - pip install -r requirements.txt -r test-requirements.txt
+    - flake8 --extend-exclude=venv,migrations --ignore=E402
+    - bandit -n5 -x "./venv/*,./tests/*,./dev-tools/*" -r . -ll
 
-tox:py37:
-  stage: tox
+tests:python36:
+  stage: tests
+  image: ubuntu:18.04
+  script:
+    - DEBIAN_FRONTEND=noninteractive apt-get update -qy
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python3-pip
+    - python3 -m venv venv
+    - . venv/bin/activate
+    - pip install -r requirements.txt -r test-requirements.txt
+    - python -m pytest -v -n4 --cov=. --cov-config=.coveragerc-ci --cov-report html --cov-report term tests/api/
+
+tests:python37:
+  stage: tests
   image: ubuntu:18.04
   script:
     - DEBIAN_FRONTEND=noninteractive apt-get update -qy
     - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.7 python3-pip
-    - python3 -m pip install --upgrade tox
-    - tox -e py37
+    - python3 -m venv venv
+    - . venv/bin/activate
+    - pip install -r requirements.txt -r test-requirements.txt
+    - python -m pytest -v -n4 tests/api/
 
-tox:py38:
-  stage: tox
+tests:python38:
+  stage: tests
   image: ubuntu:18.04
   script:
     - DEBIAN_FRONTEND=noninteractive apt-get update -qy
     - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.8 python3-pip
-    - python3 -m pip install --upgrade tox
-    - tox -e py38
+    - python3 -m venv venv
+    - . venv/bin/activate
+    - pip install -r requirements.txt -r test-requirements.txt
+    - python -m pytest -v -n4 tests/api/
 
 deploy:
   stage: deploy

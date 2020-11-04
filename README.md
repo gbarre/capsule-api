@@ -77,28 +77,14 @@ FLASK_APP=server.py CAPSULE_API_CONFIG=config-dev.yml python -m flask db upgrade
 ## Run tests
 
 ```sh
-# To list all "tox" tasks.
-tox -a
+# To run cover (which includes tests)
+python -m pytest -v -n8 --cov=. --cov-config=.coveragerc-ci --cov-report html --cov-report term tests/api/
 
-# To run cover (which includes tests), lint and secaudit.
-tox -e apicover,lint,secaudit
+# To run lint
+flake8 --extend-exclude=venv,migrations --ignore=E402
 
-### Normally, these commands are included in tox which is the only entry point for tests.
-
-    # Run tests.
-    pytest -v
-
-    # Run tests with 12 workers (some alerts appears due to nats)
-    pytest -v -n12  # run 12 tests in parallel, really faster !
-
-    # Run coverage (which runs tests too).
-    coverage run -m pytest -v
-    # Then:
-    coverage report -m
-    coverage html
-
-    # Run tests for the api (ignoring nats) with coverage, reports and 12 workers
-    pytest -v -n12 --cov=. --cov-report html --cov-report term tests/api/
+# To run secaudit
+bandit -n5 -x "./venv/*,./tests/*,./dev-tools/*" -r . -ll
 ```
 
 ## Update API specifications
@@ -210,3 +196,21 @@ cd dev-tools
 python publish_msg.py --nats=localhost:4222 --subject="capsule.addon.ecea7683-92a8-4e2d-a846-be3c92f01308" --state="?list" --data='{}'
 python publish_msg.py --nats=localhost:4222 --subject="capsule.webapp" --state="?state" --data='{"id": "19129f93-b50c-4d06-9c96-d779d1dac467"}'
 ```
+
+## TODO
+
+- API:
+  - addon description can be "None" in spec
+- Front:
+  - capsule:
+    - Send error message before the end of creation
+  - webapp:
+    - TLS certificate & key options must be editable separately
+    - Remove options list under FQDNs
+    - Add message for multiples FQDNs : "Only one principal"
+    - Manage Error messages
+    - Cron ergonomic design
+  - addons:
+    - adding / removing addon redirect to another capsule (seems to reload all)
+    - Change "file" option (like webapp)
+    - Script to check consistency between sqlite & existing databases
