@@ -12,6 +12,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from models import webapp_nats_schema, capsule_verbose_schema
 from models import addon_schema, crons_schema
 import ssl
+from sqlalchemy.orm.exc import ObjectDeletedError
 
 
 class NATSNoEchoClient(NATSClient):
@@ -260,6 +261,9 @@ class NATS(object):
     def build_data_ids(obj_array):
         ids = []
         for obj in obj_array:
-            ids.append(str(obj.id))
+            try:
+                ids.append(str(obj.id))
+            except ObjectDeletedError:
+                pass
 
         return {"ids": ids}
