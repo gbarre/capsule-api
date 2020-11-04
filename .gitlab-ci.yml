@@ -19,7 +19,7 @@ tests:lint-secaudit:
   image: ubuntu:18.04
   script:
     - DEBIAN_FRONTEND=noninteractive apt-get update -qy
-    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python3-pip
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python3-pip python3-venv
     - python3 -m venv venv
     - . venv/bin/activate
     - pip install -r requirements.txt -r test-requirements.txt
@@ -31,7 +31,7 @@ tests:python36:
   image: ubuntu:18.04
   script:
     - DEBIAN_FRONTEND=noninteractive apt-get update -qy
-    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python3-pip
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python3-pip python3-venv
     - python3 -m venv venv
     - . venv/bin/activate
     - pip install -r requirements.txt -r test-requirements.txt
@@ -42,7 +42,7 @@ tests:python37:
   image: ubuntu:18.04
   script:
     - DEBIAN_FRONTEND=noninteractive apt-get update -qy
-    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.7 python3-pip
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.7 python3-pip python3-venv
     - python3 -m venv venv
     - . venv/bin/activate
     - pip install -r requirements.txt -r test-requirements.txt
@@ -53,7 +53,7 @@ tests:python38:
   image: ubuntu:18.04
   script:
     - DEBIAN_FRONTEND=noninteractive apt-get update -qy
-    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.8 python3-pip
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.8 python3-pip python3-venv
     - python3 -m venv venv
     - . venv/bin/activate
     - pip install -r requirements.txt -r test-requirements.txt
