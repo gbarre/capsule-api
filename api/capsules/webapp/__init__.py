@@ -10,7 +10,7 @@ from werkzeug.exceptions import NotFound, BadRequest, Forbidden, Conflict
 from sqlalchemy.exc import StatementError
 import base64
 import binascii
-from exceptions import NotValidPEMFile
+from exceptions import FQDNAlreadyExists, NotValidPEMFile
 
 
 def _get_capsule(capsule_id, user):
@@ -47,7 +47,7 @@ def post(capsule_id, user, webapp_data=None):
     # Datas could come from PUT
     if webapp is None:
         webapp_data = request.get_json()
-        data = webapp_schema.load(webapp_data).data
+    data = webapp_schema.load(webapp_data).data
 
     runtime_id = data["runtime_id"]
     try:
@@ -65,7 +65,14 @@ def post(capsule_id, user, webapp_data=None):
 
     newArgs = dict()
     if "fqdns" in data:
-        fqdns = FQDN.create(data["fqdns"])
+        fqdns_list = [e['name'] for e in data["fqdns"]]
+        if len(fqdns_list) != len(set(fqdns_list)):
+            raise BadRequest(description='Repetitions are not '
+                                         'allowed for FQDNs')
+        try:
+            fqdns = FQDN.create(data["fqdns"])
+        except FQDNAlreadyExists as e:
+            raise BadRequest(description=f'{e.existing_fqdn} already exists.')
         data.pop("fqdns")
         newArgs["fqdns"] = fqdns
 
@@ -147,7 +154,14 @@ def put(capsule_id, user):
         webapp.env = webapp_data["env"]
 
     if "fqdns" in data:
-        fqdns = FQDN.create(data["fqdns"])
+        fqdns_list = [e['name'] for e in data["fqdns"]]
+        if len(fqdns_list) != len(set(fqdns_list)):
+            raise BadRequest(description='Repetitions are not '
+                                         'allowed for FQDNs')
+        try:
+            fqdns = FQDN.create(data["fqdns"], webapp.id)
+        except FQDNAlreadyExists as e:
+            raise BadRequest(description=f'{e.existing_fqdn} already exists.')
         webapp.fqdns = fqdns
 
     # Ensure new runtime_id has same familly

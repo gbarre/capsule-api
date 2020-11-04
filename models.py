@@ -1,4 +1,5 @@
 import enum
+from exceptions import FQDNAlreadyExists
 import uuid
 from datetime import datetime
 from app import db, ma
@@ -496,10 +497,15 @@ class FQDN(db.Model):
     alias = db.Column(db.Boolean, nullable=False, default=False)
 
     @staticmethod
-    def create(fqdns):
+    def create(fqdns, webapp_id=None):
         fqdns_array = []
         for fqdn in fqdns:
-            fqdns_array.append(FQDN(**fqdn))
+            existing_fqdn = FQDN.query.\
+                filter_by(name=fqdn['name']).one_or_none()
+            if existing_fqdn is None or webapp_id == existing_fqdn.webapp_id:
+                fqdns_array.append(FQDN(**fqdn))
+            else:
+                raise FQDNAlreadyExists(fqdn['name'])
         return fqdns_array
 
 

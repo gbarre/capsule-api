@@ -45,3 +45,8 @@ class ConfigError(Exception):
 
 class NotValidPEMFile(Exception):
     pass
+
+
+class FQDNAlreadyExists(Exception):
+    def __init__(self, existing_fqdn):
+        self.existing_fqdn = existing_fqdn
