@@ -23,13 +23,13 @@ tests:lint-secaudit:
     - flake8 --extend-exclude=venv,migrations --ignore=E402
     - bandit -n5 -x "./venv/*,./tests/*,./dev-tools/*" -r . -ll
 
-# TODO : FIX gitlab error
+# TODO : Find why the api need to be in capsule-api directory
 
 tests:python36:
   stage: tests
   image: ubuntu:18.04
   script:
-    - cd ..; cp -ar api capsule-api; cd capsule-api
+    - cd ..; mv api capsule-api; cd capsule-api
     - chmod u+x prepare-ci-env.bash
     - . ./prepare-ci-env.bash 3.6
     - python -m pytest -v -n4 --cov=. --cov-config=.coveragerc-ci --cov-report html --cov-report term tests/api/
@@ -38,21 +38,21 @@ tests:python37:
   stage: tests
   image: ubuntu:18.04
   script:
-    - cd ..; cp -ar api capsule-api; cd capsule-api
+    - cd ..; mv api capsule-api; cd capsule-api
     - chmod u+x prepare-ci-env.bash
     - . ./prepare-ci-env.bash 3.7
     - env
-    - python -m pytest -v -n4 tests/api/test_me.py
+    - python -m pytest -v -n4 tests/api/
 
 tests:python38:
   stage: tests
   image: ubuntu:18.04
   script:
-    - cd ..; cp -ar api capsule-api; cd capsule-api
+    - cd ..; mv api capsule-api; cd capsule-api
     - chmod u+x prepare-ci-env.bash
     - . ./prepare-ci-env.bash 3.8
     - env
-    - python -m pytest -v -n4 tests/api/test_sshkeys.py
+    - python -m pytest -v -n4 tests/api/
 
 deploy:
   stage: deploy
