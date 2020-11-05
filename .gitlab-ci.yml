@@ -27,7 +27,7 @@ tests:python36:
   stage: tests
   image: ubuntu:18.04
   script:
-    - - chmod u+x prepare-ci-env.bash
+    - chmod u+x prepare-ci-env.bash
     - ./prepare-ci-env.bash 3.6
     - python -m pytest -v -n4 --cov=. --cov-config=.coveragerc-ci --cov-report html --cov-report term tests/api/
 
@@ -35,7 +35,7 @@ tests:python37:
   stage: tests
   image: ubuntu:18.04
   script:
-    -- chmod u+x prepare-ci-env.bash
+    - chmod u+x prepare-ci-env.bash
     - ./prepare-ci-env.bash 3.7
     - python -m pytest -v -n4 tests/api/me.py
 
@@ -43,7 +43,7 @@ tests:python38:
   stage: tests
   image: ubuntu:18.04
   script:
-    - - chmod u+x prepare-ci-env.bash
+    - chmod u+x prepare-ci-env.bash
     - ./prepare-ci-env.bash 3.8
     - python -m pytest -v -n4 tests/api/sshkeys.py
 
