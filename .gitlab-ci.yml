@@ -37,7 +37,7 @@ tests:python37:
   script:
     - chmod u+x prepare-ci-env.bash
     - . ./prepare-ci-env.bash 3.7
-    - python -m pytest -v -n4 tests/api/me.py
+    - python -m pytest -v -n4 tests/api/test_me.py
 
 tests:python38:
   stage: tests
@@ -45,7 +45,7 @@ tests:python38:
   script:
     - chmod u+x prepare-ci-env.bash
     - . ./prepare-ci-env.bash 3.8
-    - python -m pytest -v -n4 tests/api/sshkeys.py
+    - python -m pytest -v -n4 tests/api/test_sshkeys.py
 
 deploy:
   stage: deploy
