@@ -215,9 +215,12 @@ def put(capsule_id, user):
             webapp.tls_crt = None
             webapp.tls_key = None
 
-    webapp.tls_redirect_https = capsule.tls_redirect_https
     if "tls_redirect_https" in data:
         webapp.tls_redirect_https = data["tls_redirect_https"]
+    elif hasattr(capsule, 'tls_redirect_https'):
+        webapp.tls_redirect_https = capsule.tls_redirect_https
+    else:
+        webapp.tls_redirect_https = True  # The default spec value is True
 
     capsule.webapp = webapp
     db.session.commit()
