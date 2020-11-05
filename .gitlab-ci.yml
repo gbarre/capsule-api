@@ -18,11 +18,8 @@ tests:lint-secaudit:
   stage: tests
   image: ubuntu:18.04
   script:
-    - DEBIAN_FRONTEND=noninteractive apt-get update -qy
-    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python3-pip python3-venv
-    - python3 -m venv venv
-    - . venv/bin/activate
-    - pip install -r requirements.txt -r test-requirements.txt
+    - chmod u+x prepare-ci-env.bash
+    - ./prepare-ci-env.bash 3.6
     - flake8 --extend-exclude=venv,migrations --ignore=E402
     - bandit -n5 -x "./venv/*,./tests/*,./dev-tools/*" -r . -ll
 
@@ -30,34 +27,25 @@ tests:python36:
   stage: tests
   image: ubuntu:18.04
   script:
-    - DEBIAN_FRONTEND=noninteractive apt-get update -qy
-    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.6 python3-pip python3-venv
-    - python3 -m venv venv
-    - . venv/bin/activate
-    - pip install -r requirements.txt -r test-requirements.txt
+    - - chmod u+x prepare-ci-env.bash
+    - ./prepare-ci-env.bash 3.6
     - python -m pytest -v -n4 --cov=. --cov-config=.coveragerc-ci --cov-report html --cov-report term tests/api/
 
 tests:python37:
   stage: tests
   image: ubuntu:18.04
   script:
-    - DEBIAN_FRONTEND=noninteractive apt-get update -qy
-    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.7 python3-pip python3-venv
-    - python3 -m venv venv
-    - . venv/bin/activate
-    - pip install -r requirements.txt -r test-requirements.txt
-    - python -m pytest -v -n4 tests/api/
+    -- chmod u+x prepare-ci-env.bash
+    - ./prepare-ci-env.bash 3.7
+    - python -m pytest -v -n4 tests/api/me.py
 
 tests:python38:
   stage: tests
   image: ubuntu:18.04
   script:
-    - DEBIAN_FRONTEND=noninteractive apt-get update -qy
-    - DEBIAN_FRONTEND=noninteractive apt-get install -y python3.8 python3-pip python3-venv
-    - python3 -m venv venv
-    - . venv/bin/activate
-    - pip install -r requirements.txt -r test-requirements.txt
-    - python -m pytest -v -n4 tests/api/
+    - - chmod u+x prepare-ci-env.bash
+    - ./prepare-ci-env.bash 3.8
+    - python -m pytest -v -n4 tests/api/sshkeys.py
 
 deploy:
   stage: deploy
