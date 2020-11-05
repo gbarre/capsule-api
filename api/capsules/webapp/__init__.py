@@ -215,7 +215,7 @@ def put(capsule_id, user):
             webapp.tls_crt = None
             webapp.tls_key = None
 
-    webapp.tls_redirect_https = False
+    webapp.tls_redirect_https = capsule.tls_redirect_https
     if "tls_redirect_https" in data:
         webapp.tls_redirect_https = data["tls_redirect_https"]
 
