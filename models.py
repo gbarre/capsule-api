@@ -373,6 +373,11 @@ class Option(db.Model):
     tag = db.Column(db.String(256))
     field_name = db.Column(db.String(256))
     value = db.Column(db.Text)
+    value_type = db.Column(
+        db.Enum(OptionValueTypeEnum),
+        nullable=False,
+        default=OptionValueTypeEnum.string
+    )
 
     @hybrid_property  # @property compliant with SQLAlchemy
     def instance_id(self):
@@ -398,6 +403,8 @@ class Option(db.Model):
             if available_opt is None:
                 raise BadRequest(description="This option is not available: "
                                  f"field_name='{opt_name}', tag='{opt_tag}'")
+
+            opt['value_type'] = available_opt.value_type
 
             # Check access_level
             if user_role < available_opt.access_level:
