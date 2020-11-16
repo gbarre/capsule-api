@@ -737,7 +737,7 @@ class WebAppSchema(ma.SQLAlchemyAutoSchema):
         "OptionSchema",
         default=[],
         many=True,
-        only=('tag', 'field_name', 'value'),
+        only=('tag', 'field_name', 'value', 'value_type',),
     )
     crons = fields.Nested(
         "CronSchema",
