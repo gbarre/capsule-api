@@ -215,6 +215,7 @@ class DBFooData:
             field_name="worker",
             tag="PHP",
             value="42",
+            value_type='integer',
         )
 
         self.cron1 = Cron(
