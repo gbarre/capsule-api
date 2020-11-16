@@ -98,7 +98,7 @@ class OptionValueTypeEnum(str, enum.Enum):
     float = "float"
     boolean = "boolean"
     string = "string"
-    file = "file"
+    base64 = "base64"
 
 
 class ValidationRuleEnum(str, enum.Enum):
@@ -436,7 +436,7 @@ class Option(db.Model):
                             and opt_value == rule.arg:
                         raise BadRequest(description=f"'{opt_name}' cannot be "
                                          f"equal to {rule.arg}")
-                    # TODO : check file format
+                    # TODO : check base64 format
                     # elif rule.type == ValidationRuleEnum.format:
                     #     opt_value must be base64 encoded
                     #     and opt_value is not rule.arg

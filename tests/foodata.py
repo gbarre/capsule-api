@@ -58,7 +58,7 @@ class DBFooData:
             access_level=RoleEnum.user,
             tag="Apache",
             field_name="vhost.conf",
-            value_type=OptionValueTypeEnum.file,
+            value_type=OptionValueTypeEnum.base64,
             field_description="Apache2 vhost configuration file.",
             default_value="",
         )
@@ -93,7 +93,7 @@ class DBFooData:
             access_level=RoleEnum.user,
             tag="SQL",
             field_name="my.cnf",
-            value_type=OptionValueTypeEnum.file,
+            value_type=OptionValueTypeEnum.base64,
             field_description="MySQL configuration file.",
         )
 

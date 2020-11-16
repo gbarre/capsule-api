@@ -257,7 +257,7 @@
               "integer",
               "float",
               "boolean",
-              "file"
+              "base64"
             ]
           },
           "default_value": {
@@ -282,7 +282,7 @@
             "tag": "SQL",
             "field_name": "my.cnf",
             "field_description": "Fichier de configuration MySQL",
-            "value_type": "file",
+            "value_type": "base64",
             "default_value": "{base64-encoded my.cnf file content}"
           },
           {
@@ -551,6 +551,16 @@
                   "type": "string",
                   "example": "worker"
                 },
+                "value_type": {
+                  "type": "string",
+                  "enum": [
+                    "string",
+                    "integer",
+                    "float",
+                    "boolean",
+                    "base64"
+                  ]
+                },
                 "value": {
                   "type": "string",
                   "example": "42"
@@ -674,6 +684,16 @@
                   "type": "string",
                   "example": "worker"
                 },
+                "value_type": {
+                  "type": "string",
+                  "enum": [
+                    "string",
+                    "integer",
+                    "float",
+                    "boolean",
+                    "base64"
+                  ]
+                },
                 "value": {
                   "type": "string",
                   "example": "42"
@@ -773,6 +793,16 @@
                 },
                 "field_name": {
                   "type": "string"
+                },
+                "value_type": {
+                  "type": "string",
+                  "enum": [
+                    "string",
+                    "integer",
+                    "float",
+                    "boolean",
+                    "base64"
+                  ]
                 },
                 "value": {
                   "type": "string"

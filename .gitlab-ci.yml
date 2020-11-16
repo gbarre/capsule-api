@@ -7,7 +7,7 @@ variables:
   # CI_REGISTRY_USER: toto
   # CI_REGISTRY_PASSWORD: tata
   #########################################
-  API_VERSION: "1.6"
+  API_VERSION: "1.7"
   REPOSITORY_NAME: $CI_REGISTRY/$CI_PROJECT
 
 stages:
@@ -41,7 +41,6 @@ tests:python37:
     - cd ..; mv api capsule-api; cd capsule-api
     - chmod u+x prepare-ci-env.bash
     - . ./prepare-ci-env.bash 3.7
-    - env
     - python -m pytest -v -n4 tests/api/
 
 tests:python38:
@@ -51,7 +50,6 @@ tests:python38:
     - cd ..; mv api capsule-api; cd capsule-api
     - chmod u+x prepare-ci-env.bash
     - . ./prepare-ci-env.bash 3.8
-    - env
     - python -m pytest -v -n4 tests/api/
 
 deploy:
