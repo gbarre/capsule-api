@@ -173,9 +173,9 @@ def put(capsule_id, user):
     if new_runtime is None:
         raise BadRequest(description=f"The runtime_id '{new_runtime_id}' "
                          "does not exist.")
-    new_fam = new_runtime.fam
-    old_fam = webapp.runtime.fam
-    if new_fam is not old_fam:
+    new_fam = str(new_runtime.fam)
+    old_fam = str(webapp.runtime.fam)
+    if new_fam != old_fam:
         raise BadRequest(f"Changing runtime familly from '{old_fam}' "
                          f"to '{new_fam}' is not possible")
     webapp.runtime_id = data["runtime_id"]
