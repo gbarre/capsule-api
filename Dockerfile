@@ -48,7 +48,8 @@ EXPOSE 5080
 EXPOSE 5443
 
 ENV PATH="/opt/venv/bin:$PATH"
-ENV WORKERS="4"
+ENV WORKERS="2"
+ENV TIMEOUT="30"
 ENV SSL="false"
 # ENV DB_MIGRATE="upgrade" # or "downgrade"
 
