@@ -7,7 +7,7 @@ variables:
   # CI_REGISTRY_USER: toto
   # CI_REGISTRY_PASSWORD: tata
   #########################################
-  API_VERSION: "1.8"
+  API_VERSION: "1.8.1"
   REPOSITORY_NAME: $CI_REGISTRY/$CI_PROJECT
 
 stages:

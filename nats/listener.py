@@ -15,6 +15,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.exceptions import InvalidSignature
 from pynats.exceptions import NATSReadSocketError
 from exceptions import ConfigError
+from uuid import UUID
 
 
 class NATSListener(threading.Thread):
@@ -140,11 +141,10 @@ class NATSListener(threading.Thread):
         result = None
         try:
             if query_id is not None:
-                if len(query_id) == 36:
+                if __class__.is_valid_uuid(query_id):
                     result = __class__.session.query(obj).get(query_id)
                 else:
-                    result = __class__.session.query(obj)\
-                        .filter_by(name=query_id).first()
+                    nats.logger.error(f"{subj}: invalid query id submitted.")
             elif runtime_id is not None:
                 result = __class__.session.query(obj)\
                     .filter_by(runtime_id=runtime_id).all()
@@ -154,10 +154,19 @@ class NATSListener(threading.Thread):
             nats.logger.error(f"{subj}: database unreachable.")
             __class__.session.rollback()
         except StatementError:
-            nats.logger.error(f"{subj}: invalid id submitted.")
+            nats.logger.error(f"{subj}: invalid runtime id submitted.")
 
         __class__.session.commit()
         return result
+
+    @classmethod
+    def is_valid_uuid(cls, uuid_to_test):
+        try:
+            uuid_obj = UUID(uuid_to_test)
+        except ValueError:
+            return False
+
+        return str(uuid_obj) == uuid_to_test
 
     def run(self):
         nats.logger.info('NATS listener waiting for incoming messages.')
