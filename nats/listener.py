@@ -144,7 +144,8 @@ class NATSListener(threading.Thread):
                 if __class__.is_valid_uuid(query_id):
                     result = __class__.session.query(obj).get(query_id)
                 else:
-                    nats.logger.error(f"{subj}: invalid query id submitted.")
+                    nats.logger.error(f"{subj}: invalid query id ({query_id})"
+                                      f" received from driver.")
             elif runtime_id is not None:
                 result = __class__.session.query(obj)\
                     .filter_by(runtime_id=runtime_id).all()
@@ -154,7 +155,8 @@ class NATSListener(threading.Thread):
             nats.logger.error(f"{subj}: database unreachable.")
             __class__.session.rollback()
         except StatementError:
-            nats.logger.error(f"{subj}: invalid runtime id submitted.")
+            nats.logger.error(f"{subj}: invalid runtime id ({runtime_id}) "
+                              f"received from driver.")
 
         __class__.session.commit()
         return result
