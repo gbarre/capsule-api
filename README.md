@@ -215,3 +215,9 @@ python publish_msg.py --nats=localhost:4222 --subject="capsule.webapp" --state="
     - adding / removing addon redirect to another capsule (seems to reload all)
     - Change "file" option (like webapp)
     - Script to check consistency between sqlite & existing databases
+  - sshkeys:
+    - Show sshkey comment if exists
+    - Permit multiple spaces in sshkey comment
+- Drivers:
+  - k8s:
+    - Ensure changing env variable run `kubectl apply`
