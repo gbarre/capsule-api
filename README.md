@@ -201,16 +201,16 @@ python publish_msg.py --nats=localhost:4222 --subject="capsule.webapp" --state="
 
 - API:
   - addon description can be "None" in spec
+  - add notes for addons / webapp / capsule
 - Front:
   - capsule:
     - Send error message before the end of creation
     - Catch owner repetition on creation
+    - Check if user exists in keycloak after the local search fails
   - webapp:
     - TLS certificate & key options must be editable separately
-    - Remove options list under FQDNs
     - Add message for multiples FQDNs : "Only one principal" => change alias/principal management
     - Manage Error messages
-    - Cron ergonomic design
   - addons:
     - adding / removing addon redirect to another capsule (seems to reload all)
     - Change "file" option (like webapp)
