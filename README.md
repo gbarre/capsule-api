@@ -200,8 +200,10 @@ python publish_msg.py --nats=localhost:4222 --subject="capsule.webapp" --state="
 ## TODO
 
 - API:
-  - addon description can be "None" in spec
   - add notes for addons / webapp / capsule
+  - manage capsule "size"
+  - manage cluster "total size"
+  - add webapp/addon status-flag
 - Front:
   - capsule:
     - Send error message before the end of creation
