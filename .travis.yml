@@ -1,24 +1,19 @@
-dist: bionic
-
-# before_install:
-#   - sudo apt-get -y update
-#   - sudo apt-get -y install python3.6 python3-pip
-#   - python3 -m pip install --upgrade tox
+dist: focal
 
 jobs:
   include:
     - stage: lint
       script:
         - chmod u+x prepare-ci-env.bash
-        - . ./prepare-ci-env.bash 3.6
+        - . ./prepare-ci-env.bash 3.8
         - flake8 --extend-exclude=venv,migrations --ignore=E402
     - stage: audit
       script:
         - chmod u+x prepare-ci-env.bash
-        - . ./prepare-ci-env.bash 3.6
+        - . ./prepare-ci-env.bash 3.8
         - bandit -n5 -x "./venv/*,./tests/*,./dev-tools/*" -r . -ll
     - stage: cover
       script:
         - chmod u+x prepare-ci-env.bash
-        - . ./prepare-ci-env.bash 3.6
+        - . ./prepare-ci-env.bash 3.8
         - python -m pytest -v -n4 --cov=. --cov-config=.coveragerc-ci --cov-report html --cov-report term tests/api/
