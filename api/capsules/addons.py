@@ -75,6 +75,10 @@ def post(capsule_id, user, addon_data=None):
         addon.name = str(addon.id)
         db.session.commit()
 
+    if addon.description is None:
+        addon.description = addon.name
+        db.session.commit()
+
     if not capsule.no_update:
         nats.publish_addon_present(addon, capsule.name)
 
@@ -162,6 +166,9 @@ def put(capsule_id, addon_id, user):
         addon.opts = opts
     else:
         addon.opts = []
+
+    if addon.description is None:
+        addon.description = addon.name
 
     db.session.commit()
 
