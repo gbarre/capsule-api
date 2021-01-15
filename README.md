@@ -211,6 +211,7 @@ python publish_msg.py --nats=localhost:4222 --subject="capsule.webapp" --state="
     - Check if user exists in keycloak after the local search fails
   - webapp:
     - TLS certificate & key options must be editable separately
+    - TLS certificate warning : "mettre le certif suivi, le cas échéant, des certificats intermédiaires"
     - Add message for multiples FQDNs : "Only one principal" => change alias/principal management
     - Manage Error messages
   - addons:

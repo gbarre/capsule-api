@@ -2,14 +2,12 @@
   "openapi": "3.0.2",
   "info": {
     "title": "Capsule API",
-    "version": "1.0",
-    "description": "Web Platform Management API",
+    "version": "1.8.4",
+    "description": "__PLATFORM_DESCRIPTION__",
     "contact": {
-      "name": "API Support",
-      "email": "support@example.com",
-      "url": "http://example.com/support"
+      "name": "Académie de Versailles",
+      "url": "http://www.ac-versailles.fr/pid35231/nous-contacter.html"
     },
-    "termsOfService": "http://example.com/terms/",
     "license": {
       "name": "GNU GPLv3",
       "url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
@@ -17,16 +15,7 @@
   },
   "servers": [
     {
-      "url": "https://{platform}.api.example.com/v1",
-      "variables": {
-        "platform": {
-          "enum": [
-            "elea",
-            "dane"
-          ],
-          "default": "elea"
-        }
-      }
+      "url": "https://k8s-__PLATFORM__-api-srv.in.ac-versailles.fr/v1"
     }
   ],
   "components": {

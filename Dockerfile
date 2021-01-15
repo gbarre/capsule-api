@@ -1,4 +1,4 @@
-FROM python:3.6-slim AS build
+FROM python:3.8-slim AS build
 
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends build-essential gcc
@@ -25,7 +25,7 @@ COPY server.py .
 COPY utils.py .
 COPY entrypoint.sh .
 
-FROM python:3.6-slim AS run
+FROM python:3.8-slim AS run
 
 RUN set -eux; \
     apt-get update; \
@@ -51,6 +51,8 @@ ENV PATH="/opt/venv/bin:$PATH"
 ENV WORKERS="2"
 ENV TIMEOUT="30"
 ENV SSL="false"
+ENV PLATFORM="development"
+ENV PLATFORM_DESCRIPTION="Web Platform Management API"
 # ENV DB_MIGRATE="upgrade" # or "downgrade"
 
 ENTRYPOINT ["/capsule-api/entrypoint.sh"]
