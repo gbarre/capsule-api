@@ -232,6 +232,25 @@ class TestCapsuleOwners:
                 status=403
             )
 
+    def test_delete_forbidden_no_user(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.admin_user), \
+             patch.object(NATS, "publish_webapp_present"):
+
+            testapp.delete(
+                f"{api_version}/capsules/{capsule_id}/owners/{db.user1.name}",
+                status=204
+            )
+
+            res = testapp.delete(
+                f"{api_version}/capsules/{capsule_id}/owners/{db.user2.name}",
+                status=403
+            ).json
+
+            msg = 'A capsule need one owner at least !'
+            assert msg in res["error_description"]
+
     # Response 404:
     def test_delete_not_found_capsule_id(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \

@@ -87,10 +87,14 @@ def patch(capsule_id, user):
 # /DELETE /capsules/{cId}/owners/{uId}
 @oidc_require_role(min_role=RoleEnum.user)
 def delete(capsule_id, user_id, user):
+    capsule = _get_capsule(capsule_id, user)
+
+    if len(capsule.owners) == 1:
+        raise Forbidden(description="A capsule need one owner at least !")
+
     if user_id == user.name:
         raise Conflict
 
-    capsule = _get_capsule(capsule_id, user)
     user_is_owner = False
     user_id_in_owners = False
     for owner in capsule.owners:
