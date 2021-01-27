@@ -796,6 +796,22 @@ class TestCapsuleWebapp:
                 status=403
             )
 
+    def test_update_no_fqdn(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1):
+
+            new_webapp = self.build_webapp(db)
+            new_webapp['fqdns'] = []
+
+            res = testapp.put_json(
+                api_version + "/capsules/" + capsule_id + "/webapp",
+                new_webapp,
+                status=403
+            ).json
+            msg = 'A webapp need at least one FQDN !'
+            assert msg in res['error_description']
+
     ################################################
 
     ################################################

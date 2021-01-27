@@ -153,7 +153,7 @@ def put(capsule_id, user):
     if "env" in webapp_data:
         webapp.env = webapp_data["env"]
 
-    if "fqdns" in data:
+    if "fqdns" in data and len(data['fqdns']) > 0:
         fqdns_list = [e['name'] for e in data["fqdns"]]
         if len(fqdns_list) != len(set(fqdns_list)):
             raise BadRequest(description='Repetitions are not '
@@ -163,6 +163,8 @@ def put(capsule_id, user):
         except FQDNAlreadyExists as e:
             raise BadRequest(description=f'{e.existing_fqdn} already exists.')
         webapp.fqdns = fqdns
+    else:
+        raise Forbidden(description='A webapp need at least one FQDN !')
 
     # Ensure new runtime_id has same familly
     new_runtime_id = str(data["runtime_id"])
