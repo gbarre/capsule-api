@@ -69,6 +69,9 @@ class NATSListener(threading.Thread):
                     obj=WebApp,
                     query_id=query_id,
                 )
+                # Do not send absent if db is unreachable
+                if webapp == "db_unreachable":
+                    return
                 if webapp is None:
                     msg.publish_response(data=None)
                     return
@@ -89,6 +92,9 @@ class NATSListener(threading.Thread):
                     obj=AddOn,
                     query_id=query_id,
                 )
+                # Do not send absent if db is unreachable
+                if addon == "db_unreachable":
+                    return
                 if addon is None:
                     msg.publish_response(data=None)
                     return
@@ -111,7 +117,8 @@ class NATSListener(threading.Thread):
                     subj=origin_subject,
                     obj=WebApp,
                 )
-                if webapps is None:
+                # Do not send absent if db is unreachable
+                if webapps == "db_unreachable" or webapps is None:
                     return
 
                 data = nats.build_data_ids(webapps)
@@ -128,7 +135,8 @@ class NATSListener(threading.Thread):
                     obj=AddOn,
                     runtime_id=runtime_id,
                 )
-                if addons is None:
+                # Do not send absent if db is unreachable
+                if addons == "db_unreachable" or addons is None:
                     return
 
                 data = nats.build_data_ids(addons)
@@ -154,6 +162,7 @@ class NATSListener(threading.Thread):
         except OperationalError:
             nats.logger.error(f"{subj}: database unreachable.")
             __class__.session.rollback()
+            return "db_unreachable"
         except StatementError:
             nats.logger.error(f"{subj}: invalid runtime id ({runtime_id}) "
                               f"received from driver.")
