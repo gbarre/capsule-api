@@ -1,3 +1,4 @@
+import datetime
 from flask import request
 from models import RoleEnum
 from models import Capsule
@@ -39,7 +40,7 @@ def post(capsule_id, user, addon_data=None):
     if addon_data is None:
         addon_data = request.get_json()
 
-    data = addon_schema.load(addon_data).data
+    data = addon_schema.load(addon_data)
 
     runtime_id = data["runtime_id"]
     runtime = Runtime.query.get(runtime_id)
@@ -79,10 +80,11 @@ def post(capsule_id, user, addon_data=None):
         addon.description = addon.name
         db.session.commit()
 
-    if not capsule.no_update:
+    now = datetime.datetime.now()
+    if now > (capsule.no_update + datetime.timedelta(hours=24)):
         nats.publish_addon_present(addon, capsule.name)
 
-    result_json = addon_schema.dump(addon).data
+    result_json = addon_schema.dump(addon)
     return result_json, 201, {
         'Location':
             f'{request.base_url}/capsules/{capsule_id}/addons/{addon.id}',
@@ -104,7 +106,7 @@ def search(capsule_id, user, offset, limit, filters):
     if not results:
         raise NotFound(description="No addons have been found.")
 
-    results = addons_schema.dump(results).data
+    results = addons_schema.dump(results)
 
     return results
 
@@ -126,7 +128,7 @@ def get(capsule_id, addon_id, user):
     if str(result.capsule.id) != capsule_id:
         raise Forbidden
 
-    result = addon_schema.dump(result).data
+    result = addon_schema.dump(result)
 
     return result, 200, {
         'Location':
@@ -139,7 +141,7 @@ def get(capsule_id, addon_id, user):
 def put(capsule_id, addon_id, user):
     capsule = _get_capsule(capsule_id, user)
     addon_data = request.get_json()
-    data = addon_schema.load(addon_data).data
+    data = addon_schema.load(addon_data)
 
     try:
         addon = AddOn.query.get(addon_id)
@@ -172,7 +174,8 @@ def put(capsule_id, addon_id, user):
 
     db.session.commit()
 
-    if not capsule.no_update:
+    now = datetime.datetime.now()
+    if now > (capsule.no_update + datetime.timedelta(hours=24)):
         nats.publish_addon_present(addon, capsule.name)
 
     return get(capsule_id, addon_id)
@@ -195,7 +198,8 @@ def delete(capsule_id, addon_id, user):
     db.session.delete(addon)
     db.session.commit()
 
-    if not capsule.no_update:
+    now = datetime.datetime.now()
+    if now > (capsule.no_update + datetime.timedelta(hours=24)):
         nats.publish_addon_absent(addon_id, runtime_id)
 
     return None, 204

@@ -25,3 +25,10 @@ NotFound:
     application/json:
       schema:
         $ref: "./schemas.yaml#/Error"
+
+PaymentRequired:
+  description: Payment Required
+  content:
+    application/json:
+      schema:
+        $ref: "./schemas.yaml#/Error"

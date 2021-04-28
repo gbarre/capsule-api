@@ -23,7 +23,7 @@ def search(offset, limit, filters, user):
     # if not results:
     #     raise NotFound(description="No users have been found.")
 
-    return users_schema.dump(results).data
+    return users_schema.dump(results)
 
 
 # GET /users/{uId}
@@ -38,4 +38,4 @@ def get(user_id, user):
     if (user.role == RoleEnum.user) and (user.name != user_id):
         raise Forbidden
 
-    return user_schema.dump(requested_user).data
+    return user_schema.dump(requested_user)

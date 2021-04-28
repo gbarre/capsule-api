@@ -2,7 +2,7 @@ openapi: "3.0.2"
 
 info:
   title: Capsule API
-  version: "1.8.4"
+  version: "__API_VERSION__"
   description: __PLATFORM_DESCRIPTION__
   contact:
     name: Académie de Versailles
@@ -12,7 +12,7 @@ info:
     url: https://www.gnu.org/licenses/gpl-3.0.en.html
 
 servers:
-  - url: 'https://k8s-__PLATFORM__-api-srv.in.ac-versailles.fr/v1'
+  - url: 'https://console.__PLATFORM__.paas.in.ac-versailles.fr/v2'
 
 components:
   securitySchemes:
@@ -53,24 +53,32 @@ paths:
     $ref: ./paths/capsule/sshkeys.yaml
   /capsules/{capsule_id}/sshkeys/{sshkey_id}:
     $ref: ./paths/capsule/sshkey-by-id.yaml
+  /capsules/{capsule_id}/fqdns:
+    $ref: ./paths/capsule/fqdns.yaml
+  /capsules/{capsule_id}/fqdns/{fqdn_id}:
+    $ref: ./paths/capsule/fqdn-by-id.yaml
+  /capsules/{capsule_id}/tls:
+    $ref: ./paths/capsule/tls.yaml
+  /capsules/{capsule_id}/delegate:
+    $ref: ./paths/capsule/delegate.yaml
 
   /runtimes:
     $ref: ./paths/runtimes.yaml
   /runtimes/{runtime_id}:
     $ref: ./paths/runtime-by-id.yaml
 
-  # Self endpoints
   /sshkeys:
     $ref: ./paths/sshkeys.yaml
   /sshkeys/{sshkey_id}:
     $ref: ./paths/sshkey-by-id.yaml
 
-  # Self endpoints
   /apptokens:
     $ref: ./paths/app-tokens.yaml
   /apptokens/{apptoken_id}:
     $ref: ./paths/app-token-by-id.yaml
 
-  # self endpoints
   /me:
     $ref: ./paths/me.yaml
+
+  /cluster:
+    $ref: ./paths/cluster.yaml

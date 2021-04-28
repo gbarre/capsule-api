@@ -2,7 +2,7 @@
   "openapi": "3.0.2",
   "info": {
     "title": "Capsule API",
-    "version": "1.8.4",
+    "version": "__API_VERSION__",
     "description": "__PLATFORM_DESCRIPTION__",
     "contact": {
       "name": "Académie de Versailles",
@@ -15,7 +15,7 @@
   },
   "servers": [
     {
-      "url": "https://k8s-__PLATFORM__-api-srv.in.ac-versailles.fr/v1"
+      "url": "https://console.__PLATFORM__.paas.in.ac-versailles.fr/v2"
     }
   ],
   "components": {
@@ -133,6 +133,15 @@
         "schema": {
           "type": "string"
         }
+      },
+      "fqdn_id": {
+        "in": "path",
+        "name": "fqdn_id",
+        "required": true,
+        "description": "FQDN GUID",
+        "schema": {
+          "type": "string"
+        }
       }
     },
     "requestBodies": {},
@@ -176,6 +185,16 @@
             }
           }
         }
+      },
+      "PaymentRequired": {
+        "description": "Payment Required",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
       }
     },
     "schemas": {
@@ -195,7 +214,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "readOnly": true,
             "example": "02d3e2a0-a925-4438-8199-2cd726d7b42d"
           },
           "name": {
@@ -213,7 +231,11 @@
               "superadmin"
             ],
             "default": "user",
-            "description": "user:\n- can only sign in and administer owned capsules\n- can grant ownership to users on owned capsules\n- may create capsules depending on platform configuration\n\nadmin:\n- can perform base user actions\n- can create capsules and grant ownership to users on them\n- can also administer all capsules\n\nsuperadmin:\n- can perform admin actions\n- can assign admin and superadmin role to users\n- can create runtime models\n"
+            "description": "user:\n- can only sign in and administer owned capsules\n- can grant ownership to users on owned capsules\n\nadmin:\n- can perform manager actions\n- can create/delete capsules and grant ownership to users on them\n- can also administer all capsules\n\nsuperadmin:\n- can perform admin actions\n- can create runtime models\n"
+          },
+          "parts_manager": {
+            "type": "boolean",
+            "default": false
           }
         },
         "readOnly": true
@@ -415,6 +437,54 @@
           "set_name"
         ]
       },
+      "Fqdn": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true,
+            "example": "1c8193f9-5654-47a1-ac37-6a24ce5058de"
+          },
+          "name": {
+            "type": "string",
+            "format": "hostname",
+            "pattern": "^(?!:\\/\\/)([a-zA-Z0-9-]+\\.)*[a-zA-Z0-9-][a-zA-Z0-9-]+\\.[a-zA-Z]{2,6}?$",
+            "example": "main.fqdn.ac-versailles.fr"
+          },
+          "alias": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "alias",
+          "name"
+        ]
+      },
+      "TlsOptions": {
+        "type": "object",
+        "properties": {
+          "enable_https": {
+            "type": "boolean",
+            "default": true
+          },
+          "force_redirect_https": {
+            "type": "boolean",
+            "default": true
+          },
+          "crt": {
+            "type": "string",
+            "writeOnly": true,
+            "example": "Base 64 encoded pem crt"
+          },
+          "key": {
+            "type": "string",
+            "format": "password",
+            "writeOnly": true,
+            "example": "Base 64 encoded pem key"
+          }
+        }
+      },
       "Cron": {
         "type": "object",
         "properties": {
@@ -472,48 +542,6 @@
             "readOnly": true,
             "example": "d41ea210-742a-410c-a971-3978143eab80"
           },
-          "tls_redirect_https": {
-            "type": "boolean",
-            "default": true
-          },
-          "tls_crt": {
-            "type": "string",
-            "writeOnly": true,
-            "example": "Base 64 encoded pem crt"
-          },
-          "tls_key": {
-            "type": "string",
-            "format": "password",
-            "writeOnly": true,
-            "example": "Base 64 encoded pem key"
-          },
-          "fqdns": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "format": "hostname",
-                  "pattern": "^(?!:\\/\\/)([a-zA-Z0-9-]+\\.)*[a-zA-Z0-9-][a-zA-Z0-9-]+\\.[a-zA-Z]{2,6}?$"
-                },
-                "alias": {
-                  "type": "boolean"
-                }
-              }
-            },
-            "example": [
-              {
-                "name": "main.fqdn.ac-versailles.fr",
-                "alias": false
-              },
-              {
-                "name": "secondary.fqdn.ac-versailles.fr",
-                "alias": true
-              }
-            ],
-            "description": "first FQDN is the main one"
-          },
           "runtime_id": {
             "type": "string",
             "example": "e48e31e2-e271-4a2c-aee4-e73caa8aa615"
@@ -557,27 +585,10 @@
               }
             }
           },
-          "quota": {
-            "description": "quota obtained from the capsule declaration",
-            "type": "object",
-            "properties": {
-              "volume_size": {
-                "type": "integer",
-                "readOnly": true,
-                "example": "20"
-              },
-              "memory_max": {
-                "type": "integer",
-                "readOnly": true,
-                "example": "4"
-              },
-              "cpu_max": {
-                "type": "number",
-                "readOnly": true,
-                "example": "2.5"
-              }
-            },
-            "readOnly": true
+          "volume_size": {
+            "type": "integer",
+            "description": "Size allocated for the webapp (in GB)",
+            "example": 200
           },
           "created_at": {
             "type": "string",
@@ -593,7 +604,6 @@
           }
         },
         "required": [
-          "fqdns",
           "runtime_id"
         ]
       },
@@ -604,48 +614,6 @@
             "type": "string",
             "readOnly": true,
             "example": "d41ea210-742a-410c-a971-3978143eab80"
-          },
-          "tls_redirect_https": {
-            "type": "boolean",
-            "default": true
-          },
-          "tls_crt": {
-            "type": "string",
-            "writeOnly": true,
-            "example": "Base 64 encoded pem crt"
-          },
-          "tls_key": {
-            "type": "string",
-            "format": "password",
-            "writeOnly": true,
-            "example": "Base 64 encoded pem key"
-          },
-          "fqdns": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "format": "hostname",
-                  "pattern": "^(?!:\\/\\/)([a-zA-Z0-9-]+\\.)*[a-zA-Z0-9-][a-zA-Z0-9-]+\\.[a-zA-Z]{2,6}?$"
-                },
-                "alias": {
-                  "type": "boolean"
-                }
-              }
-            },
-            "example": [
-              {
-                "name": "main.fqdn.ac-versailles.fr",
-                "alias": false
-              },
-              {
-                "name": "secondary.fqdn.ac-versailles.fr",
-                "alias": true
-              }
-            ],
-            "description": "first FQDN is the main one"
           },
           "runtime_id": {
             "type": "string",
@@ -691,34 +659,17 @@
             },
             "default": []
           },
+          "volume_size": {
+            "type": "integer",
+            "description": "Size allocated for the webapp (in GB)",
+            "example": 200
+          },
           "crons": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Cron"
             },
             "default": []
-          },
-          "quota": {
-            "description": "quota obtained from the capsule declaration",
-            "type": "object",
-            "properties": {
-              "volume_size": {
-                "type": "integer",
-                "readOnly": true,
-                "example": "20"
-              },
-              "memory_max": {
-                "type": "integer",
-                "readOnly": true,
-                "example": "4"
-              },
-              "cpu_max": {
-                "type": "number",
-                "readOnly": true,
-                "example": "2.5"
-              }
-            },
-            "readOnly": true
           },
           "created_at": {
             "type": "string",
@@ -801,28 +752,6 @@
             "default": [],
             "example": []
           },
-          "quota": {
-            "description": "quota obtained from the capsule declaration",
-            "type": "object",
-            "properties": {
-              "volume_size": {
-                "type": "integer",
-                "readOnly": true,
-                "example": "20"
-              },
-              "memory_max": {
-                "type": "integer",
-                "readOnly": true,
-                "example": "4"
-              },
-              "cpu_max": {
-                "type": "number",
-                "readOnly": true,
-                "example": "2.5"
-              }
-            },
-            "readOnly": true
-          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -858,9 +787,9 @@
             "example": "lyc-vernes-osny"
           },
           "no_update": {
-            "type": "boolean",
-            "default": false,
-            "example": false
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-03-05T10:29:12Z"
           },
           "owners": {
             "type": "array",
@@ -880,6 +809,31 @@
             "example": "1ba583fb-9731-48f1-afd8-93f8d514faff",
             "readOnly": true
           },
+          "fqdns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Fqdn"
+            }
+          },
+          "enable_https": {
+            "type": "boolean",
+            "default": true
+          },
+          "force_redirect_https": {
+            "type": "boolean",
+            "default": true
+          },
+          "tls_crt": {
+            "type": "string",
+            "writeOnly": true,
+            "example": "Base 64 encoded pem crt"
+          },
+          "tls_key": {
+            "type": "string",
+            "format": "password",
+            "writeOnly": true,
+            "example": "Base 64 encoded pem key"
+          },
           "addons": {
             "type": "array",
             "items": {
@@ -893,9 +847,44 @@
             "uniqueItems": true,
             "default": []
           },
+          "addons_offset": {
+            "type": "integer",
+            "default": 0,
+            "example": 2
+          },
           "authorized_keys": {
             "$ref": "#/components/schemas/SSHKey",
             "default": []
+          },
+          "comment": {
+            "description": "Comment field for the owner",
+            "type": "string",
+            "default": ""
+          },
+          "delegate_fqdns": {
+            "type": "boolean",
+            "default": false,
+            "nullable": false,
+            "example": false,
+            "description": "Allow owners to manage FQDNs."
+          },
+          "delegate_tls": {
+            "type": "boolean",
+            "default": false,
+            "nullable": false,
+            "example": false,
+            "description": "Allow owners to manage TLS certificate."
+          },
+          "size": {
+            "type": "string",
+            "enum": [
+              "tiny",
+              "small",
+              "medium",
+              "large",
+              "xlarge"
+            ],
+            "example": "small"
           },
           "created_at": {
             "type": "string",
@@ -933,9 +922,9 @@
             "example": "lyc-vernes-osny"
           },
           "no_update": {
-            "type": "boolean",
-            "default": false,
-            "example": false
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-03-05T10:29:12Z"
           },
           "owners": {
             "type": "array",
@@ -948,6 +937,31 @@
           "webapp": {
             "$ref": "#/components/schemas/WebAppInVerbose"
           },
+          "fqdns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Fqdn"
+            }
+          },
+          "enable_https": {
+            "type": "boolean",
+            "default": true
+          },
+          "force_redirect_https": {
+            "type": "boolean",
+            "default": true
+          },
+          "tls_crt": {
+            "type": "string",
+            "writeOnly": true,
+            "example": "Base 64 encoded pem crt"
+          },
+          "tls_key": {
+            "type": "string",
+            "format": "password",
+            "writeOnly": true,
+            "example": "Base 64 encoded pem key"
+          },
           "addons": {
             "type": "array",
             "items": {
@@ -955,9 +969,44 @@
             },
             "default": []
           },
+          "addons_offset": {
+            "type": "integer",
+            "default": 0,
+            "example": 2
+          },
           "authorized_keys": {
             "$ref": "#/components/schemas/SSHKey",
             "default": []
+          },
+          "comment": {
+            "description": "Comment field for the owner",
+            "type": "string",
+            "default": ""
+          },
+          "delegate_fqdns": {
+            "type": "boolean",
+            "default": false,
+            "nullable": false,
+            "example": false,
+            "description": "Allow owners to manage FQDNs."
+          },
+          "delegate_tls": {
+            "type": "boolean",
+            "default": false,
+            "nullable": false,
+            "example": false,
+            "description": "Allow owners to manage TLS certificate."
+          },
+          "size": {
+            "type": "string",
+            "enum": [
+              "tiny",
+              "small",
+              "medium",
+              "large",
+              "xlarge"
+            ],
+            "example": "small"
           },
           "created_at": {
             "type": "string",
@@ -991,7 +1040,6 @@
           },
           "no_update": {
             "type": "boolean",
-            "default": false,
             "example": false
           },
           "owners": {
@@ -1012,6 +1060,31 @@
             "example": "1ba583fb-9731-48f1-afd8-93f8d514faff",
             "readOnly": true
           },
+          "fqdns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Fqdn"
+            }
+          },
+          "enable_https": {
+            "type": "boolean",
+            "default": true
+          },
+          "force_redirect_https": {
+            "type": "boolean",
+            "default": true
+          },
+          "tls_crt": {
+            "type": "string",
+            "writeOnly": true,
+            "example": "Base 64 encoded pem crt"
+          },
+          "tls_key": {
+            "type": "string",
+            "format": "password",
+            "writeOnly": true,
+            "example": "Base 64 encoded pem key"
+          },
           "addons": {
             "type": "array",
             "items": {
@@ -1025,9 +1098,44 @@
             "uniqueItems": true,
             "default": []
           },
+          "addons_offset": {
+            "type": "integer",
+            "default": 0,
+            "example": 2
+          },
           "authorized_keys": {
             "$ref": "#/components/schemas/SSHKeyList",
             "default": []
+          },
+          "comment": {
+            "description": "Comment field for the owner",
+            "type": "string",
+            "default": ""
+          },
+          "delegate_fqdns": {
+            "type": "boolean",
+            "default": false,
+            "nullable": false,
+            "example": false,
+            "description": "Allow owners to manage FQDNs."
+          },
+          "delegate_tls": {
+            "type": "boolean",
+            "default": false,
+            "nullable": false,
+            "example": false,
+            "description": "Allow owners to manage TLS certificate."
+          },
+          "size": {
+            "type": "string",
+            "enum": [
+              "tiny",
+              "small",
+              "medium",
+              "large",
+              "xlarge"
+            ],
+            "example": "small"
           },
           "created_at": {
             "type": "string",
@@ -1131,6 +1239,61 @@
         "required": [
           "app"
         ]
+      },
+      "Certificate": {
+        "type": "object",
+        "properties": {
+          "CN": {
+            "type": "string",
+            "example": "ac-versailles.fr"
+          },
+          "SAN": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": "ac-versailles.fr"
+            }
+          },
+          "notBefore": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-02-15T12:34:56Z"
+          },
+          "notAfter": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2022-02-14T12:34:56Z"
+          },
+          "hasExpired": {
+            "type": "boolean",
+            "example": false
+          },
+          "issuer": {
+            "type": "string",
+            "example": "AAA Certificate Services"
+          }
+        }
+      },
+      "Cluster": {
+        "type": "object",
+        "properties": {
+          "parts_assigned": {
+            "type": "integer",
+            "example": 42
+          },
+          "total_parts": {
+            "type": "integer",
+            "example": 100
+          },
+          "volumes_size_assigned": {
+            "type": "integer",
+            "example": 112
+          },
+          "total_volumes_size": {
+            "type": "integer",
+            "example": 200
+          }
+        }
       }
     }
   },
@@ -1363,7 +1526,7 @@
       },
       "delete": {
         "tags": [
-          "superadmin"
+          "admin"
         ],
         "description": "Deletes a capsule.\n",
         "summary": "Delete a capsule",
@@ -1395,8 +1558,8 @@
         "tags": [
           "user"
         ],
-        "description": "Enable/disable capsule auto-update.\n",
-        "summary": "Enable/disable capsule auto-update",
+        "description": "Enable/disable capsule auto-update, update comment or change capsule size.\n",
+        "summary": "Manage auto-update, comment and capsule size.",
         "operationId": "api.capsules.patch",
         "parameters": [
           {
@@ -1404,7 +1567,7 @@
           }
         ],
         "requestBody": {
-          "required": true,
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -1413,6 +1576,19 @@
                   "no_update": {
                     "type": "boolean",
                     "example": true
+                  },
+                  "comment": {
+                    "type": "string"
+                  },
+                  "size": {
+                    "type": "string",
+                    "enum": [
+                      "tiny",
+                      "small",
+                      "medium",
+                      "large",
+                      "xlarge"
+                    ]
                   }
                 }
               }
@@ -1435,6 +1611,9 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
@@ -1609,7 +1788,7 @@
         "tags": [
           "user"
         ],
-        "description": "Creates a web application for a capsule.\\\nFirst element of `fqdns` will be the main fully qualified domain name,\nthe other elements will be understood as aliases.\n",
+        "description": "Creates a web application for a capsule.\n",
         "summary": "Add a new webapp to a capsule",
         "operationId": "api.capsules.webapp.post",
         "parameters": [
@@ -1648,7 +1827,7 @@
             "$ref": "#/components/responses/Forbidden"
           },
           "409": {
-            "description": "A web application already exists for this capsule",
+            "description": "A web application already exists for this capsule. \\\n< or > \\\nA webapp need at least one FQDN.\n",
             "content": {
               "application/json": {
                 "schema": {
@@ -1697,7 +1876,7 @@
         "tags": [
           "user"
         ],
-        "description": "Updates or creates a web application for a capsule.\\\nFirst element of `fqdns` will be the main FQDN,\nthe other elements will be understood as aliases.\n",
+        "description": "Updates or creates a web application for a capsule\n",
         "summary": "Updates or creates a webapp for a capsule",
         "operationId": "api.capsules.webapp.put",
         "parameters": [
@@ -2336,6 +2515,315 @@
         }
       }
     },
+    "/capsules/{capsule_id}/fqdns": {
+      "post": {
+        "tags": [
+          "user",
+          "admin"
+        ],
+        "description": "Add a new FQDN to a capsule.\\\n**This action can be delegated to user.**\n",
+        "summary": "Add an FQDN to a capsule",
+        "operationId": "api.capsules.fqdns.post",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/capsule_id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Fqdn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Fqdn added to the capsule",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Fqdn"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "description": "Created FQDN URI",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/capsules/{capsule_id}/fqdns/{fqdn_id}": {
+      "put": {
+        "tags": [
+          "user",
+          "admin"
+        ],
+        "description": "Only updates a FQDN for a capsule.\\\nA **NotFound** error will be returned\nif the FQDN does not exist.\\\n**This action can be delegated to user.**\n",
+        "summary": "Update a FQDN for a capsule",
+        "operationId": "api.capsules.fqdns.put",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/capsule_id"
+          },
+          {
+            "$ref": "#/components/parameters/fqdn_id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Fqdn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "FQDN updated for the capsule",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Fqdn"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "description": "Created FQDN URI",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "user",
+          "admin"
+        ],
+        "description": "Deletes a FQDN for a capsule.\\\n**This action can be delegated to user.**\n",
+        "summary": "Delete an FQDN for a capsule",
+        "operationId": "api.capsules.fqdns.delete",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/capsule_id"
+          },
+          {
+            "$ref": "#/components/parameters/fqdn_id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful deletion"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "description": "A webapp need at least one FQDN.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/capsules/{capsule_id}/tls": {
+      "patch": {
+        "tags": [
+          "user",
+          "admin"
+        ],
+        "description": "Updates TLS options for a capsule.\\\n**This action can be delegated to user.**\n",
+        "summary": "Updates TLS options for a capsule",
+        "operationId": "api.capsules.tls.patch",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/capsule_id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TlsOptions"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tls options updated for the capsule",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Capsule"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "description": "Created capsule URI",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "description": "Gets the TLS certificate informations for a capsule.\n",
+        "summary": "Get a TLS certificate informations for a capsule",
+        "operationId": "api.capsules.tls.get",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/capsule_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The requested TLS certificate informations for a capsule",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Certificate"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/capsules/{capsule_id}/delegate": {
+      "patch": {
+        "tags": [
+          "admin"
+        ],
+        "description": "Allow admin to delegate the managment of FQDNs and TLS certificate.\n",
+        "summary": "Updates delegations for a capsule",
+        "operationId": "api.capsules.delegate.patch",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/capsule_id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fqdns": {
+                    "type": "boolean"
+                  },
+                  "tls": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Capsule configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Capsule"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
     "/runtimes": {
       "get": {
         "tags": [
@@ -2786,6 +3274,35 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/cluster": {
+      "get": {
+        "tags": [
+          "parts_manager"
+        ],
+        "description": "Gets the cluster informationss\n",
+        "summary": "Get the cluster infos",
+        "operationId": "api.cluster.get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The requested cluster informations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cluster"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
           }
         }
       }

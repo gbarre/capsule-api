@@ -10,12 +10,6 @@ class TestmodelsOptions:
     @staticmethod
     def build_webapp(db):
         webapp = {
-            "fqdns": [
-                {
-                    "name": "main.example.com",
-                    "alias": False
-                },
-            ],
             "opts": [],
             "runtime_id": str(db.runtime4.id),
         }
@@ -35,23 +29,36 @@ class TestmodelsOptions:
                 ],
             }
 
-            capsule = testapp.post_json(
+            temp_capsule = testapp.post_json(
                 api_version + "/capsules",
                 capsule_input,
                 status=201
             ).json
-        return capsule['id']
+            capsule_id = temp_capsule['id']
+
+            # Add fqdn for this capsule
+            tmp_fqdn = {
+                "alias": False,
+                "name": "temp.fr",
+            }
+            testapp.post_json(
+                f'{api_version}/capsules/{capsule_id}/fqdns',
+                tmp_fqdn,
+                status=201,
+            )
+
+        return capsule_id
 
     def test_opt_missing_tag_key(self, testapp, db):
         capsule_id = self.build_capsule(db, testapp)
         webapp = self.build_webapp(db)
         with patch.object(oidc, "validate_token", return_value=True), \
-             patch("utils.check_user_role", return_value=db.user1), \
+             patch("utils.check_user_role", return_value=db.admin_user), \
              patch.object(NATS, "publish_addon_present"):
 
             option = {
                 "field_name": "test_min_max",
-                "tagg": "PHP",
+                # "tagg": "PHP",
                 "value": "12"
             }
             webapp['opts'].append(option)
@@ -68,7 +75,7 @@ class TestmodelsOptions:
         capsule_id = self.build_capsule(db, testapp)
         webapp = self.build_webapp(db)
         with patch.object(oidc, "validate_token", return_value=True), \
-             patch("utils.check_user_role", return_value=db.user1), \
+             patch("utils.check_user_role", return_value=db.admin_user), \
              patch.object(NATS, "publish_addon_present"):
 
             option = {

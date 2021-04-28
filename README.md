@@ -200,7 +200,6 @@ python publish_msg.py --nats=localhost:4222 --subject="capsule.webapp" --state="
 ## TODO
 
 - API:
-  - add notes for addons / webapp / capsule
   - manage capsule "size"
   - manage cluster "total size"
   - add webapp/addon status-flag

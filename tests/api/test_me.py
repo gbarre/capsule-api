@@ -10,7 +10,7 @@ class TestMe:
     # Testing GET /me
     #################################
     def test_get_self_user(self, testapp, db):
-        user_output = user_schema.dump(db.user1).data
+        user_output = user_schema.dump(db.user1)
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.user1):
 

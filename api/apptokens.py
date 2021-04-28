@@ -23,7 +23,7 @@ def search(offset, limit, filters, user):
     if not results:
         raise NotFound(description="No apptoken have been found.")
 
-    apptokens_data = apptokens_schema.dump(results).data
+    apptokens_data = apptokens_schema.dump(results)
     for apptoken_data in apptokens_data:
         apptoken_data.pop('token')
     return apptokens_data
@@ -45,7 +45,7 @@ def post(user):
     db.session.commit()
 
     result = AppToken.query.get(apptoken.id)
-    result_data = apptoken_schema.dump(result).data
+    result_data = apptoken_schema.dump(result)
     result_data["token"] = token
     return result_data, 201, {
         'Location': f'{request.base_url}/apptokens/{apptoken.id}',

@@ -1,3 +1,4 @@
+import datetime
 from flask import request
 from models import RoleEnum
 from models import Capsule
@@ -47,7 +48,7 @@ def search(capsule_id, user, offset, limit, filters):
     if not results:
         raise NotFound(description="No crons have been found.")
 
-    results = crons_schema.dump(results).data
+    results = crons_schema.dump(results)
 
     return results
 
@@ -64,16 +65,18 @@ def post(capsule_id, user, cron_data=None):
     if cron_data is None:
         cron_data = request.get_json()
 
-    data = cron_schema.load(cron_data).data
+    data = cron_schema.load(cron_data)
     cron = Cron(**data)
     webapp.crons.append(cron)
 
     db.session.add(cron)
     db.session.commit()
 
-    nats.publish_webapp_present(capsule)
+    now = datetime.datetime.now()
+    if now > (capsule.no_update + datetime.timedelta(hours=24)):
+        nats.publish_webapp_present(capsule)
 
-    result_json = cron_schema.dump(cron).data
+    result_json = cron_schema.dump(cron)
     return result_json, 201, {
         'Location':
             f'{request.base_url}/capsules/{capsule_id}/webapp/{cron.id}',
@@ -97,7 +100,7 @@ def get(capsule_id, cron_id, user):
     if str(cron.webapp_id) != str(capsule.webapp_id):
         raise Forbidden
 
-    result = cron_schema.dump(cron).data
+    result = cron_schema.dump(cron)
 
     return result, 200, {
         'Location':
@@ -112,7 +115,7 @@ def put(capsule_id, cron_id, user):
     webapp = capsule.webapp
 
     cron_data = request.get_json()
-    data = cron_schema.load(cron_data).data
+    data = cron_schema.load(cron_data)
 
     try:
         cron = Cron.query.get(cron_id)
@@ -140,7 +143,9 @@ def put(capsule_id, cron_id, user):
             setattr(cron, key, "*")
 
     db.session.commit()
-    nats.publish_webapp_present(capsule)
+    now = datetime.datetime.now()
+    if now > (capsule.no_update + datetime.timedelta(hours=24)):
+        nats.publish_webapp_present(capsule)
     return get(capsule_id, cron_id)
 
 
@@ -165,6 +170,8 @@ def delete(capsule_id, cron_id, user):
     db.session.commit()
 
     # TODO: we may need another message to delete the cron here
-    nats.publish_webapp_present(capsule)
+    now = datetime.datetime.now()
+    if now > (capsule.no_update + datetime.timedelta(hours=24)):
+        nats.publish_webapp_present(capsule)
 
     return None, 204

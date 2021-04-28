@@ -7,6 +7,10 @@ api:
     echo: false
     track_modifications: false
   secret_key: 'somesecretormaybenot'
+  cluster_parts: 30
+  volumes_size:
+    global: 250
+    default: 5
   admins:
     - admin1
   superadmins:

@@ -3,6 +3,7 @@ import connexion
 import werkzeug
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+import logging
 
 # Create the SQLAlchemy db instance.
 # Warning: this object can be imported in another modules below, so
@@ -72,6 +73,9 @@ def create_app(config):
     # Get the underlying Flask app instance
     app = connex_app.app
     app.config.from_object(config)
+
+    gunicorn_logger = logging.getLogger('gunicorn.error')
+    app.logger.handlers = gunicorn_logger.handlers
 
     # Initializing app extensions
     db.init_app(app)

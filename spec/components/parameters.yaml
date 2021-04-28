@@ -85,3 +85,10 @@ cron_id:
   description: Cron GUID
   schema:
     type: string
+fqdn_id:
+  in: path
+  name: fqdn_id
+  required: true
+  description: FQDN GUID
+  schema:
+    type: string

@@ -24,7 +24,7 @@ get:
       $ref: "../components/responses.yaml#/NotFound"
 
 delete:
-  tags: [superadmin]
+  tags: [admin]
   description: |
     Deletes a capsule.
   summary: Delete a capsule
@@ -46,13 +46,13 @@ delete:
 patch:
   tags: [user]
   description: |
-    Enable/disable capsule auto-update.
-  summary: Enable/disable capsule auto-update
+    Enable/disable capsule auto-update, update comment or change capsule size.
+  summary: Manage auto-update, comment and capsule size.
   operationId: api.capsules.patch
   parameters:
     - $ref: "../components/parameters.yaml#/capsule_id"
   requestBody:
-    required: true
+    required: false
     content:
       application/json:
         schema:
@@ -61,11 +61,18 @@ patch:
             no_update:
               type: boolean
               example: true
+            comment:
+              type: string
+            size:
+              type: string
+              enum: [tiny, small, medium, large, xlarge]
   responses:
     "400":
       $ref: "../components/responses.yaml#/BadRequest"
     "401":
       $ref: "../components/responses.yaml#/Unauthorized"
+    "402":
+      $ref: "../components/responses.yaml#/PaymentRequired"
     "403":
       $ref: "../components/responses.yaml#/Forbidden"
     "404":

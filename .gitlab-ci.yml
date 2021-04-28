@@ -7,12 +7,25 @@ variables:
   # CI_REGISTRY_USER: toto
   # CI_REGISTRY_PASSWORD: tata
   #########################################
-  API_VERSION: "1.8.5"
+  API_VERSION: "2.0.0_alpha"
   REPOSITORY_NAME: $CI_REGISTRY/$CI_PROJECT
 
 stages:
+  - swagger
   - tests
   - deploy
+
+swagger:
+  stage: swagger
+  image: node:latest
+  script:
+    - npm install -g @apidevtools/swagger-cli
+    - swagger-cli bundle -o spec/openapi.json spec/index.yaml
+    - sed -i "s/__API_VERSION__/${API_VERSION}/g" spec/openapi.json
+  artifacts:
+    paths:
+      - spec/openapi.json
+    expire_in: 1 day
 
 tests:lint-secaudit:
   stage: tests
@@ -22,12 +35,15 @@ tests:lint-secaudit:
     - . ./prepare-ci-env.bash 3.8
     - flake8 --extend-exclude=venv,migrations --ignore=E402
     - bandit -n5 -x "./venv/*,./tests/*,./dev-tools/*" -r . -ll
+  allow_failure: true
 
 # TODO : Find why the api need to be in capsule-api directory
 
 tests:python36:
   stage: tests
   image: ubuntu:18.04
+  dependencies:
+    - swagger
   script:
     - cd ..; mv api capsule-api; cd capsule-api
     - chmod u+x prepare-ci-env.bash
@@ -37,6 +53,8 @@ tests:python36:
 tests:python37:
   stage: tests
   image: ubuntu:18.04
+  dependencies:
+    - swagger
   script:
     - cd ..; mv api capsule-api; cd capsule-api
     - chmod u+x prepare-ci-env.bash
@@ -46,17 +64,38 @@ tests:python37:
 tests:python38:
   stage: tests
   image: ubuntu:18.04
+  dependencies:
+    - swagger
   script:
     - cd ..; mv api capsule-api; cd capsule-api
     - chmod u+x prepare-ci-env.bash
     - . ./prepare-ci-env.bash 3.8
     - python -m pytest -v -n4 --cov=. --cov-config=.coveragerc-ci --cov-report html --cov-report term tests/api/
 
-deploy:
+deploy:dev:
   stage: deploy
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
+  dependencies:
+    - swagger
+  script:
+    - export TAG_VERSION=$(printf '%s-%05d' ${CI_COMMIT_SHA:0:8} ${CI_PIPELINE_ID})-dev
+    - export REPOSITORY_NAME=${CI_REGISTRY}/sandbox
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context . --destination ${REPOSITORY_NAME}/capsule-api:${API_VERSION}-${TAG_VERSION} --build-arg http_proxy=${HTTP_PROXY} --build-arg https_proxy=${HTTP_PROXY} --build-arg no_proxy=${NO_PROXY}
+  only:
+    - branches
+  except:
+    - master
+
+deploy:prod:
+  stage: deploy
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  dependencies:
+    - swagger
   script:
     - export TAG_VERSION=$(printf '%s-%05d' ${CI_COMMIT_SHA:0:8} ${CI_PIPELINE_ID})
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json

@@ -16,7 +16,7 @@ COPY api api
 COPY cert cert
 COPY migrations migrations
 COPY nats nats
-COPY spec/openapi.json spec/openapi.json
+COPY spec spec
 COPY app.py .
 COPY config.py .
 COPY exceptions.py .

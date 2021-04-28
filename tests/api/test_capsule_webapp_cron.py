@@ -20,7 +20,7 @@ class TestCapsuleWepappCron:
 
     @staticmethod
     def build_output(db):
-        cron = json.loads(cron_schema.dumps(db.cron1).data)
+        cron = json.loads(cron_schema.dumps(db.cron1))
         return cron
 
     # Create a temp capsule
@@ -39,24 +39,29 @@ class TestCapsuleWepappCron:
             }
 
             temp_capsule = testapp.post_json(
-                api_version + "/capsules",
+                f'{api_version}/capsules',
                 _capsule_input,
-                status=201
+                status=201,
             ).json
+            capsule_id = temp_capsule['id']
+
+            # Add fqdn for this capsule
+            tmp_fqdn = {
+                "alias": False,
+                "name": "temp.fr",
+            }
+            testapp.post_json(
+                f'{api_version}/capsules/{capsule_id}/fqdns',
+                tmp_fqdn,
+                status=201,
+            )
 
             # Create webapp for this capsule
             new_webapp = {
-                "fqdns": [
-                    {
-                        "name": "main.example.com",
-                        "alias": False
-                    }
-                ],
                 "runtime_id": str(db.runtime1.id)
             }
-            capsule_id = temp_capsule['id']
             testapp.post_json(
-                api_version + '/capsules/' + capsule_id + '/webapp',
+                f'{api_version}/capsules/{capsule_id}/webapp',
                 new_webapp,
                 status=201
             )
