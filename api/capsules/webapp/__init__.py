@@ -1,16 +1,16 @@
+import datetime
+from exceptions import PaymentRequired
 from flask import request
+from flask.globals import current_app
 from models import RoleEnum
 from models import Capsule
 from models import WebApp, webapp_schema
-from models import FQDN, Option
+from models import Option
 from models import Runtime, RuntimeTypeEnum
 from app import db, nats
-from utils import oidc_require_role, is_keycert_associated
+from utils import getWebappsVolumeUsage, oidc_require_role
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden, Conflict
 from sqlalchemy.exc import StatementError
-import base64
-import binascii
-from exceptions import FQDNAlreadyExists, NotValidPEMFile
 
 
 def _get_capsule(capsule_id, user):
@@ -38,6 +38,10 @@ def _get_capsule(capsule_id, user):
 @oidc_require_role(min_role=RoleEnum.user)
 def post(capsule_id, user, webapp_data=None):
     capsule = _get_capsule(capsule_id, user)
+
+    if len(capsule.fqdns) == 0:
+        raise Conflict(description="A webapp need at least one FQDN.")
+
     webapp = capsule.webapp
 
     # Only one webapp per capsule
@@ -47,7 +51,7 @@ def post(capsule_id, user, webapp_data=None):
     # Datas could come from PUT
     if webapp is None:
         webapp_data = request.get_json()
-    data = webapp_schema.load(webapp_data).data
+    data = webapp_schema.load(webapp_data)
 
     runtime_id = data["runtime_id"]
     try:
@@ -64,43 +68,24 @@ def post(capsule_id, user, webapp_data=None):
                          "has not type 'webapp'.")
 
     newArgs = dict()
-    if "fqdns" in data:
-        fqdns_list = [e['name'] for e in data["fqdns"]]
-        if len(fqdns_list) != len(set(fqdns_list)):
-            raise BadRequest(description='Repetitions are not '
-                                         'allowed for FQDNs')
-        try:
-            fqdns = FQDN.create(data["fqdns"])
-        except FQDNAlreadyExists as e:
-            raise BadRequest(description=f'{e.existing_fqdn} already exists.')
-        data.pop("fqdns")
-        newArgs["fqdns"] = fqdns
 
     if "opts" in data:
         opts = Option.create(data["opts"], runtime_id, user.role)
         data.pop("opts")
         newArgs["opts"] = opts
 
-    if ("tls_key" in data and "tls_crt" not in data) or \
-            ("tls_crt" in data and "tls_key" not in data):
-        raise BadRequest(description="Both tls_crt and tls_key are "
-                                     "required together")
+    if "volume_size" not in data:
+        data['volume_size'] = current_app.config['VOLUMES_DEFAULT_SIZE']
+    else:
+        if (user.role is RoleEnum.user) and (not user.parts_manager):
+            raise Forbidden(description='You cannot set webapp volume size.')
 
-    if "tls_crt" in data and "tls_key" in data:
-        try:
-            str_cert = base64.b64decode(data['tls_crt'])
-            str_key = base64.b64decode(data['tls_key'])
-        except binascii.Error:
-            raise BadRequest(description="'tls_crt' and 'tls_key' must be "
-                                         "base64 encoded.")
-        try:
-            # Ensure that certificate and key are paired.
-            if not is_keycert_associated(str_key, str_cert):
-                raise BadRequest(description="The certificate and the key "
-                                             "are not associated")
-        # TODO: look for cert length (> 4096) or better than RSA
-        except NotValidPEMFile:
-            raise BadRequest
+    remaining_size = getWebappsVolumeUsage()
+    target_size = data['volume_size'] + remaining_size
+    if target_size > current_app.config['VOLUMES_GLOBAL_SIZE']:
+        msg = 'Please set a lower volume size for this webapp or prepare '\
+              'some Bitcoins... :-)'
+        raise PaymentRequired(description=msg)
 
     webapp = WebApp(**data, **newArgs)
     capsule.webapp = webapp
@@ -110,10 +95,12 @@ def post(capsule_id, user, webapp_data=None):
 
     result = WebApp.query.get(capsule.webapp_id)
 
-    nats.publish_webapp_present(capsule)
+    now = datetime.datetime.now()
+    if now > (capsule.no_update + datetime.timedelta(hours=24)):
+        nats.publish_webapp_present(capsule)
 
     # Api response
-    result_json = webapp_schema.dump(result).data
+    result_json = webapp_schema.dump(result)
 
     return result_json, 201, {
         'Location': f'{request.base_url}/{capsule.id}/webapp',
@@ -129,7 +116,7 @@ def get(capsule_id, user):
         raise NotFound
 
     result = WebApp.query.get(capsule.webapp_id)
-    result_json = webapp_schema.dump(result).data
+    result_json = webapp_schema.dump(result)
 
     return result_json, 200, {
         'Location': f'{request.base_url}/{capsule.id}/webapp',
@@ -147,24 +134,11 @@ def put(capsule_id, user):
     if webapp is None:
         return post(capsule_id=capsule_id, webapp_data=webapp_data)
 
-    data = webapp_schema.load(webapp_data).data
+    data = webapp_schema.load(webapp_data)
 
     webapp.env = None
     if "env" in webapp_data:
         webapp.env = webapp_data["env"]
-
-    if "fqdns" in data and len(data['fqdns']) > 0:
-        fqdns_list = [e['name'] for e in data["fqdns"]]
-        if len(fqdns_list) != len(set(fqdns_list)):
-            raise BadRequest(description='Repetitions are not '
-                                         'allowed for FQDNs')
-        try:
-            fqdns = FQDN.create(data["fqdns"], webapp.id)
-        except FQDNAlreadyExists as e:
-            raise BadRequest(description=f'{e.existing_fqdn} already exists.')
-        webapp.fqdns = fqdns
-    else:
-        raise Forbidden(description='A webapp need at least one FQDN !')
 
     # Ensure new runtime_id has same familly
     new_runtime_id = str(data["runtime_id"])
@@ -187,47 +161,24 @@ def put(capsule_id, user):
         opts = Option.create(data["opts"], data["runtime_id"], user.role)
         webapp.opts = opts
 
-    if ("tls_key" in data and "tls_crt" not in data) or \
-            ("tls_crt" in data and "tls_key" not in data):
-        raise BadRequest(description="Both tls_crt and tls_key are "
-                                     "required together")
+    if "volume_size" in data:
+        if (user.role is RoleEnum.user) and (not user.parts_manager):
+            raise Forbidden(description='You cannot set webapp volume size.')
 
-    if "tls_crt" in data and "tls_key" in data:
-        try:
-            str_cert = base64.b64decode(data['tls_crt'])
-            str_key = base64.b64decode(data['tls_key'])
-        except binascii.Error:
-            raise BadRequest(description="'tls_crt' and 'tls_key' must be "
-                                         "base64 encoded.")
-        try:
-            # Ensure that certificate and key are paired.
-            if not is_keycert_associated(str_key, str_cert):
-                raise BadRequest(description="The certificate and the key "
-                                             "are not associated")
-        except NotValidPEMFile:
-            raise BadRequest
-        webapp.tls_crt = data["tls_crt"]
-        webapp.tls_key = data["tls_key"]
-    else:
-        # PATCH: Look for existing certificate in DB
-        if "tls_redirect_https" in data and data["tls_redirect_https"]:
-            webapp.tls_crt = capsule.webapp.tls_crt
-            webapp.tls_key = capsule.webapp.tls_key
-        else:
-            webapp.tls_crt = None
-            webapp.tls_key = None
-
-    if "tls_redirect_https" in data:
-        webapp.tls_redirect_https = data["tls_redirect_https"]
-    elif hasattr(capsule, 'tls_redirect_https'):
-        webapp.tls_redirect_https = capsule.tls_redirect_https
-    else:
-        webapp.tls_redirect_https = True  # The default spec value is True
+        remaining_size = getWebappsVolumeUsage(str(webapp.id))
+        target_size = data['volume_size'] + remaining_size
+        if target_size > current_app.config['VOLUMES_GLOBAL_SIZE']:
+            msg = 'Please set a lower volume size for this webapp or prepare '\
+                'some Bitcoins... :-)'
+            raise PaymentRequired(description=msg)
+        webapp.volume_size = data['volume_size']
 
     capsule.webapp = webapp
     db.session.commit()
 
-    nats.publish_webapp_present(capsule)
+    now = datetime.datetime.now()
+    if now > (capsule.no_update + datetime.timedelta(hours=24)):
+        nats.publish_webapp_present(capsule)
 
     return get(capsule_id)
 
@@ -247,7 +198,8 @@ def delete(capsule_id, user):
     db.session.delete(webapp)
     db.session.commit()
 
-    if not capsule.no_update:
+    now = datetime.datetime.now()
+    if now > (capsule.no_update + datetime.timedelta(hours=24)):
         nats.publish_webapp_absent(webapp_id)
 
     return None, 204

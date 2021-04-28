@@ -228,20 +228,12 @@ class DBFooData:
         self.webapp1 = WebApp(
             env='{"HTTP_PROXY": "http://proxy:3128/",'
                 '"HTTPS_PROXY": "https://proxy:3128/"}',
-            fqdns=[
-                self.fqdn1,
-                self.fqdn2,
-            ],
             opts=[
                 self.option1,
             ],
             crons=[
                 self.cron1,
             ],
-            quota_cpu_max="2.5",
-            quota_memory_max="4",
-            quota_volume_size="20",
-            tls_redirect_https=True,
             # "runtime_id": "b5ce1c27-b2bb-4eaf-8d29-c8dee632df67",
             runtime=self.runtime1,
         )
@@ -319,6 +311,12 @@ class DBFooData:
                 self.sshkey2,
                 self.sshkey3,
             ],
+            fqdns=[
+                self.fqdn1,
+                self.fqdn2,
+            ],
+            force_redirect_https=True,
+            enable_https=True,
         )
 
         array_obj = []

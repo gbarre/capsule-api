@@ -9,7 +9,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
-from models import webapp_nats_schema, capsule_verbose_schema
+from models import webapp_nats_schema, capsule_nats_schema
 from models import addon_schema, crons_schema
 import ssl
 from sqlalchemy.orm.exc import ObjectDeletedError
@@ -68,7 +68,7 @@ class NATSNoEchoClient(NATSClient):
             OK_RE = re.compile(rb"^\+OK\s*\r\n")
             self._recv(OK_RE)
 
-    def _connect_tls(self) -> None:
+    def _connect_tls(self) -> None:  # pragma: no cover
         ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
         if not self._conn_options.tls_verify:
             ctx.check_hostname = False
@@ -181,7 +181,9 @@ class NATS(object):
         self.publish(subject, signed_payload)
 
     def publish_webapp_present(self, capsule):
-        if capsule.webapp is not None and not capsule.no_update:
+        now = datetime.datetime.now()
+        if now > (capsule.no_update + datetime.timedelta(hours=24)) and\
+           capsule.webapp is not None:
             data = self.build_nats_webapp_data(capsule.webapp, capsule)
             self._publish_response_after_api_request(
                 data,
@@ -198,23 +200,31 @@ class NATS(object):
     @staticmethod
     def build_nats_webapp_data(webapp, capsule):
 
-        webapp_data = webapp_nats_schema.dump(webapp).data
-        capsule_data = capsule_verbose_schema.dump(capsule).data
+        webapp_data = webapp_nats_schema.dump(webapp)
+        capsule_data = capsule_nats_schema.dump(capsule)
 
         data = {
             "authorized_keys": [],
-            "crons": crons_schema.dump(capsule.webapp.crons).data,
+            "crons": crons_schema.dump(capsule.webapp.crons),
             "env": webapp_data['env'],
-            "fqdns": webapp_data['fqdns'],
+            "fqdns": capsule_data['fqdns'],
             "id": webapp_data['id'],
-            "name": capsule.name,
+            "name": capsule_data['name'],
             "opts": webapp_data['opts'],
             "runtime_id": webapp_data['runtime_id'],
-            "uid": capsule.uid,
+            "size": capsule_data['size'],  # tiny, small... (for k8s driver)
+            "uid": capsule_data['uid'],
+            "volume_size": webapp_data['volume_size'],  # GB (for filer driver)
         }
-        for k in ['tls_crt', 'tls_key', 'tls_redirect_https']:
-            if k in webapp_data:
-                data[k] = webapp_data[k]
+        tls_opts = [
+            'tls_crt',
+            'tls_key',
+            'enable_https',
+            'force_redirect_https'
+        ]
+        for k in tls_opts:
+            if k in capsule_data:
+                data[k] = capsule_data[k]
 
         for sshkey in capsule_data['authorized_keys']:
             data['authorized_keys'].append(sshkey['public_key'])
@@ -243,7 +253,7 @@ class NATS(object):
     @staticmethod
     def build_nats_addon_data(addon, capsule_name):
 
-        addon_data = addon_schema.dump(addon).data
+        addon_data = addon_schema.dump(addon)
         addon_data.pop('capsule_id')
 
         data = {
@@ -258,7 +268,7 @@ class NATS(object):
         return data
 
     @staticmethod
-    def build_data_ids(obj_array):
+    def build_data_ids(obj_array):  # pragma: no cover
         ids = []
         for obj in obj_array:
             try:

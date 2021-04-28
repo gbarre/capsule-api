@@ -46,7 +46,7 @@ class DictArrayCompare:
         return True
 
 
-api_version = '/v1'
+api_version = '/v2'
 
 bad_id = "XYZ"
 unexisting_id = "ffffffff-ffff-ffff-ffff-ffffffffffff"

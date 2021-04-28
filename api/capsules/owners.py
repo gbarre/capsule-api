@@ -1,3 +1,4 @@
+import datetime
 from flask import request
 from models import RoleEnum
 from models import Capsule, User, user_schema, capsule_output_schema
@@ -31,7 +32,7 @@ def search(capsule_id, offset, limit, filters, user):
     for owner in capsule.owners:
         if user.name == owner.name:
             user_is_owner = True
-        user_json = user_schema.dump(owner).data
+        user_json = user_schema.dump(owner)
         owners.append(user_json)
 
     if (not user_is_owner) and (user.role == RoleEnum.user):
@@ -76,10 +77,12 @@ def patch(capsule_id, user):
     capsule.owners.append(new_user)
     db.session.commit()
 
-    nats.publish_webapp_present(capsule)
+    now = datetime.datetime.now()
+    if now > (capsule.no_update + datetime.timedelta(hours=24)):
+        nats.publish_webapp_present(capsule)
 
     result = Capsule.query.filter_by(id=capsule_id).first()
-    return capsule_output_schema.dump(result).data, 200, {
+    return capsule_output_schema.dump(result), 200, {
         'Location': f'{request.base_url}/{capsule.id}',
     }
 
@@ -116,6 +119,8 @@ def delete(capsule_id, user_id, user):
     capsule.owners.remove(user)
     db.session.commit()
 
-    nats.publish_webapp_present(capsule)
+    now = datetime.datetime.now()
+    if now > (capsule.no_update + datetime.timedelta(hours=24)):
+        nats.publish_webapp_present(capsule)
 
     return None, 204

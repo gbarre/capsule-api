@@ -2,7 +2,7 @@ import requests
 import re
 
 from sshpubkeys.exceptions import InvalidKeyError
-from models import RoleEnum
+from models import Capsule, RoleEnum, SizeEnum, WebApp
 from models import User, AppToken
 from flask import current_app, g, request
 from exceptions import KeycloakIdNotFound, KeycloakUserNotFound
@@ -16,6 +16,8 @@ from sqlalchemy.util import symbol
 from hashlib import sha512
 from sshpubkeys import SSHKey
 from sqlalchemy.exc import OperationalError
+import datetime
+import base64
 
 
 OIDC_CONFIG = None
@@ -130,9 +132,17 @@ def check_user_role(min_role=RoleEnum.admin):
 
     if user is None:  # pragma: no cover
         if name in current_app.config['ADMINS']:
-            user = User(name=name, role=RoleEnum.admin)
+            user = User(
+                name=name,
+                role=RoleEnum.admin,
+                parts_manager=True
+            )
         elif name in current_app.config['SUPERADMINS']:
-            user = User(name=name, role=RoleEnum.superadmin)
+            user = User(
+                name=name,
+                role=RoleEnum.superadmin,
+                parts_manager=True
+            )
         else:
             user = User(name=name, role=RoleEnum.user)
         db.session.add(user)
@@ -169,7 +179,7 @@ def get_user_from_keycloak(id, by_name=False):  # pragma: no cover
     return res["username"]
 
 
-def build_query_filters(model_class, filters):
+def build_query_filters(model_class, filters):  # pragma: no cover
     query = []
     # For instance, with
     # http://localhost:5000/v1/capsules?filters[name]=first-test-caps&filters[owners]=user1,user2:
@@ -263,3 +273,90 @@ def is_keycert_associated(str_key, str_cert):
         return True
     except OpenSSL.SSL.Error:
         return False
+
+
+def getClusterPartsUsage(capsule_name):
+    capsules = Capsule.query.filter(Capsule.name != capsule_name)
+    parts = 0
+    for capsule in capsules:
+        capsule_parts = SizeEnum.getparts(capsule.size)
+        parts = parts + capsule_parts
+
+    return parts
+
+
+def getWebappsVolumeUsage(webapp_id=None):
+    webapps = WebApp.query.filter(WebApp.id != webapp_id)
+    used = 0
+    for webapp in webapps:
+        used = used + webapp.volume_size
+
+    return used
+
+
+def get_certificate_cn(x509cert):
+    cert = OpenSSL.crypto.load_certificate(
+        OpenSSL.crypto.FILETYPE_PEM, base64.b64decode(x509cert)
+    )
+    subject = cert.get_subject()
+    if "CN=" in str(subject):
+        return subject.CN
+    else:
+        res = str(subject)\
+            .replace("<X509Name object '/", '')\
+            .replace("'>", '').replace('/', ', ')
+    return res
+
+
+def get_certificate_san(x509cert):
+    cert = OpenSSL.crypto.load_certificate(
+        OpenSSL.crypto.FILETYPE_PEM, base64.b64decode(x509cert)
+    )
+    san = ''
+    ext_count = cert.get_extension_count()
+    for i in range(0, ext_count):
+        ext = cert.get_extension(i)
+        if 'subjectAltName' in str(ext.get_short_name()):
+            san = ext.__str__()
+    if len(san) > 0:
+        dns_array = san.split("DNS:")
+        san = []
+        for dns in dns_array:
+            if len(dns) > 0:
+                san.append(dns.replace(', ', ''))
+    else:
+        san = ['']
+    return san
+
+
+def get_certificate_notBefore(x509cert):
+    cert = OpenSSL.crypto.load_certificate(
+        OpenSSL.crypto.FILETYPE_PEM, base64.b64decode(x509cert)
+    )
+    notBeforeString = cert.get_notBefore().decode("utf-8").replace('Z', '')
+    return datetime.datetime.strptime(notBeforeString, '%Y%m%d%H%M%S')
+
+
+def get_certificate_notAfter(x509cert):
+    cert = OpenSSL.crypto.load_certificate(
+        OpenSSL.crypto.FILETYPE_PEM, base64.b64decode(x509cert)
+    )
+    notBeforeString = cert.get_notAfter().decode("utf-8").replace('Z', '')
+    return datetime.datetime.strptime(notBeforeString, '%Y%m%d%H%M%S')
+
+
+def get_certificate_hasExpired(x509cert):
+    cert = OpenSSL.crypto.load_certificate(
+        OpenSSL.crypto.FILETYPE_PEM, base64.b64decode(x509cert)
+    )
+    return cert.has_expired()
+
+
+def get_certificate_issuer(x509cert):
+    cert = OpenSSL.crypto.load_certificate(
+        OpenSSL.crypto.FILETYPE_PEM, base64.b64decode(x509cert)
+    )
+    issuer = str(cert.get_issuer())\
+        .replace("<X509Name object '/", '')\
+        .replace("'>", '').replace('/', ', ')
+    return issuer

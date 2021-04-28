@@ -39,10 +39,6 @@ class ConfigError(Exception):
     pass
 
 
-# class NotRSACertificate(Exception):
-#     pass
-
-
 class NotValidPEMFile(Exception):
     pass
 
@@ -50,3 +46,10 @@ class NotValidPEMFile(Exception):
 class FQDNAlreadyExists(Exception):
     def __init__(self, existing_fqdn):
         self.existing_fqdn = existing_fqdn
+
+
+class PaymentRequired(connexion.exceptions.ProblemException):
+    def __init__(self, description):
+        self.status = 402
+        self.title = "Payment required"
+        self.detail = description

@@ -34,22 +34,19 @@ class TestCapsules:
         ],
     }
 
-    _capsule_input_illegal = {
-        "name": "1 Capsule with_illegal charactères",
-        "owners": [
-            "foobar"
-        ]
+    _new_patch = {
+        "no_update": True,
+        "comment": "A new comment for this capsule",
+        "size": "small",
     }
-
-    _new_patch = {"no_update": True}
 
     @staticmethod
     def build_output(db):
-        return json.loads(capsule_output_schema.dumps(db.capsule1).data)
+        return json.loads(capsule_output_schema.dumps(db.capsule1))
 
     @staticmethod
     def build_verbose_output(db):
-        return json.loads(capsule_verbose_schema.dumps(db.capsule1).data)
+        return json.loads(capsule_verbose_schema.dumps(db.capsule1))
 
     #################################
     # Testing GET /capsules
@@ -141,14 +138,42 @@ class TestCapsules:
             ).json
             assert "barfoo" in res["error_description"]
 
+    def test_create_too_long_name(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.admin_user), \
+             patch("api.capsules.check_owners_on_keycloak"):
+
+            capsule_input_illegal = {
+                "name": "1 Capsule with_illegal charactères",
+                "owners": [
+                    "foobar"
+                ]
+            }
+            res = testapp.post_json(
+                api_version + "/capsules",
+                capsule_input_illegal,
+                status=400
+            ).json
+            msg = 'is invalid: only lowercase alphanumeric characters '\
+                  'or "-" are allowed, the first and the last characters '\
+                  'must be alphanumeric, the name must have at '\
+                  'least 2 characters and less than 64 characters.'
+            assert msg in res["error_description"]
+
     def test_create_illegal_name(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.admin_user), \
              patch("api.capsules.check_owners_on_keycloak"):
 
+            capsule_input_illegal = {
+                "name": "1 Capsule with_illegal charactères",
+                "owners": [
+                    "foobar"
+                ]
+            }
             res = testapp.post_json(
                 api_version + "/capsules",
-                self._capsule_input_illegal,
+                capsule_input_illegal,
                 status=400
             ).json
             assert "illegal" in res["error_description"]
@@ -302,7 +327,7 @@ class TestCapsules:
     )
     def test_delete_capsule(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
-             patch("utils.check_user_role", return_value=db.superadmin_user), \
+             patch("utils.check_user_role", return_value=db.admin_user), \
              patch.object(NATS, "publish_webapp_absent") as publish_method1, \
              patch.object(NATS, "publish_addon_absent") as publish_method2:
 
@@ -374,7 +399,7 @@ class TestCapsules:
     # Response 200:
     def test_patch(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
-             patch("utils.check_user_role", return_value=db.user1), \
+             patch("utils.check_user_role", return_value=db.admin_user), \
              patch("api.capsules.check_owners_on_keycloak"):
 
             res = testapp.patch_json(
@@ -384,22 +409,24 @@ class TestCapsules:
             ).json
 
             assert res["no_update"]
+            assert self._new_patch['comment'] in res["comment"]
 
-    # Response 400:
-    def test_patch_bad_json_input(self, testapp, db):
+    def test_patch_disable_no_update(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.user1), \
              patch("api.capsules.check_owners_on_keycloak"):
 
-            new_patch = {"update": True}
+            no_update = {'no_update': False}
+
             res = testapp.patch_json(
                 api_version + "/capsules/" + str(db.capsule1.id),
-                new_patch,
-                status=400
+                no_update,
+                status=200
             ).json
-            msg = "'no_update' is a required property"
-            assert msg in res["error_description"]
 
+            assert res["no_update"] == "1970-01-01T00:00:00"
+
+    # Response 400:
     def test_patch_bad_capsule_id(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.user1), \
@@ -421,6 +448,22 @@ class TestCapsules:
             status=401
         )
 
+    # Response 402:
+    def test_patch_payment_required(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.admin_user), \
+             patch("api.capsules.check_owners_on_keycloak"):
+
+            new_size = {'size': 'xlarge'}
+            res = testapp.patch_json(
+                api_version + "/capsules/" + str(db.capsule1.id),
+                new_size,
+                status=402
+            ).json
+
+            msg = 'Please set a lower size for this capsule or prepare '
+            assert msg in res["error_description"]
+
     # Response 403:
     def test_patch_raises_on_invalid_role(self, testapp, db):
         with patch.object(oidc, "validate_token", return_value=True), \
@@ -431,6 +474,20 @@ class TestCapsules:
                 self._new_patch,
                 status=403
             )
+
+    def test_patch_no_update_not_parts_manager(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch("api.capsules.check_owners_on_keycloak"):
+
+            res = testapp.patch_json(
+                api_version + "/capsules/" + str(db.capsule1.id),
+                self._new_patch,
+                status=403
+            ).json
+
+            msg = 'You cannot set the capsule size.'
+            assert msg in res['error_description']
 
     # Response 404:
     def test_patch_not_found(self, testapp, db):

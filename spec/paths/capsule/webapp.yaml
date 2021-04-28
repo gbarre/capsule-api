@@ -1,9 +1,7 @@
 post:
   tags: [user]
   description: |
-    Creates a web application for a capsule.\
-    First element of `fqdns` will be the main fully qualified domain name,
-    the other elements will be understood as aliases.
+    Creates a web application for a capsule.
   summary: Add a new webapp to a capsule
   operationId: api.capsules.webapp.post
   parameters:
@@ -28,7 +26,10 @@ post:
     "403":
       $ref: "../../components/responses.yaml#/Forbidden"
     "409":
-      description: A web application already exists for this capsule
+      description: |
+          A web application already exists for this capsule. \
+          < or > \
+          A webapp need at least one FQDN.
       content:
         application/json:
           schema:
@@ -59,9 +60,7 @@ get:
 put:
   tags: [user]
   description: |
-    Updates or creates a web application for a capsule.\
-    First element of `fqdns` will be the main FQDN,
-    the other elements will be understood as aliases.
+    Updates or creates a web application for a capsule
   summary: Updates or creates a webapp for a capsule
   operationId: api.capsules.webapp.put
   parameters:

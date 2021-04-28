@@ -36,7 +36,7 @@ class TestCapsuleAddons:
 
     @staticmethod
     def build_output(db):
-        addon = json.loads(addon_schema.dumps(db.addon1).data)
+        addon = json.loads(addon_schema.dumps(db.addon1))
         return [addon]
 
     # Create a temp capsule
@@ -90,6 +90,24 @@ class TestCapsuleAddons:
             # Create addon
             new_addon = self.build_addon(db)
             new_addon.pop('opts')
+
+            res = testapp.post_json(
+                api_version + '/capsules/' + capsule_id + '/addons',
+                new_addon,
+                status=201
+            ).json
+            publish_method.assert_called_once()
+            assert dict_contains(res, new_addon)
+
+    def test_create_without_description(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1), \
+             patch.object(NATS, "publish_addon_present") as publish_method:
+
+            # Create addon
+            new_addon = self.build_addon(db)
+            new_addon.pop('description')
 
             res = testapp.post_json(
                 api_version + '/capsules/' + capsule_id + '/addons',

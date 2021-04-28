@@ -12,7 +12,7 @@ class TestUsers:
     #################################
     # Response 200:
     def test_get(self, testapp, db):
-        users_output = users_schema.dump(db.users).data
+        users_output = users_schema.dump(db.users)
 
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.admin_user):
@@ -24,7 +24,7 @@ class TestUsers:
             assert dict_contains(res, users_output)
 
     def test_get_self_user(self, testapp, db):
-        user_output = user_schema.dump(db.user1).data
+        user_output = user_schema.dump(db.user1)
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.user1):
 
@@ -67,7 +67,7 @@ class TestUsers:
     #################################
     # Response 200:
     def test_get_user(self, testapp, db):
-        user_output = user_schema.dump(db.user1).data
+        user_output = user_schema.dump(db.user1)
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.admin_user):
 

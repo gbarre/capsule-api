@@ -19,6 +19,9 @@ class YamlConfig:
             self.DEBUG = api['debug']
             self.SECRET_KEY = api['secret_key']
             self.ENV = api['env']
+            self.CLUSTER_PARTS = api['cluster_parts']
+            self.VOLUMES_GLOBAL_SIZE = api['volumes_size']['global']
+            self.VOLUMES_DEFAULT_SIZE = api['volumes_size']['default']
             self.ADMINS = api['admins']
             self.SUPERADMINS = api['superadmins']
 

@@ -53,9 +53,12 @@ class TestRuntimes:
     #################################
     # Response 200:
     def test_get(self, testapp, db):
+        from pprint import pprint
+        pprint(db.runtime1)
+
         runtime_output = [
-            runtime_schema.dump(db.runtime1).data,
-            runtime_schema.dump(db.runtime2).data,
+            runtime_schema.dump(db.runtime1),
+            runtime_schema.dump(db.runtime2),
         ]
         with patch.object(oidc, 'validate_token', return_value=True), \
              patch("utils.check_user_role", return_value=db.user1):
@@ -246,7 +249,7 @@ class TestRuntimes:
     #################################
     # Response 200:
     def test_get_runtime(self, testapp, db):
-        runtime_output = runtime_schema.dump(db.runtime1).data
+        runtime_output = runtime_schema.dump(db.runtime1)
         with patch.object(oidc, "validate_token", return_value=True), \
              patch("utils.check_user_role", return_value=db.fake_user):
 

@@ -130,8 +130,7 @@ Nuada5lLL1eq
              patch("utils.check_user_role", return_value=db.user1):
 
             _addon_input = {
-                "description": "Un redis sur la capsule",
-                "name": "redis-1",
+                "description": "Mon redis",
                 "runtime_id": str(db.runtime2.id),
             }
 

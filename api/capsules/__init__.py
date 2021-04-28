@@ -1,14 +1,16 @@
+import datetime
 from flask import request
-from models import RoleEnum
+from flask.globals import current_app
+from models import FQDN, RoleEnum, SizeEnum
 from models import SSHKey, User
 from models import Capsule, capsule_output_schema, capsules_output_schema
 from models import capsule_input_schema
 from models import capsules_verbose_schema, capsule_verbose_schema
 from app import db, nats
 from werkzeug.exceptions import NotFound, BadRequest, Forbidden
-from utils import check_owners_on_keycloak, oidc_require_role
-from utils import is_valid_name, build_query_filters
-from exceptions import KeycloakUserNotFound
+from utils import check_owners_on_keycloak, getClusterPartsUsage
+from utils import is_valid_name, build_query_filters, oidc_require_role
+from exceptions import FQDNAlreadyExists, KeycloakUserNotFound, PaymentRequired
 from sqlalchemy.exc import StatementError
 
 
@@ -30,16 +32,27 @@ def search(offset, limit, filters, verbose, user):
         raise NotFound(description="No capsules have been found.")
 
     if verbose is True:
-        return capsules_verbose_schema.dump(results).data
+        return capsules_verbose_schema.dump(results)
     else:
-        return capsules_output_schema.dump(results).data
+        return capsules_output_schema.dump(results)
 
 
 # POST /capsules
 @oidc_require_role(min_role=RoleEnum.admin)
 def post():
     capsule_data = request.get_json()
-    data = capsule_input_schema.load(capsule_data).data
+    data = capsule_input_schema.load(capsule_data)
+
+    cluster_parts = getClusterPartsUsage("")
+    if 'size' in data:
+        proposed_parts = SizeEnum.getparts(data['size'])
+    else:
+        proposed_parts = SizeEnum.getparts(SizeEnum.tiny)
+    target_parts = cluster_parts + proposed_parts
+    if target_parts > current_app.config['CLUSTER_PARTS']:
+        msg = 'Please set a lower size for this capsule or prepare '\
+              'some Bitcoins... :-)'
+        raise PaymentRequired(description=msg)
 
     try:  # Check if owners exist on Keycloak
         check_owners_on_keycloak(data['owners'])
@@ -76,16 +89,29 @@ def post():
             'least 2 characters and less than 64 characters.'
         raise BadRequest(description=msg)
 
+    newArgs = dict()
+    if "fqdns" in data:
+        fqdns_list = [e['name'] for e in data["fqdns"]]
+        if len(fqdns_list) != len(set(fqdns_list)):
+            raise BadRequest(description='Repetitions are not '
+                                         'allowed for FQDNs')
+        try:
+            fqdns = FQDN.create(data["fqdns"])
+        except FQDNAlreadyExists as e:
+            raise BadRequest(description=f'{e.existing_fqdn} already exists.')
+        data.pop("fqdns")
+        newArgs["fqdns"] = fqdns
+
     caps = Capsule.query.filter_by(name=capsule_name).limit(1).one_or_none()
     if caps is not None:
         raise BadRequest(description=f'{capsule_name} already exists.')
 
-    capsule = Capsule(**data)
+    capsule = Capsule(**data, **newArgs)
     db.session.add(capsule)
     db.session.commit()
 
     caps = Capsule.query.filter_by(id=capsule.id).first()
-    result = capsule_output_schema.dump(caps).data
+    result = capsule_output_schema.dump(caps)
 
     return result, 201, {
         'Location': f'{request.base_url}/capsules/{capsule.id}',
@@ -104,14 +130,15 @@ def get(capsule_id, verbose, user):
         raise NotFound(description=f"The requested capsule '{capsule_id}' "
                        "has not been found.")
 
-    owners = capsule_output_schema.dump(capsule).data['owners']
+    capsule_data = capsule_output_schema.dump(capsule)
+    owners = capsule_data['owners']
     if (user.role is RoleEnum.user) and (user.name not in owners):
         raise Forbidden
 
     if verbose is True:
-        return capsule_verbose_schema.dump(capsule).data
+        return capsule_verbose_schema.dump(capsule)
     else:
-        return capsule_output_schema.dump(capsule).data
+        return capsule_output_schema.dump(capsule)
 
 
 # PATCH /capsules/{cID}
@@ -126,21 +153,38 @@ def patch(capsule_id, user):
         raise NotFound(description=f"The requested capsule '{capsule_id}' "
                        "has not been found.")
 
-    owners = capsule_output_schema.dump(capsule).data['owners']
+    owners = capsule_output_schema.dump(capsule)['owners']
     if (user.role is RoleEnum.user) and (user.name not in owners):
         raise Forbidden
 
     data = request.get_json()
-    try:
-        no_update = data['no_update']
-    except KeyError:
-        raise BadRequest(description="'no_update' is a required property.")
 
-    capsule.no_update = no_update
+    if 'no_update' in data:
+        if data['no_update']:
+            capsule.no_update = datetime.datetime.now()
+        else:
+            capsule.no_update = datetime.date(1970, 1, 1)
+
+    if 'comment' in data:
+        capsule.comment = data['comment']
+
+    if 'size' in data:
+        if (user.role is RoleEnum.user) and (not user.parts_manager):
+            raise Forbidden(description='You cannot set the capsule size.')
+
+        cluster_parts = getClusterPartsUsage(capsule.name)
+        proposed_parts = SizeEnum.getparts(data['size'])
+        target_parts = cluster_parts + proposed_parts
+        if target_parts > current_app.config['CLUSTER_PARTS']:
+            msg = 'Please set a lower size for this capsule or prepare '\
+                  'some Bitcoins... :-)'
+            raise PaymentRequired(description=msg)
+        capsule.size = data['size']
+
     db.session.commit()
 
     caps = Capsule.query.filter_by(id=capsule_id).first()
-    result = capsule_output_schema.dump(caps).data
+    result = capsule_output_schema.dump(caps)
 
     return result, 200, {
         'Location': f'{request.base_url}/capsules/{capsule.id}',
@@ -148,7 +192,7 @@ def patch(capsule_id, user):
 
 
 # DELETE /capsules/{cID}
-@oidc_require_role(min_role=RoleEnum.superadmin)
+@oidc_require_role(min_role=RoleEnum.admin)
 def delete(capsule_id):
     try:
         capsule = Capsule.query.filter_by(id=capsule_id).first()
@@ -174,9 +218,10 @@ def delete(capsule_id):
     db.session.delete(capsule)
     db.session.commit()
 
-    if not capsule.no_update:
-        if webapp_id is not None:
-            nats.publish_webapp_absent(webapp_id)
+    now = datetime.datetime.now()
+    if now > (capsule.no_update + datetime.timedelta(hours=24)) and\
+       webapp_id is not None:
+        nats.publish_webapp_absent(webapp_id)
 
         for addon in addons_infos:
             nats.publish_addon_absent(addon['id'], addon['runtime_id'])

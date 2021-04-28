@@ -21,7 +21,7 @@ def search(offset, limit, filters):
     if not results:
         raise NotFound(description="No runtimes have been found.")
 
-    return runtimes_schema.dump(results).data
+    return runtimes_schema.dump(results)
 
 
 # POST /runtimes
@@ -30,7 +30,7 @@ def post(runtime=None):
     # runtime could come from PUT
     if runtime is None:
         runtime_data = request.get_json()
-        data = runtime_schema.load(runtime_data).data
+        data = runtime_schema.load(runtime_data)
 
         if "available_opts" in data and len(data['available_opts']) > 0:
             available_opts = AvailableOption.create(data["available_opts"])
@@ -43,7 +43,7 @@ def post(runtime=None):
     db.session.commit()
 
     result = runtime.query.get(runtime.id)
-    return runtime_schema.dump(result).data, 201, {
+    return runtime_schema.dump(result), 201, {
         'Location': f'{request.base_url}/{runtime.id}',
     }
 
@@ -60,7 +60,7 @@ def get(runtime_id):
         raise NotFound(description=f"The requested runtime '{runtime_id}' "
                        "has not been found.")
 
-    result_json = runtime_schema.dump(runtime).data
+    result_json = runtime_schema.dump(runtime)
     return result_json, 200, {
         'Location': f'{request.base_url}/runtimes/{runtime.id}'
     }
@@ -78,7 +78,7 @@ def put(runtime_id):
     if runtime is None:
         return post(runtime=runtime)
 
-    data = runtime_schema.load(runtime_data).data
+    data = runtime_schema.load(runtime_data)
 
     runtime.description = data["description"]
     runtime.fam = data["fam"]

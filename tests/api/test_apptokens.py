@@ -16,7 +16,7 @@ class TestAppToken:
 
     @staticmethod
     def build_output(db):
-        return [json.loads(apptoken_schema.dumps(db.apptoken1).data)]
+        return [json.loads(apptoken_schema.dumps(db.apptoken1))]
 
     ################################################
     # Testing POST /apptokens

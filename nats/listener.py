@@ -1,3 +1,4 @@
+import datetime
 import time
 import json
 import base64
@@ -294,7 +295,7 @@ class NATSDriverMsg:
             self.error = 'Data value must be an object with the key "id"'
             return
 
-    def publish_response(self, data, no_update=False):
+    def publish_response(self, data, no_update=""):
         if self.json["state"] == "?list":
             state = "list"
         else:
@@ -303,7 +304,8 @@ class NATSDriverMsg:
                 data = {"id": query_id}
                 state = "absent"
             else:
-                if no_update:
+                now = datetime.datetime.now()
+                if now < (no_update + datetime.timedelta(hours=24)):
                     state = "no_update"
                 else:
                     state = "present"

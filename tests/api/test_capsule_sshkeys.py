@@ -22,7 +22,7 @@ class TestCapsuleSshKeys:
 
     @staticmethod
     def build_output(db):
-        return json.loads(capsule_output_schema.dumps(db.capsule1).data)
+        return json.loads(capsule_output_schema.dumps(db.capsule1))
 
     #############################################################
     # Testing POST /capsules/{cId}/sshkeys

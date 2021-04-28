@@ -1,3 +1,4 @@
+import datetime
 from flask import request
 from models import RoleEnum, Capsule, SSHKey, capsule_output_schema
 from app import db, nats
@@ -48,10 +49,12 @@ def post(capsule_id, user):
 
     db.session.commit()
 
-    nats.publish_webapp_present(capsule)
+    now = datetime.datetime.now()
+    if now > (capsule.no_update + datetime.timedelta(hours=24)):
+        nats.publish_webapp_present(capsule)
 
     result = Capsule.query.filter_by(id=capsule_id).first()
-    return capsule_output_schema.dump(result).data, 201, {
+    return capsule_output_schema.dump(result), 201, {
         'Location': f'{request.base_url}/capsules/{capsule.id}',
     }
 
@@ -79,6 +82,8 @@ def delete(capsule_id, sshkey_id, user):
 
     db.session.commit()
 
-    nats.publish_webapp_present(capsule)
+    now = datetime.datetime.now()
+    if now > (capsule.no_update + datetime.timedelta(hours=24)):
+        nats.publish_webapp_present(capsule)
 
     return None, 204

@@ -1,0 +1,58 @@
+patch:
+  tags: [user, admin]
+  description: |
+    Updates TLS options for a capsule.\
+    **This action can be delegated to user.**
+  summary: Updates TLS options for a capsule
+  operationId: api.capsules.tls.patch
+  parameters:
+    - $ref: "../../components/parameters.yaml#/capsule_id"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../components/schemas.yaml#/TlsOptions"
+  responses:
+    "200":
+      description: Tls options updated for the capsule
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas.yaml#/Capsule"
+      headers:
+        Location:
+          description: Created capsule URI
+          schema:
+            type: string
+            format: uri
+    "401":
+      $ref: "../../components/responses.yaml#/Unauthorized"
+    "400":
+      $ref: "../../components/responses.yaml#/BadRequest"
+    "403":
+      $ref: "../../components/responses.yaml#/Forbidden"
+
+get:
+  tags: [user]
+  description: |
+    Gets the TLS certificate informations for a capsule.
+  summary: Get a TLS certificate informations for a capsule
+  operationId: api.capsules.tls.get
+  parameters:
+    - $ref: "../../components/parameters.yaml#/capsule_id"
+  responses:
+    "200":
+      description: The requested TLS certificate informations for a capsule
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas.yaml#/Certificate"
+    "400":
+      $ref: "../../components/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../../components/responses.yaml#/Unauthorized"
+    "403":
+      $ref: "../../components/responses.yaml#/Forbidden"
+    "404":
+      $ref: "../../components/responses.yaml#/NotFound"
