@@ -47,6 +47,7 @@ USER capsule-api:capsule-api
 EXPOSE 5080
 EXPOSE 5443
 
+ENV TZ="Europe/Paris"
 ENV PATH="/opt/venv/bin:$PATH"
 ENV WORKERS="2"
 ENV TIMEOUT="30"
