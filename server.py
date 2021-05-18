@@ -46,7 +46,19 @@ from app import oidc
 
 @app.after_request
 def log_request_info(response):
-    if request.method == "OPTIONS":  # ignore noise from front
+    """ build log :
+        ip - user "METHOD path" response_code "server" "user_agent" [payload=]
+    """
+    request_ip = request.remote_addr
+    request_method = request.method
+    request_server = request.url_root
+    request_agent = request.user_agent
+    request_path = request.path
+    request_full_path = request.full_path
+    if f'{request_path}?' != request_full_path:
+        request_path = request_full_path
+
+    if request_method == "OPTIONS":  # ignore noise from front
         return response
 
     # Get username from token
@@ -58,25 +70,35 @@ def log_request_info(response):
             if oidc._validate_token(token):
                 name = g.oidc_token_info['username']
             else:
-                name = "unknown"
+                name = "-"
         except (KeyError, AttributeError):
-            name = "unknown"
+            name = "-"
+
+    msg = f'{request_ip} - {name} "{request_method} {request_path}" '\
+          f'{response.status_code} {response.content_length} '\
+          f'"{request_server}" "{request_agent}"'
 
     data = request.get_data()
-    if len(data) > 0 and name != "unknown":
+    if len(data) > 0:
         try:
             payload = json.loads(data.decode('utf-8'))
         except JSONDecodeError:
-            msg = f'{name} send {request.method} request with BAD data: {data}'
-            app.logger.warn(msg)
+            data_str = data.decode('utf-8')
+            msg = f'{msg} payload=**not valid json**:\n{data_str}'
+            app.logger.warning(msg)
             return response
+
         keys = ['crt', 'key']
         for key in keys:
             if key in payload:
                 payload[key] = "****** secure data ******"
+
         p_string = json.dumps(payload)
-        msg = f'{name} send {request.method} request with payload: {p_string}'
-        app.logger.info(msg)
+
+        if len(p_string) > 0:
+            msg = f'{msg} payload={p_string}'
+
+    app.logger.info(msg)
 
     return response
 
