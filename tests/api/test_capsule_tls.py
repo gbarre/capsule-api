@@ -1,3 +1,4 @@
+import pytest
 from tests.utils import api_version, bad_id, dict_contains, unexisting_id
 from app import oidc
 from unittest.mock import patch
@@ -5,6 +6,10 @@ from nats import NATS
 
 
 class TestCapsuleTls:
+
+    _disable_tls_input = {
+        "enable_https": False
+    }
 
     _tls_input = {
         "force_redirect_https": True,
@@ -79,7 +84,6 @@ class TestCapsuleTls:
                "ktSTnFqCkZnL2xKblV2eTNBUEJMb3QrUy9XeUgyM0R4WlFNZ09DQlhZa1"
                "Vxb2xYU0F1QnV3NGhXVEFqRGUyMkx5eElUZlgKcHU2bkE3SUZSaU5USzg"
                "4OEs1T0dWdHp1Ci0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K",
-
     }
 
     ################################################
@@ -384,3 +388,109 @@ class TestCapsuleTls:
                 api_version + "/capsules/" + unexisting_id + "/tls",
                 status=404
             )
+    ################################################
+
+    ################################################
+    # Testing DELETE /capsules/{cId}/tls
+    ################################################
+    # Response 204:
+    @pytest.mark.filterwarnings(
+        "ignore:.*Content-Type header found in a 204 response.*:Warning"
+    )
+    def test_delete(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.admin_user), \
+             patch.object(NATS, "publish_webapp_present") as publish_method:
+
+            # Disable tls before remove certificate
+            testapp.patch_json(
+                f'{api_version}/capsules/{capsule_id}/tls',
+                self._disable_tls_input,
+                status=200
+            )
+
+            # Delete certificate
+            testapp.delete(
+                f'{api_version}/capsules/{capsule_id}/tls',
+                status=204
+            )
+            publish_method.call_count = 2
+            publish_method.assert_called()
+
+    # Response 400:
+    def test_delete_bad_id(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.admin_user):
+
+            testapp.delete(
+                f'{api_version}/capsules/{bad_id}/tls',
+                status=400
+            )
+
+    # Response 401:
+    def test_delete_unauthorized(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        testapp.delete(
+            f'{api_version}/capsules/{capsule_id}/tls',
+            status=401
+        )
+
+    # Response 403:
+    def test_delete_without_delegation(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user1):
+
+            res = testapp.delete(
+                f'{api_version}/capsules/{capsule_id}/tls',
+                status=403
+            ).json
+            msg = 'Delegation is not activate for users.'
+            assert msg in res['error_description']
+
+    def test_delete_bad_owner(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.user3):
+
+            # Add tls delegation for test
+            delegate = {"tls": True}
+            testapp.patch_json(
+                api_version + "/capsules/" + capsule_id + "/delegate",
+                delegate,
+                status=200
+            )
+
+            testapp.delete(
+                f'{api_version}/capsules/{capsule_id}/tls',
+                status=403
+            )
+
+    # Response 404:
+    def test_delete_not_found(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.admin_user):
+
+            testapp.delete(
+                f'{api_version}/capsules/{unexisting_id}/tls',
+                status=404
+            )
+
+    # Response 409:
+    def test_delete_conflict(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.admin_user):
+
+            # Delete certificate
+            res = testapp.delete(
+                f'{api_version}/capsules/{capsule_id}/tls',
+                status=409
+            ).json
+
+            msg = 'Please, disable HTTPS for this capsule before ' \
+                  'trying to remove the certificate.'
+            assert msg in res['error_description']
+
+    ################################################

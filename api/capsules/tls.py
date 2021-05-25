@@ -7,16 +7,14 @@ from utils import oidc_require_role, is_keycert_associated, \
     get_certificate_issuer, get_certificate_cn, get_certificate_san, \
     get_certificate_notBefore, get_certificate_notAfter, \
     get_certificate_hasExpired
-from werkzeug.exceptions import NotFound, BadRequest, Forbidden
+from werkzeug.exceptions import Conflict, NotFound, BadRequest, Forbidden
 from sqlalchemy.exc import StatementError
 import base64
 import binascii
 from exceptions import NotValidPEMFile
 
 
-# PATCH /capsules/{cID}/tls
-@oidc_require_role(min_role=RoleEnum.user)  # user only with delegation
-def patch(capsule_id, user):
+def _get_capsule(capsule_id, user, check_delegate: bool = False):
     try:
         capsule = Capsule.query.filter_by(id=capsule_id).first()
     except StatementError:
@@ -26,8 +24,9 @@ def patch(capsule_id, user):
         raise NotFound(description=f"The requested capsule '{capsule_id}' "
                        "has not been found.")
 
-    if user.role < RoleEnum.admin and not capsule.delegate_tls:
-        raise Forbidden
+    if check_delegate and \
+       user.role < RoleEnum.admin and not capsule.delegate_tls:
+        raise Forbidden(description='Delegation is not activate for users.')
 
     user_is_owner = False
     for owner in capsule.owners:
@@ -37,6 +36,13 @@ def patch(capsule_id, user):
     if (not user_is_owner) and (user.role == RoleEnum.user):
         raise Forbidden
 
+    return capsule
+
+
+# PATCH /capsules/{cID}/tls
+@oidc_require_role(min_role=RoleEnum.user)  # user only with delegation
+def patch(capsule_id, user):
+    capsule = _get_capsule(capsule_id, user, check_delegate=True)
     data = request.get_json()
 
     if ("key" in data and "crt" not in data) or \
@@ -61,13 +67,15 @@ def patch(capsule_id, user):
         capsule.tls_crt = data["crt"]
         capsule.tls_key = data["key"]
 
+    if "force_redirect_https" in data:
+        if data['force_redirect_https']:
+            capsule.enable_https = True
+        capsule.force_redirect_https = data["force_redirect_https"]
+
     if "enable_https" in data:
-        capsule.enable_https = data["enable_https"]
         if not data['enable_https']:
-            capsule.tls_crt = None
-            capsule.tls_key = None
-        if "force_redirect_https" in data:
-            capsule.force_redirect_https = data["force_redirect_https"]
+            capsule.force_redirect_https = False
+        capsule.enable_https = data["enable_https"]
 
     db.session.commit()
 
@@ -86,22 +94,7 @@ def patch(capsule_id, user):
 # GET /capsules/{cID}/tls
 @oidc_require_role(min_role=RoleEnum.user)
 def get(capsule_id, user):
-    try:
-        capsule = Capsule.query.filter_by(id=capsule_id).first()
-    except StatementError:
-        raise BadRequest(description=f"'{capsule_id}' is not a valid id.")
-
-    if capsule is None:
-        raise NotFound(description=f"The requested capsule '{capsule_id}' "
-                       "has not been found.")
-
-    user_is_owner = False
-    for owner in capsule.owners:
-        if user.name == owner.name:
-            user_is_owner = True
-
-    if (not user_is_owner) and (user.role == RoleEnum.user):
-        raise Forbidden
+    capsule = _get_capsule(capsule_id, user)
 
     crt = capsule.tls_crt
     if crt is None:
@@ -117,3 +110,25 @@ def get(capsule_id, user):
         "issuer": str(get_certificate_issuer(crt)),
     }
     return result
+
+
+# /DELETE /capsules/{cId}/tls
+@oidc_require_role(min_role=RoleEnum.user)  # user only with delegation
+def delete(capsule_id, user):
+    capsule = _get_capsule(capsule_id, user, check_delegate=True)
+
+    if capsule.enable_https:
+        msg = 'Please, disable HTTPS for this capsule before '\
+              'trying to remove the certificate.'
+        raise Conflict(description=msg)
+
+    capsule.tls_crt = None
+    capsule.tls_key = None
+
+    db.session.commit()
+
+    now = datetime.datetime.now()
+    if now > (capsule.no_update + datetime.timedelta(hours=24)):
+        nats.publish_webapp_present(capsule)
+
+    return None, 204

@@ -56,7 +56,8 @@ def patch(capsule_id, user):
         if user.name == owner.name:
             user_is_owner = True
         if new_owner == owner.name:
-            raise Conflict
+            msg = f'{new_owner} is already in owners list!'
+            raise Conflict(description=msg)
 
     if (not user_is_owner) and (user.role == RoleEnum.user):
         raise Forbidden
@@ -96,7 +97,7 @@ def delete(capsule_id, user_id, user):
         raise Forbidden(description="A capsule need one owner at least !")
 
     if user_id == user.name:
-        raise Conflict
+        raise Conflict(description='Cannot delete yourself from owners')
 
     user_is_owner = False
     user_id_in_owners = False
