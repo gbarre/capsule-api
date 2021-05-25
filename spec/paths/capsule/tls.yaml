@@ -56,3 +56,32 @@ get:
       $ref: "../../components/responses.yaml#/Forbidden"
     "404":
       $ref: "../../components/responses.yaml#/NotFound"
+
+delete:
+  tags: [user, admin]
+  description: |
+    Delete TLS certificate and key for a capsule.\
+    **This action can be delegated to user.**
+  summary: Delete a public key
+  operationId: api.capsules.tls.delete
+  parameters:
+    - $ref: "../../components/parameters.yaml#/capsule_id"
+  responses:
+    "204":
+      description: Successful deletion
+    "400":
+      $ref: "../../components/responses.yaml#/BadRequest"
+    "401":
+      $ref: "../../components/responses.yaml#/Unauthorized"
+    "403":
+      $ref: "../../components/responses.yaml#/Forbidden"
+    "404":
+      $ref: "../../components/responses.yaml#/NotFound"
+    "409":
+      description: |
+          Please, disable HTTPS for this capsule before \
+          trying to remove the certificate.
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas.yaml#/Error"

@@ -2768,6 +2768,47 @@
             "$ref": "#/components/responses/NotFound"
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "user",
+          "admin"
+        ],
+        "description": "Delete TLS certificate and key for a capsule.\\\n**This action can be delegated to user.**\n",
+        "summary": "Delete a public key",
+        "operationId": "api.capsules.tls.delete",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/capsule_id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful deletion"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "description": "Please, disable HTTPS for this capsule before \\\ntrying to remove the certificate.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/capsules/{capsule_id}/delegate": {

@@ -32,6 +32,13 @@ class TestCapsules:
             "+aJI4vnqMgVSGwBDgxZs4X2mthYhCitgbk9D3WbstAinUkhEtzQ=="
             " phpseclib-generated-key",
         ],
+        "size": 'small',
+        "fqdns": [
+            {
+                "alias": False,
+                "name": "test0.fr",
+            }
+        ]
     }
 
     _new_patch = {
@@ -191,9 +198,11 @@ class TestCapsules:
             ).json
 
             # Atempt to recreate
+            temp_input = dict(self._capsule_input)
+            temp_input.pop('fqdns')  # Avoid exeption on fqdns
             res = testapp.post_json(
                 api_version + "/capsules",
-                self._capsule_input,
+                temp_input,
                 status=400
             ).json
             assert "already exists" in res["error_description"]
@@ -227,6 +236,50 @@ class TestCapsules:
             msg = "'owners' is a required property"
             assert msg in res["error_description"]
 
+    def test_create_repeat_fqdn(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.admin_user), \
+             patch("api.capsules.check_owners_on_keycloak"):
+
+            temp_input = dict(self._capsule_input)
+            temp_input['fqdns'] = [
+                {
+                    "alias": False,
+                    "name": "test1.fr",
+                },
+                {
+                    "alias": False,
+                    "name": "test1.fr",
+                },
+            ]
+            res = testapp.post_json(
+                api_version + "/capsules",
+                temp_input,
+                status=400
+            ).json
+            msg = "Repetitions are not allowed for FQDNs"
+            assert msg in res["error_description"]
+
+    def test_create_already_exist_fqdn(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.admin_user), \
+             patch("api.capsules.check_owners_on_keycloak"):
+
+            temp_input = dict(self._capsule_input)
+            temp_input['fqdns'] = [
+                {
+                    "alias": False,
+                    "name": "main.fqdn.ac-versailles.fr",
+                },
+            ]
+            res = testapp.post_json(
+                api_version + "/capsules",
+                temp_input,
+                status=400
+            ).json
+            msg = "already exists."
+            assert msg in res["error_description"]
+
     # Response 401:
     def test_create_with_no_token(self, testapp, db):
         testapp.post_json(
@@ -234,6 +287,23 @@ class TestCapsules:
             self._capsule_input,
             status=401
         )
+
+    # Response 402:
+    def test_create_payment_required(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.admin_user), \
+             patch("api.capsules.check_owners_on_keycloak"):
+
+            temp_input = dict(self._capsule_input)
+            temp_input['size'] = 'xlarge'
+            res = testapp.post_json(
+                api_version + "/capsules",
+                temp_input,
+                status=402
+            ).json
+
+            msg = 'Please set a lower size for this capsule or prepare '
+            assert msg in res["error_description"]
 
     # Response 403:
     def test_create_raises_on_invalid_role(self, testapp, db):
@@ -393,7 +463,7 @@ class TestCapsules:
             )
     #################################
 
-#################################
+    #################################
     # Testing PATCH /capsules/cId
     #################################
     # Response 200:
