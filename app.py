@@ -53,15 +53,32 @@ from nats.listener import create_nats_listener
 
 
 def create_app(config):
+    # Manage swagger ui config
+    specficification_file = 'openapi.json'
+    swagger_ui_config = config.SWAGGER_UI_CONFIG
+
+    options = {}
+    options['swagger_ui_config'] = {}
+    options['swagger_ui_config']['urls'] = []
+
+    for o in swagger_ui_config['urls']:
+        options['swagger_ui_config']['urls'].append({
+            "url": f'{o["url"]}/{specficification_file}',
+            "name": f'{o["name"]}'
+        })
+
     # Create the connexion application instance
     connex_app = connexion.App(
-        __name__, specification_dir=os.path.join(basedir, 'spec'))
+        __name__,
+        specification_dir=os.path.join(basedir, 'spec'),
+        options=options,
+    )
 
-    # Read the swagger.yml file to configure the endpoints
+    # Read the swagger file to configure the endpoints
     connex_app.add_api(
-        'openapi.json',
+        specficification_file,
         strict_validation=True,
-        validate_responses=True
+        validate_responses=True,
     )
     for error_code in werkzeug.exceptions.default_exceptions:
         connex_app.add_error_handler(error_code, render_exception)

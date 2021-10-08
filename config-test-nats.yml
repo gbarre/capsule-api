@@ -2,6 +2,12 @@
 api:
   host: api.domain.tld
   app_name: 'capsule-api'
+  swagger_ui_config:
+    urls:
+      - url: /v2
+        name: "Local"
+      - url: /capsule/v2
+        name: "Proxified"
   debug: false
   sqlalchemy:
     echo: false

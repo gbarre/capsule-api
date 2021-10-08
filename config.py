@@ -14,6 +14,7 @@ class YamlConfig:
         try:
             api = config['api']
             self.APP_NAME = api['app_name']
+            self.SWAGGER_UI_CONFIG = api['swagger_ui_config']
             self.HOST = api['host']
             self.PRIVATE_KEY = api['rsa_private_key']
             self.DEBUG = api['debug']
