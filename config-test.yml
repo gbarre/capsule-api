@@ -2,11 +2,12 @@
 api:
   host: api.domain.tld
   app_name: 'capsapi'
+  version: v2
   swagger_ui_config:
     urls:
-      - url: /v2
+      - url: /
         name: "Local"
-      - url: /capsule/v2
+      - url: /capsule/
         name: "Proxified"
   debug: true
   sqlalchemy:
@@ -42,6 +43,10 @@ api:
     introspection_auth_method: 'client_secret_post'
   env: 'development'
   database_uri: 'sqlite:///test_capsule.db'
+  acme_domains:
+    - nip.io
+    - xip.io
+    - ac-versailles.fr
   nats:
     uri: 'nats://localhost:4222'
     log_level: 'WARN'

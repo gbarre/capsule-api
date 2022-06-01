@@ -74,6 +74,25 @@ class TestCapsuleFqdns:
             msg = f'{new_fqdn["name"]} already exists.'
             assert msg in res['error_description']
 
+    def test_create_primary_fqdn(self, testapp, db):
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.admin_user):
+            capsule_id = str(db.capsule1.id)
+
+            # Create webapp
+            new_fqdn = {
+                "name": "other.fqdn.ac-versailles.fr",
+                "alias": False
+            }
+
+            res = testapp.post_json(
+                api_version + '/capsules/' + capsule_id + '/fqdns',
+                new_fqdn,
+                status=400
+            ).json
+            msg = "Only one primary FQDN by capsule"
+            assert msg in res['error_description']
+
     # Response 401:
     def test_create_with_no_token(self, testapp, db):
         capsule_id = str(db.capsule1.id)
@@ -176,6 +195,24 @@ class TestCapsuleFqdns:
                 status=400
             ).json
             msg = f"'{current_fqdn['name']}' already exists."
+            assert msg in res['error_description']
+
+    def test_update_primary_fqdn(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        fqdn2 = json.loads(fqdn_schema.dumps(db.fqdn2))
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.admin_user):
+
+            fqdn2_id = str(fqdn2['id'])
+            fqdn2.pop('id')
+            fqdn2['alias'] = False
+
+            res = testapp.put_json(
+                f'{api_version}/capsules/{capsule_id}/fqdns/{fqdn2_id}',
+                fqdn2,
+                status=400
+            ).json
+            msg = "Only one primary FQDN by capsule"
             assert msg in res['error_description']
 
     # Response 401:

@@ -82,3 +82,6 @@ paths:
 
   /cluster:
     $ref: ./paths/cluster.yaml
+
+  /acmedomains:
+    $ref: ./paths/acmedomains.yaml

@@ -110,7 +110,7 @@ docker run --rm \
   -e WORKERS=8 \
   -e DB_MIGRATE=upgrade \
   --name capsule-api \
-  gbarre2/capsule-api
+  harbor.in.ac-versailles.fr/infra/capsule-api:2.0.1-57fb135c-00639
 ```
 
 To use with HTTPS **in development** run:
@@ -123,7 +123,7 @@ docker run --rm \
   -e DB_MIGRATE=upgrade \
   -e SSL=true \
   --name capsule-api \
-  gbarre2/capsule-api
+  harbor.in.ac-versailles.fr/infra/capsule-api:2.0.1-57fb135c-00639
 ```
 
 To use with HTTPS **with your certificate** run:
@@ -138,7 +138,7 @@ docker run --rm \
   -v ${PATH_TO_CRT_FILE}:/capsule-api/cert/capsule.crt \
   -v ${PATH_TO_KEY_FILE}:/capsule-api/cert/capsule.key \
   --name capsule-api \
-  gbarre2/capsule-api
+  harbor.in.ac-versailles.fr/infra/capsule-api:2.0.1-57fb135c-00639
 ```
 
 ## A few usefull commands
@@ -200,26 +200,12 @@ python publish_msg.py --nats=localhost:4222 --subject="capsule.webapp" --state="
 ## TODO
 
 - API:
-  - manage capsule "size"
-  - manage cluster "total size"
   - add webapp/addon status-flag
 - Front:
   - capsule:
     - Send error message before the end of creation
     - Catch owner repetition on creation
     - Check if user exists in keycloak after the local search fails
-  - webapp:
-    - TLS certificate & key options must be editable separately
-    - TLS certificate warning : "mettre le certif suivi, le cas échéant, des certificats intermédiaires"
-    - Add message for multiples FQDNs : "Only one principal" => change alias/principal management
-    - Manage Error messages
   - addons:
-    - adding / removing addon redirect to another capsule (seems to reload all)
     - Change "file" option (like webapp)
     - Script to check consistency between sqlite & existing databases
-  - sshkeys:
-    - Show sshkey comment if exists
-    - Permit multiple spaces in sshkey comment
-- Drivers:
-  - k8s:
-    - Ensure changing env variable run `kubectl apply`

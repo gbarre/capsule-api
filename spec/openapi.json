@@ -482,6 +482,15 @@
             "format": "password",
             "writeOnly": true,
             "example": "Base 64 encoded pem key"
+          },
+          "certificate": {
+            "type": "string",
+            "enum": [
+              "none",
+              "acme",
+              "manual"
+            ],
+            "example": "manual"
           }
         }
       },
@@ -823,6 +832,15 @@
             "type": "boolean",
             "default": true
           },
+          "certificate": {
+            "type": "string",
+            "enum": [
+              "none",
+              "acme",
+              "manual"
+            ],
+            "default": "manual"
+          },
           "tls_crt": {
             "type": "string",
             "writeOnly": true,
@@ -951,6 +969,15 @@
             "type": "boolean",
             "default": true
           },
+          "certificate": {
+            "type": "string",
+            "enum": [
+              "none",
+              "acme",
+              "manual"
+            ],
+            "default": "manual"
+          },
           "tls_crt": {
             "type": "string",
             "writeOnly": true,
@@ -1073,6 +1100,15 @@
           "force_redirect_https": {
             "type": "boolean",
             "default": true
+          },
+          "certificate": {
+            "type": "string",
+            "enum": [
+              "none",
+              "acme",
+              "manual"
+            ],
+            "default": "manual"
           },
           "tls_crt": {
             "type": "string",
@@ -3344,6 +3380,39 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/acmedomains": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "description": "Gets domains availables with ACME protocol\n",
+        "summary": "Get the domains availables with ACME protocol",
+        "operationId": "api.acmedomains.get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The requested domains",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "example": [
+                    "nip.io",
+                    "xip.io"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
           }
         }
       }

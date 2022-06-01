@@ -2,11 +2,12 @@
 api:
   host: localhost
   app_name: 'capsule-api'
+  version: v2
   swagger_ui_config:
     urls:
-      - url: /v2
+      - url: /
         name: "Local"
-      - url: /capsule/v2
+      - url: /capsule/
         name: "Proxified"
   debug: true
   sqlalchemy:
@@ -43,6 +44,9 @@ api:
   env: 'development'
   database_uri: 'mysql+pymysql://root:local@localhost:30306/capsule_local'
   #database_uri: 'sqlite:///test_capsule.db'
+  acme_domains:
+    - nip.io
+    - xip.io
   nats:
     uri: 'nats://localhost:4222'
     log_level: 'DEBUG'

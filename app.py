@@ -56,6 +56,7 @@ def create_app(config):
     # Manage swagger ui config
     specficification_file = 'openapi.json'
     swagger_ui_config = config.SWAGGER_UI_CONFIG
+    api_version = config.API_VERSION
 
     options = {}
     options['swagger_ui_config'] = {}
@@ -63,7 +64,7 @@ def create_app(config):
 
     for o in swagger_ui_config['urls']:
         options['swagger_ui_config']['urls'].append({
-            "url": f'{o["url"]}/{specficification_file}',
+            "url": f'{o["url"]}{api_version}/{specficification_file}',
             "name": f'{o["name"]}'
         })
 
@@ -93,6 +94,11 @@ def create_app(config):
 
     gunicorn_logger = logging.getLogger('gunicorn.error')
     app.logger.handlers = gunicorn_logger.handlers
+
+    @app.route('/')
+    def root():
+        return f'The specification for {config.APP_NAME} is available '\
+               f'<a href="./{api_version}/ui/">here</a>.'
 
     # Initializing app extensions
     db.init_app(app)

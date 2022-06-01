@@ -5,7 +5,7 @@
 script_dir=$(cd "${0%/*}"; pwd)
 
 KC_CONTAINER_NAME="keycloak_dev"
-KC_DOCKER_IMAGE="jboss/keycloak"
+KC_DOCKER_IMAGE="jboss/keycloak:12.0.4"
 KC_ADMIN="admin"
 KC_PWD="admin"
 

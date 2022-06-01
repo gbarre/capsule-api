@@ -14,6 +14,7 @@ class YamlConfig:
         try:
             api = config['api']
             self.APP_NAME = api['app_name']
+            self.API_VERSION = api['version']
             self.SWAGGER_UI_CONFIG = api['swagger_ui_config']
             self.HOST = api['host']
             self.PRIVATE_KEY = api['rsa_private_key']
@@ -25,6 +26,7 @@ class YamlConfig:
             self.VOLUMES_DEFAULT_SIZE = api['volumes_size']['default']
             self.ADMINS = api['admins']
             self.SUPERADMINS = api['superadmins']
+            self.ACME_DOMAINS = api['acme_domains']
 
             self.NATS_URI = api['nats']['uri']
             self.NATS_CA_CERT = api['nats']['ca_cert']

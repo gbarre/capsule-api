@@ -220,7 +220,8 @@ class NATS(object):
             'tls_crt',
             'tls_key',
             'enable_https',
-            'force_redirect_https'
+            'force_redirect_https',
+            'certificate',
         ]
         for k in tls_opts:
             if k in capsule_data:

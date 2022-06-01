@@ -36,7 +36,7 @@ class TestCapsules:
         "fqdns": [
             {
                 "alias": False,
-                "name": "test0.fr",
+                "name": "test0.nip.io",
             }
         ]
     }
@@ -199,7 +199,12 @@ class TestCapsules:
 
             # Atempt to recreate
             temp_input = dict(self._capsule_input)
-            temp_input.pop('fqdns')  # Avoid exeption on fqdns
+            temp_input['fqdns'] = [  # Avoid exeption on fqdns
+                {
+                    'alias': False,
+                    'name': 'test1.nip.io',
+                },
+            ]
             res = testapp.post_json(
                 api_version + "/capsules",
                 temp_input,

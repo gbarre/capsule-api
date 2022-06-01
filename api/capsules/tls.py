@@ -1,6 +1,7 @@
 import datetime
 from flask import request
-from models import Capsule, capsule_output_schema
+from flask.globals import current_app
+from models import Capsule, CertificateEnum, capsule_output_schema
 from models import RoleEnum
 from app import db, nats
 from utils import oidc_require_role, is_keycert_associated, \
@@ -76,6 +77,20 @@ def patch(capsule_id, user):
         if not data['enable_https']:
             capsule.force_redirect_https = False
         capsule.enable_https = data["enable_https"]
+
+    if 'certificate' in data:
+        if data['certificate'] == CertificateEnum.acme:
+            for fqdn in capsule.fqdns:
+                fqdn_match_domain = False
+                for domain in current_app.config['ACME_DOMAINS']:
+                    if domain in fqdn.name:
+                        fqdn_match_domain = True
+                        break
+                if not fqdn_match_domain:  # pragma: no cover
+                    msg = f"{fqdn.name} does not match any of the following "\
+                          f"domains: {current_app.config['ACME_DOMAINS']}"
+                    raise BadRequest(description=msg)
+        capsule.certificate = data['certificate']
 
     db.session.commit()
 

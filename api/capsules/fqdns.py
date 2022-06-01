@@ -30,6 +30,13 @@ def _get_capsule(capsule_id, user):
     return capsule
 
 
+def _capsuleHasPrimaryFQDN(fqdns):
+    for fqdn in fqdns:
+        if not fqdn.alias:
+            return True
+    return False
+
+
 # POST /capsules/{cID}/fqdns
 @oidc_require_role(min_role=RoleEnum.user)  # user only with delegation
 def post(capsule_id, user):
@@ -43,6 +50,9 @@ def post(capsule_id, user):
     existing_fqdn = FQDN.query.filter_by(name=data['name']).one_or_none()
     if existing_fqdn is not None:
         raise BadRequest(description=f'{data["name"]} already exists.')
+
+    if not data['alias'] and _capsuleHasPrimaryFQDN(capsule.fqdns):
+        raise BadRequest(description='Only one primary FQDN by capsule')
 
     fqdn = FQDN(**data)
     capsule.fqdns.append(fqdn)
@@ -81,6 +91,10 @@ def put(capsule_id, fqdn_id, user):
     if not fqdn:
         raise NotFound(description=f"The requested FQDN '{fqdn_id}' "
                        "has not been found.")
+
+    if not data['alias'] and \
+       _capsuleHasPrimaryFQDN(capsule.fqdns) and fqdn.alias:
+        raise BadRequest(description='Only one primary FQDN by capsule')
 
     fqdn.alias = data["alias"]
     fqdn.name = data["name"]

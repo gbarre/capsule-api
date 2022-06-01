@@ -112,6 +112,12 @@ class ValidationRuleEnum(str, enum.Enum):
     into = "into"
 
 
+class CertificateEnum(str, enum.Enum):
+    none = "none"
+    acme = "acme"
+    manual = "manual"
+
+
 class SizeEnum(str, enum.Enum):
     tiny = "tiny"
     small = "small"
@@ -586,6 +592,11 @@ class Capsule(db.Model):
 
     enable_https = db.Column(db.Boolean, default=True)
     force_redirect_https = db.Column(db.Boolean, default=True)
+    certificate = db.Column(
+        db.Enum(CertificateEnum),
+        default=CertificateEnum.manual,
+        nullable=False
+    )
     tls_crt = db.Column(db.Text)
     tls_key = db.Column(db.Text)
     fqdns = db.relationship(
@@ -937,6 +948,11 @@ class CapsuleInputSchema(ma.SQLAlchemyAutoSchema):
     owners = fields.List(fields.String())
     authorized_keys = fields.List(fields.String())
     fqdns = fields.Nested("FQDNSchema", default=[], many=True, exclude=('id',))
+    certificate = db.Column(
+        db.Enum(CertificateEnum),
+        default=CertificateEnum.manual,
+        nullable=False
+    )
     tls_crt = ma.auto_field(load_only=True)
     tls_key = ma.auto_field(load_only=True)
     size = EnumField(SizeEnum, by_value=True)
@@ -975,6 +991,11 @@ class CapsuleOutputSchema(ma.SQLAlchemyAutoSchema):
         many=True,
     )
     fqdns = fields.Nested("FQDNSchema", default=[], many=True)
+    certificate = db.Column(
+        db.Enum(CertificateEnum),
+        default=CertificateEnum.manual,
+        nullable=False
+    )
     tls_crt = ma.auto_field(load_only=True)
     tls_key = ma.auto_field(load_only=True)
     size = EnumField(SizeEnum, by_value=True)
@@ -1019,6 +1040,11 @@ class CapsuleSchemaVerbose(ma.SQLAlchemyAutoSchema):
         exclude=('created_at', 'updated_at')
     )
     fqdns = fields.Nested("FQDNSchema", default=[], many=True)
+    certificate = db.Column(
+        db.Enum(CertificateEnum),
+        default=CertificateEnum.manual,
+        nullable=False
+    )
     tls_crt = ma.auto_field(load_only=True)
     tls_key = ma.auto_field(load_only=True)
     owners = fields.Nested(

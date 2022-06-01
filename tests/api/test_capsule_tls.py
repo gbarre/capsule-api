@@ -2,6 +2,9 @@ import pytest
 from tests.utils import api_version, bad_id, dict_contains, unexisting_id
 from app import oidc
 from unittest.mock import patch
+from models import fqdn_schema
+import json
+
 from nats import NATS
 
 
@@ -14,6 +17,7 @@ class TestCapsuleTls:
     _tls_input = {
         "force_redirect_https": True,
         "enable_https": True,
+        "certificate": "acme",
         "crt": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURhekNDQWxPZ0F3S"
                "UJBZ0lVTWVYdFZ2clpGUnNvQ1RqcUVoekZRSTVHbmZvd0RRWUpLb1pJaH"
                "ZjTkFRRUwKQlFBd1JURUxNQWtHQTFVRUJoTUNRVlV4RXpBUkJnTlZCQWd"
@@ -186,6 +190,36 @@ class TestCapsuleTls:
             ).json
             msg = "The certificate and the key are not associated"
             assert msg in res['error_description']
+
+    def test_patch_acme_failed(self, testapp, db):
+        capsule_id = str(db.capsule1.id)
+        fqdn_id = str(db.fqdn1.id)
+        with patch.object(oidc, "validate_token", return_value=True), \
+             patch("utils.check_user_role", return_value=db.admin_user), \
+             patch("api.capsules.check_owners_on_keycloak"), \
+             patch.object(NATS, "publish_webapp_present"):
+
+            # Update capsule FQDN (set not acme valid)
+            current_fqdn = json.loads(fqdn_schema.dumps(db.fqdn1))
+            current_fqdn['name'] = "new.fqdn.com"
+            current_fqdn.pop('id')
+            testapp.put_json(
+                f'{api_version}/capsules/{capsule_id}/fqdns/{fqdn_id}',
+                current_fqdn,
+                status=200
+            )
+
+            # Try set acme certificate for this capsule
+            new_input = dict(self._tls_input)
+            new_input.pop('crt')
+            new_input.pop('key')
+            res = testapp.patch_json(
+                api_version + "/capsules/" + capsule_id + "/tls",
+                self._tls_input,
+                status=400
+            ).json
+            msg = 'does not match any of the following domains'
+            assert msg in res["error_description"]
 
     # Response 401:
     def test_patch_unauthorized(self, testapp, db):

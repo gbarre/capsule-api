@@ -210,6 +210,10 @@ TlsOptions:
       format: password
       writeOnly: true
       example: "Base 64 encoded pem key"
+    certificate:
+      type: string
+      enum: [none, acme, manual]
+      example: manual
 
 Cron:
   type: object
@@ -458,6 +462,10 @@ Capsule:
     force_redirect_https:
       type: boolean
       default: true
+    certificate:
+      type: string
+      enum: [none, acme, manual]
+      default: manual
     tls_crt:
       type: string
       writeOnly: true
@@ -554,6 +562,10 @@ CapsuleVerbose:
     force_redirect_https:
       type: boolean
       default: true
+    certificate:
+      type: string
+      enum: [none, acme, manual]
+      default: manual
     tls_crt:
       type: string
       writeOnly: true
@@ -646,6 +658,10 @@ CapsulePost:
     force_redirect_https:
       type: boolean
       default: true
+    certificate:
+      type: string
+      enum: [none, acme, manual]
+      default: manual
     tls_crt:
       type: string
       writeOnly: true
