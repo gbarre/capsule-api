@@ -45,21 +45,28 @@ def check_owners_on_keycloak(usernames):  # pragma: no cover
     client_id = oidc_client_secrets['client_id']
     client_secret = oidc_client_secrets['client_secret']
 
-    token_res = requests.post(token_uri, data={
-        'grant_type': 'client_credentials',
-        'client_id': client_id,
-        'client_secret': client_secret,
-    }).json()
+    token_res = requests.post(
+        token_uri,
+        data={
+            'grant_type': 'client_credentials',
+            'client_id': client_id,
+            'client_secret': client_secret,
+        },
+        timeout=1,
+    ).json()
     access_token = token_res['access_token']
 
     for username in usernames:
         if username == "":
             raise KeycloakUserNotFound("empty username")
-        res = requests.get(f'{admin_uri}/users?username={username}',
-                           headers={
-                               'Accept': 'application/json',
-                               'Authorization': f'Bearer {access_token}',
-                           }).json()
+        res = requests.get(
+            f'{admin_uri}/users?username={username}',
+            headers={
+                'Accept': 'application/json',
+                'Authorization': f'Bearer {access_token}',
+            },
+            timeout=1,
+        ).json()
         if not res:
             raise KeycloakUserNotFound(username)
 
@@ -161,17 +168,25 @@ def get_user_from_keycloak(id, by_name=False):  # pragma: no cover
     client_id = oidc_client_secrets['client_id']
     client_secret = oidc_client_secrets['client_secret']
 
-    token_res = requests.post(token_uri, data={
-        'grant_type': 'client_credentials',
-        'client_id': client_id,
-        'client_secret': client_secret,
-    }).json()
+    token_res = requests.post(
+        token_uri,
+        data={
+            'grant_type': 'client_credentials',
+            'client_id': client_id,
+            'client_secret': client_secret,
+        },
+        timeout=1,
+    ).json()
     access_token = token_res['access_token']
 
-    res = requests.get(f'{admin_uri}/users/{id}', headers={
-        'Accept': 'application/json',
-        'Authorization': f'Bearer {access_token}',
-    }).json()
+    res = requests.get(
+        f'{admin_uri}/users/{id}',
+        headers={
+            'Accept': 'application/json',
+            'Authorization': f'Bearer {access_token}',
+        },
+        timeout=1,
+    ).json()
 
     if "username" not in res:
         raise KeycloakIdNotFound(id)

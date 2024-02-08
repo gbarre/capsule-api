@@ -1,0 +1,32 @@
+patch:
+  tags: [admin]
+  description: |
+    Allow admin to delegate the managment of FQDNs and TLS certificate.
+  summary: Updates delegations for a capsule
+  operationId: api.capsules.delegate.patch
+  parameters:
+    - $ref: "../../components/parameters.yml#/capsule_id"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            fqdns:
+              type: boolean
+            tls:
+              type: boolean
+  responses:
+    "200":
+      description: Capsule configured
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas.yml#/Capsule"
+    "401":
+      $ref: "../../components/responses.yml#/Unauthorized"
+    "400":
+      $ref: "../../components/responses.yml#/BadRequest"
+    "403":
+      $ref: "../../components/responses.yml#/Forbidden"

@@ -1,0 +1,59 @@
+get:
+  tags: [user]
+  description: |
+    Gets the crons of a webapp.
+  summary: Get the crons of a webapp
+  operationId: api.capsules.webapp.crons.search
+  parameters:
+    - $ref: "../../../components/parameters.yml#/capsule_id"
+    - $ref: "../../../components/parameters.yml#/offset"
+    - $ref: "../../../components/parameters.yml#/limit"
+    - $ref: "../../../components/parameters.yml#/filters"
+  responses:
+    "200":
+      description: The requested crons of a webapp
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "../../../components/schemas.yml#/Cron"
+    "400":
+      $ref: "../../../components/responses.yml#/BadRequest"
+    "401":
+      $ref: "../../../components/responses.yml#/Unauthorized"
+    "403":
+      $ref: "../../../components/responses.yml#/Forbidden"
+    "404":
+      $ref: "../../../components/responses.yml#/NotFound"
+
+post:
+  tags: [user]
+  description: |
+    Add a new cron to a webapp.\
+    **Only one cron per webapp!**
+  summary: Add a cron to a webapp
+  operationId: api.capsules.webapp.crons.post
+  parameters:
+    - $ref: "../../../components/parameters.yml#/capsule_id"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../../components/schemas.yml#/Cron"
+  responses:
+    "201":
+      description: Cron added to the webapp
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas.yml#/Cron"
+    "400":
+      $ref: "../../../components/responses.yml#/BadRequest"
+    "401":
+      $ref: "../../../components/responses.yml#/Unauthorized"
+    "403":
+      $ref: "../../../components/responses.yml#/Forbidden"
+    "404":
+      $ref: "../../../components/responses.yml#/NotFound"

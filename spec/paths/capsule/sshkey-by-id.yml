@@ -1,0 +1,20 @@
+delete:
+  tags: [user]
+  description: |
+    Deletes a public key.
+  summary: Delete a public key
+  operationId: api.capsules.sshkeys.delete
+  parameters:
+    - $ref: "../../components/parameters.yml#/capsule_id"
+    - $ref: "../../components/parameters.yml#/sshkey_id"
+  responses:
+    "204":
+      description: Successful deletion
+    "400":
+      $ref: "../../components/responses.yml#/BadRequest"
+    "401":
+      $ref: "../../components/responses.yml#/Unauthorized"
+    "403":
+      $ref: "../../components/responses.yml#/Forbidden"
+    "404":
+      $ref: "../../components/responses.yml#/NotFound"

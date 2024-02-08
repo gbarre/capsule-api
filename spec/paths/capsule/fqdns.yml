@@ -1,0 +1,36 @@
+post:
+  tags: [user, admin]
+  description: |
+    Add a new FQDN to a capsule.\
+    **This action can be delegated to user.**
+  summary: Add an FQDN to a capsule
+  operationId: api.capsules.fqdns.post
+  parameters:
+    - $ref: "../../components/parameters.yml#/capsule_id"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../components/schemas.yml#/Fqdn"
+  responses:
+    "201":
+      description: Fqdn added to the capsule
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas.yml#/Fqdn"
+      headers:
+        Location:
+          description: Created FQDN URI
+          schema:
+            type: string
+            format: uri
+    "400":
+      $ref: "../../components/responses.yml#/BadRequest"
+    "401":
+      $ref: "../../components/responses.yml#/Unauthorized"
+    "403":
+      $ref: "../../components/responses.yml#/Forbidden"
+    "404":
+      $ref: "../../components/responses.yml#/NotFound"

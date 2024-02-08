@@ -36,4 +36,4 @@ def db(app):
         _db.session.close()
         _db.drop_all()
         db_uri = app.config["SQLALCHEMY_DATABASE_URI"]
-        os.remove(db_uri.replace('sqlite:///', ''))
+        os.remove(db_uri.replace('sqlite:///', 'instance/'))

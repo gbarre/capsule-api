@@ -155,7 +155,10 @@ def put(capsule_id, addon_id, user):
     if str(addon.capsule.id) != capsule_id:
         raise Forbidden(description="bad capsule id")
 
-    addon.description = data["description"]
+    if 'description' in data:
+        addon.description = data["description"]
+    else:
+        addon.description = addon.name
 
     if data["runtime_id"] != str(addon.runtime_id):
         raise BadRequest(description="The runtime_id cannot be changed.")
@@ -168,9 +171,6 @@ def put(capsule_id, addon_id, user):
         addon.opts = opts
     else:
         addon.opts = []
-
-    if addon.description is None:
-        addon.description = addon.name
 
     db.session.commit()
 

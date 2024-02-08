@@ -1,0 +1,35 @@
+post:
+  tags: [user]
+  description: |
+    Add a public sshkey to a capsule.
+  summary: Add a public sshkey to a capsule
+  operationId: api.capsules.sshkeys.post
+  parameters:
+    - $ref: "../../components/parameters.yml#/capsule_id"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../components/schemas.yml#/SSHKeyList"
+  responses:
+    "201":
+      description: SSHKey added to the capsule
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas.yml#/Capsule"
+    "400":
+      $ref: "../../components/responses.yml#/BadRequest"
+    "401":
+      $ref: "../../components/responses.yml#/Unauthorized"
+    "403":
+      $ref: "../../components/responses.yml#/Forbidden"
+    "404":
+      $ref: "../../components/responses.yml#/NotFound"
+    "409":
+      description: SSHKey already exists for this capsule
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas.yml#/Error"

@@ -1,0 +1,111 @@
+offset:
+  in: query
+  name: offset
+  description: The number of items to skip before collecting the result set
+  required: false
+  schema:
+    type: integer
+    minimum: 0
+    default: 0
+limit:
+  in: query
+  name: limit
+  description: The number of items to return
+  required: false
+  schema:
+    type: integer
+    minimum: 1
+    maximum: 500
+    default: 100
+verbose:
+  in: query
+  name: verbose
+  description: Whether the response much display additional information about the requested resource
+  required: false
+  schema:
+    type: boolean
+    default: false
+filters:
+  in: query
+  name: filters
+  description: The fields of the response to filter by
+  required: false
+  schema:
+    type: object
+    default: {}
+  style: deepObject
+  explode: true
+domain:
+  in: query
+  name: domain
+  description: The domain requested for pdnssync
+  required: true
+  schema:
+    type: string
+exclude:
+  in: query
+  name: exclude
+  description: The excluded domains for pdnssync request
+  required: false
+  schema:
+    type: object
+    default: {}
+  style: deepObject
+  explode: true
+
+capsule_id:
+  in: path
+  name: capsule_id
+  required: true
+  description: Capsule GUID
+  schema:
+    type: string
+addon_id:
+  in: path
+  name: addon_id
+  required: true
+  description: AddOn GUID
+  schema:
+    type: string
+runtime_id:
+  in: path
+  name: runtime_id
+  required: true
+  description: Runtime GUID
+  schema:
+    type: string
+user_id:
+  in: path
+  name: user_id
+  required: true
+  description: User LDAP nsUniqueId
+  schema:
+    type: string
+sshkey_id:
+  in: path
+  name: sshkey_id
+  required: true
+  description: SSH Key GUID
+  schema:
+    type: string
+apptoken_id:
+  in: path
+  name: apptoken_id
+  required: true
+  description: Application token GUID
+  schema:
+    type: string
+cron_id:
+  in: path
+  name: cron_id
+  required: true
+  description: Cron GUID
+  schema:
+    type: string
+fqdn_id:
+  in: path
+  name: fqdn_id
+  required: true
+  description: FQDN GUID
+  schema:
+    type: string

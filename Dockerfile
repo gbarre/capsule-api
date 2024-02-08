@@ -1,4 +1,4 @@
-FROM python:3.8-slim AS build
+FROM harbor.in.ac-versailles.fr/library/python:3.8-slim AS build
 
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends build-essential gcc
@@ -25,7 +25,7 @@ COPY server.py .
 COPY utils.py .
 COPY entrypoint.sh .
 
-FROM python:3.8-slim AS run
+FROM harbor.in.ac-versailles.fr/library/python:3.8-slim AS run
 
 RUN set -eux; \
     apt-get update; \

@@ -1,7 +1,3 @@
-"""
-Main module of the server file
-"""
-
 import json
 from json.decoder import JSONDecodeError
 import os
@@ -10,6 +6,10 @@ from app import create_app
 from config import YamlConfig
 from pathlib import Path
 from flask import request, g
+from models import RoleEnum
+from werkzeug.exceptions import Forbidden
+
+from utils import check_user_role, check_apptoken
 
 
 parser = argparse.ArgumentParser()
@@ -42,6 +42,37 @@ connex_app = create_app(yamlconfig)
 app = connex_app.app
 
 from app import oidc
+
+
+@app.before_request
+def before_request_func():
+    # Get username from token
+    try:
+        token = request.headers['Authorization'].split(None, 1)[1].strip()
+        (validity, name) = check_apptoken(token)
+    except KeyError:
+        validity = False
+    if validity:
+        g.capsule_app_token = name
+    else:  # look with keycloak by validating token
+        try:
+            token = request.headers['Authorization'].split(None, 1)[1].strip()
+            if oidc._validate_token(token):
+                name = g.oidc_token_info['username']
+            else:
+                name = "-"
+        except (KeyError, AttributeError):
+            name = "-"
+    # Do not allow admins to remove specific objects listed in config
+    if name != '-' and request.method != 'GET':
+        for key in yamlconfig.PRESERVE:
+            for id in yamlconfig.PRESERVE[key]:
+                if f'{key}/{id}' in request.path:
+                    try:
+                        check_user_role(RoleEnum.superadmin)
+                    except Forbidden:
+                        msg = f'You cannot edit this resource {key}/{id}.'
+                        return Forbidden(description=msg)
 
 
 @app.after_request

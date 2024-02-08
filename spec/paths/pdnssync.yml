@@ -1,0 +1,24 @@
+get:
+  tags: [admin]
+  description: |
+    Gets pdnssync file
+  summary: Get the pdnssync file in order to manage dns entries
+  operationId: api.pdnssync.get
+  parameters:
+    - $ref: "../components/parameters.yml#/domain"
+    - $ref: "../components/parameters.yml#/exclude"
+  responses:
+    "200":
+      description: The requested pdnssync
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "../components/schemas.yml#/Pdnssync"
+    "401":
+      $ref: "../components/responses.yml#/Unauthorized"
+    "403":
+      $ref: "../components/responses.yml#/Forbidden"
+    "404":
+      $ref: "../components/responses.yml#/NotFound"

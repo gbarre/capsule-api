@@ -1,0 +1,82 @@
+put:
+  tags: [user]
+  description: |
+    Only updates an addon for a capsule.\
+    A **NotFound** error will be returned
+    if the addon does not exist.
+  summary: Update an addon for a capsule
+  operationId: api.capsules.addons.put
+  parameters:
+    - $ref: "../../components/parameters.yml#/capsule_id"
+    - $ref: "../../components/parameters.yml#/addon_id"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../components/schemas.yml#/AddOn"
+  responses:
+    "200":
+      description: Addon updated for the capsule
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas.yml#/AddOn"
+      headers:
+        Location:
+          description: Created addon URI
+          schema:
+            type: string
+            format: uri
+    "400":
+      $ref: "../../components/responses.yml#/BadRequest"
+    "401":
+      $ref: "../../components/responses.yml#/Unauthorized"
+    "403":
+      $ref: "../../components/responses.yml#/Forbidden"
+    "404":
+      $ref: "../../components/responses.yml#/NotFound"
+
+get:
+  tags: [user]
+  description: |
+    Gets details about an addon for a capsule.
+  summary: Get an addon for a capsule
+  operationId: api.capsules.addons.get
+  parameters:
+    - $ref: "../../components/parameters.yml#/capsule_id"
+    - $ref: "../../components/parameters.yml#/addon_id"
+  responses:
+    "200":
+      description: AddOn added to the capsule
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas.yml#/AddOn"
+    "400":
+      $ref: "../../components/responses.yml#/Unauthorized"
+    "401":
+      $ref: "../../components/responses.yml#/Unauthorized"
+    "403":
+      $ref: "../../components/responses.yml#/Forbidden"
+    "404":
+      $ref: "../../components/responses.yml#/NotFound"
+
+delete:
+  tags: [user]
+  description: |
+    Deletes an addon for a capsule.
+  summary: Delete an addon for a capsule
+  operationId: api.capsules.addons.delete
+  parameters:
+    - $ref: "../../components/parameters.yml#/capsule_id"
+    - $ref: "../../components/parameters.yml#/addon_id"
+  responses:
+    "204":
+      description: Successful deletion
+    "401":
+      $ref: "../../components/responses.yml#/Unauthorized"
+    "403":
+      $ref: "../../components/responses.yml#/Forbidden"
+    "404":
+      $ref: "../../components/responses.yml#/NotFound"

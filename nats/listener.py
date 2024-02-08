@@ -290,7 +290,7 @@ class NATSDriverMsg:
 
         j = self.json['data']
         if (self.json["state"] == "?status") and \
-                not(isinstance(j, dict) and 'id' in j):
+                not (isinstance(j, dict) and 'id' in j):
             self.is_msg_valid = False
             self.error = 'Data value must be an object with the key "id"'
             return

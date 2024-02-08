@@ -1,0 +1,21 @@
+get:
+  tags: [user]
+  description: |
+    Gets domains availables with ACME protocol
+  summary: Get the domains availables with ACME protocol
+  operationId: api.acmedomains.get
+  parameters: []
+  responses:
+    "200":
+      description: The requested domains
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: string
+            example:
+              - nip.io
+              - xip.io
+    "401":
+      $ref: "../components/responses.yml#/Unauthorized"

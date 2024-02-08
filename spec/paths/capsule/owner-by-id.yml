@@ -1,0 +1,26 @@
+delete:
+  tags: [user]
+  description: |
+    Removes an owner from a capsule.
+  summary: Remove an owner from a capsule
+  operationId: api.capsules.owners.delete
+  parameters:
+    - $ref: "../../components/parameters.yml#/capsule_id"
+    - $ref: "../../components/parameters.yml#/user_id"
+  responses:
+    "400":
+      $ref: "../../components/responses.yml#/BadRequest"
+    "401":
+      $ref: "../../components/responses.yml#/Unauthorized"
+    "403":
+      $ref: "../../components/responses.yml#/Forbidden"
+    "404":
+      $ref: "../../components/responses.yml#/NotFound"
+    "409":
+      description: You cannot remove yourself
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas.yml#/Error"
+    "204":
+      description: Successful deletion

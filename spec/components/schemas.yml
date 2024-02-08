@@ -1,0 +1,842 @@
+Error:
+  type: object
+  properties:
+    error:
+      type: string
+    error_description:
+      type: string
+
+User:
+  type: object
+  properties:
+    id: # correspond à LDAP nsUniqueId
+      type: string
+      example: 02d3e2a0-a925-4438-8199-2cd726d7b42d
+    name:
+      type: string
+      example: foobar
+    public_keys:
+      $ref: "./schemas.yml#/SSHKey"
+    role:
+      type: string
+      enum: [user, admin, superadmin]
+      default: user
+      description: |
+        user:
+        - can only sign in and administer owned capsules
+        - can grant ownership to users on owned capsules
+
+        admin:
+        - can perform manager actions
+        - can create/delete capsules and grant ownership to users on them
+        - can also administer all capsules
+
+        superadmin:
+        - can perform admin actions
+        - can create runtime models
+    parts_manager:
+      type: boolean
+      default: false
+  readOnly: true
+
+AvailableOpt:
+  type: array
+  properties:
+    access_level:
+      type: string
+      enum: [user, admin, superadmin]
+    tag:
+      type: string
+    field_name:
+      type: string
+    field_description:
+      type: string
+      default: ""
+    value_type:
+      type: string
+      enum: [string, integer, float, boolean, base64] # not definitive
+    default_value:
+      type: string # type corresponding to valueType
+      description: type must match valueType
+    validation_rules:
+      type: array
+      default: []
+  required:
+    - tag
+    - field_name
+    - value_type
+    - access_level
+    - default_value
+  example:
+    - access_level: admin
+      tag: SQL
+      field_name: my.cnf
+      field_description: >-
+        Fichier de configuration MySQL
+      value_type: base64
+      default_value: "{base64-encoded my.cnf file content}"
+    - access_level: user
+      tag: SQL
+      field_name: threads
+      field_description: >-
+        Nombre de threads MySQL
+      value_type: integer
+      default_value: "20"
+      validation_rules:
+        - type: min
+          arg: "1"
+        - type: max
+          arg: "200"
+
+Runtime:
+  type: object
+  properties:
+    id:
+      type: string
+      readOnly: true
+      example: a972e936-0840-4278-b5d2-8ec7af8836bc
+    name:
+      type: string
+      example: MariaDB 10.1
+    description:
+      type: string
+      example: >-
+        MySQL Database Server
+    fam:
+      type: string
+      example: Database
+    runtime_type:
+      type: string
+      enum: [addon, webapp]
+    uri_template:
+      nullable: true
+      type: object
+      properties:
+        pattern:
+          type: string
+        variables:
+          type: array
+          items:
+            $ref: "./schemas.yml#/UriVariables"
+      required:
+        - pattern
+        - variables
+      example:
+        pattern: "mysql://{username}:{password}@host:port/{username}"
+        variables:
+          - name: "username"
+            src: "capsule" # currently "capsule" or "random"
+            length: 16
+            unique: true
+            set_name: true
+          - name: password
+            src: "random"
+            length: 32
+            unique: false
+            set_name: false
+    available_opts:
+      $ref: "./schemas.yml#/AvailableOpt"
+    created_at:
+      type: string
+      readOnly: true
+      example : "2017-07-21T17:32:28Z"
+    updated_at:
+      type: string
+      readOnly: true
+      example : "2020-03-17T15:32:28Z"
+  required:
+    - name
+    - runtime_type
+    - description
+    - fam
+
+UriVariables:
+  type: object
+  properties:
+    name:
+      type: string
+    src:
+      type: string
+      enum: [capsule, random]
+    length:
+      type: integer
+    unique:
+      type: boolean
+    set_name:
+      type: boolean
+  required:
+    - name
+    - src
+    - length
+    - unique
+    - set_name
+
+Fqdn:
+  type: object
+  properties:
+    id:
+      type: string
+      readOnly: true
+      example: 1c8193f9-5654-47a1-ac37-6a24ce5058de
+    name:
+      type: string
+      format: hostname
+      pattern: '^(?!:\/\/)([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-][a-zA-Z0-9-]+\.[a-zA-Z]{2,6}?$'
+      example: main.fqdn.ac-versailles.fr
+    alias:
+      type: boolean
+      example: false
+  required:
+    - alias
+    - name
+
+TlsOptions:
+  type: object
+  properties:
+    enable_https:
+      type: boolean
+      default: true
+    force_redirect_https:
+      type: boolean
+      default: true
+    crt:
+      type: string
+      writeOnly: true
+      example: "Base 64 encoded pem crt"
+    key:
+      type: string
+      format: password
+      writeOnly: true
+      example: "Base 64 encoded pem key"
+    certificate:
+      type: string
+      enum: [none, acme, manual]
+      example: manual
+
+Cron:
+  type: object
+  properties:
+    id:
+      type: string
+      readOnly: true
+      example: 9140f660-a8bf-4cca-b4e7-4db336e23d22
+    minute:
+      type: string
+      default: "0"
+    hour:
+      type: string
+      default: "*"
+    month_day:
+      type: string
+      default: "*"
+    month:
+      type: string
+      default: "*"
+    week_day:
+      type: string
+      default: "*"
+    command:
+      type: string
+      example: "/usr/bin/php /app/data/www/admin/cli/cron.php"
+    created_at:
+      type: string
+      readOnly: true
+      example : "2017-07-21T17:32:28Z"
+    updated_at:
+      type: string
+      readOnly: true
+      example : "2020-03-17T15:32:28Z"
+  required:
+    - command
+
+WebApp:
+  type: object
+  properties:
+    id:
+      type: string
+      readOnly: true
+      example: d41ea210-742a-410c-a971-3978143eab80
+    runtime_id:
+      type: string
+      example: e48e31e2-e271-4a2c-aee4-e73caa8aa615
+    env:
+      type: object
+      description: Dict of environment variables
+      example:
+        HTTP_PROXY: http://proxy:3128/
+        HTTPS_PROXY: https://proxy:3128/
+      default: {}
+    opts:
+      type: array
+      items:
+        type: object
+        properties:
+          tag:
+            type: string
+            example: PHP
+          field_name:
+            type: string
+            example: worker
+          value_type:
+            type: string
+            enum: [string, integer, float, boolean, base64]
+          value:
+            type: string # can be any value
+            example: "42"
+    volume_size:
+      type: integer
+      description: Size allocated for the webapp (in GB)
+      example: 200
+    created_at:
+      type: string
+      readOnly: true
+      example : "2017-07-21T17:32:28Z"
+    updated_at:
+      type: string
+      readOnly: true
+      example : "2020-03-17T15:32:28Z"
+  required:
+    - runtime_id
+
+WebAppInVerbose:
+  type: object
+  properties:
+    id:
+      type: string
+      readOnly: true
+      example: d41ea210-742a-410c-a971-3978143eab80
+    runtime_id:
+      type: string
+      example: e48e31e2-e271-4a2c-aee4-e73caa8aa615
+    env:
+      type: object
+      description: Dict of environment variables
+      example:
+        HTTP_PROXY: http://proxy:3128/
+        HTTPS_PROXY: https://proxy:3128/
+      default: {}
+    opts:
+      type: array
+      items:
+        type: object
+        properties:
+          tag:
+            type: string
+            example: PHP
+          field_name:
+            type: string
+            example: worker
+          value_type:
+            type: string
+            enum: [string, integer, float, boolean, base64]
+          value:
+            type: string # can be any value
+            example: "42"
+      default: []
+    volume_size:
+      type: integer
+      description: Size allocated for the webapp (in GB)
+      example: 200
+    crons:
+      type: array
+      items:
+        $ref: "./schemas.yml#/Cron"
+      default: []
+    created_at:
+      type: string
+      readOnly: true
+      example : "2017-07-21T17:32:28Z"
+    updated_at:
+      type: string
+      readOnly: true
+      example : "2020-03-17T15:32:28Z"
+
+AddOn:
+  type: object
+  properties:
+    id:
+      type: string
+      readOnly: true
+      example: e461015b-7820-4693-87d3-3e05cc490006
+    name:
+      type: string
+      example: database-name
+      readOnly: true
+    description:
+      type: string
+      default: ""
+      example: >-
+        Service de base de données pour ma capsule
+    uri:
+      type: string
+      format: uri
+      readOnly: true
+      example: "mysql://username:password@host/database"
+      nullable: true
+    runtime_id:
+      type: string
+      example: d4541bee-eb0d-472a-9956-6bbfd63442c0
+    env:
+      type: object
+      description: Dict of environment variables
+      example:
+        HTTP_PROXY: http://proxy:3128/
+        HTTPS_PROXY: https://proxy:3128/
+      default: {}
+    opts:
+      type: array
+      items:
+        type: object
+        properties:
+          tag:
+            type: string
+          field_name:
+            type: string
+          value_type:
+            type: string
+            enum: [string, integer, float, boolean, base64]
+          value:
+            type: string # can be any value
+      default: []
+      example: []
+    created_at:
+      type: string
+      readOnly: true
+      example : "2017-07-21T17:32:28Z"
+    updated_at:
+      type: string
+      readOnly: true
+      example : "2020-03-17T15:32:28Z"
+  required:
+    - runtime_id
+
+Capsule:
+  type: object
+  properties:
+    id:
+      type: string
+      example: 695d0f1a-beb2-4145-828d-0f7f0fcc6696
+      readOnly: true
+    uid:
+      type: integer
+      readOnly: true
+      example: 5001
+    name:
+      type: string
+      example: lyc-vernes-osny
+    no_update:
+      type: string
+      example : "2021-03-05T10:29:12Z"
+    owners:
+      type: array
+      items:
+        type: string
+      example:
+        - jdoe
+        - jdoe1
+      uniqueItems: true
+      minItems: 1
+    webapp:
+      type: string
+      nullable: true
+      example: 1ba583fb-9731-48f1-afd8-93f8d514faff
+      readOnly: true
+    fqdns:
+      type: array
+      items:
+        $ref: "./schemas.yml#/Fqdn"
+    enable_https:
+      type: boolean
+      default: true
+    force_redirect_https:
+      type: boolean
+      default: true
+    certificate:
+      type: string
+      enum: [none, acme, manual]
+      default: manual
+    tls_crt:
+      type: string
+      writeOnly: true
+      example: "Base 64 encoded pem crt"
+    tls_key:
+      type: string
+      format: password
+      writeOnly: true
+      example: "Base 64 encoded pem key"
+    addons:
+      type: array
+      items:
+        type: string
+      example:
+        - 24236e31-9a9a-42b5-a6fb-2e32f36e054f
+        - bee09122-5b09-4f9c-bc20-9e639f1510bb
+      readOnly: true
+      uniqueItems: true
+      default: []
+    addons_offset:
+      type: integer
+      default: 0
+      example: 2
+    authorized_keys:
+      $ref: "./schemas.yml#/SSHKey"
+      default: []
+    comment:
+      description: Comment field for the owner
+      type: string
+      default: ""
+    delegate_fqdns:
+      type: boolean
+      default: false
+      nullable: false
+      example: false
+      description: "Allow owners to manage FQDNs."
+    delegate_tls:
+      type: boolean
+      default: false
+      nullable: false
+      example: false
+      description: "Allow owners to manage TLS certificate."
+    size:
+      type: string
+      enum: [tiny, small, medium, large, xlarge]
+      example: small
+    created_at:
+      type: string
+      readOnly: true
+      example : "2017-07-21T17:32:28Z"
+    updated_at:
+      type: string
+      readOnly: true
+      example : "2020-03-17T15:32:28Z"
+  required:
+    - name
+    - owners
+
+CapsuleVerbose:
+  type: object
+  properties:
+    id:
+      type: string
+      example: 695d0f1a-beb2-4145-828d-0f7f0fcc6696
+      readOnly: true
+    uid:
+      type: integer
+      readOnly: true
+      example: 5001
+    name:
+      type: string
+      example: lyc-vernes-osny
+    no_update:
+      type: string
+      example : "2021-03-05T10:29:12Z"
+    owners:
+      type: array
+      items:
+        $ref: "./schemas.yml#/User"
+      uniqueItems: true
+      minItems: 1
+    webapp:
+      $ref: "./schemas.yml#/WebAppInVerbose"
+    fqdns:
+      type: array
+      items:
+        $ref: "./schemas.yml#/Fqdn"
+    enable_https:
+      type: boolean
+      default: true
+    force_redirect_https:
+      type: boolean
+      default: true
+    certificate:
+      type: string
+      enum: [none, acme, manual]
+      default: manual
+    tls_crt:
+      type: string
+      writeOnly: true
+      example: "Base 64 encoded pem crt"
+    tls_key:
+      type: string
+      format: password
+      writeOnly: true
+      example: "Base 64 encoded pem key"
+    addons:
+      type: array
+      items:
+        $ref: "./schemas.yml#/AddOn"
+      default: []
+    addons_offset:
+      type: integer
+      default: 0
+      example: 2
+    authorized_keys:
+      $ref: "./schemas.yml#/SSHKey"
+      default: []
+    comment:
+      description: Comment field for the owner
+      type: string
+      default: ""
+    delegate_fqdns:
+      type: boolean
+      default: false
+      nullable: false
+      example: false
+      description: "Allow owners to manage FQDNs."
+    delegate_tls:
+      type: boolean
+      default: false
+      nullable: false
+      example: false
+      description: "Allow owners to manage TLS certificate."
+    size:
+      type: string
+      enum: [tiny, small, medium, large, xlarge]
+      example: small
+    created_at:
+      type: string
+      readOnly: true
+      example : "2017-07-21T17:32:28Z"
+    updated_at:
+      type: string
+      readOnly: true
+      example : "2020-03-17T15:32:28Z"
+  required:
+    - name
+    - owners
+
+CapsulePost:
+  type: object
+  properties:
+    id:
+      type: string
+      example: 695d0f1a-beb2-4145-828d-0f7f0fcc6696
+      readOnly: true
+    name:
+      type: string
+      example: lyc-vernes-osny
+    no_update:
+      type: boolean
+      example : false
+    owners:
+      type: array
+      items:
+        type: string
+      example:
+        - jdoe
+        - jdoe1
+      uniqueItems: true
+      minItems: 1
+    webapp:
+      type: string
+      nullable: true
+      example: 1ba583fb-9731-48f1-afd8-93f8d514faff
+      readOnly: true
+    fqdns:
+      type: array
+      items:
+        $ref: "./schemas.yml#/Fqdn"
+    enable_https:
+      type: boolean
+      default: true
+    force_redirect_https:
+      type: boolean
+      default: true
+    certificate:
+      type: string
+      enum: [none, acme, manual]
+      default: manual
+    tls_crt:
+      type: string
+      writeOnly: true
+      example: "Base 64 encoded pem crt"
+    tls_key:
+      type: string
+      format: password
+      writeOnly: true
+      example: "Base 64 encoded pem key"
+    addons:
+      type: array
+      items:
+        type: string
+      example:
+        - 24236e31-9a9a-42b5-a6fb-2e32f36e054f
+        - bee09122-5b09-4f9c-bc20-9e639f1510bb
+      readOnly: true
+      uniqueItems: true
+      default: []
+    addons_offset:
+      type: integer
+      default: 0
+      example: 2
+    authorized_keys:
+      $ref: "./schemas.yml#/SSHKeyList"
+      default: []
+    comment:
+      description: Comment field for the owner
+      type: string
+      default: ""
+    delegate_fqdns:
+      type: boolean
+      default: false
+      nullable: false
+      example: false
+      description: "Allow owners to manage FQDNs."
+    delegate_tls:
+      type: boolean
+      default: false
+      nullable: false
+      example: false
+      description: "Allow owners to manage TLS certificate."
+    size:
+      type: string
+      enum: [tiny, small, medium, large, xlarge]
+      example: small
+    created_at:
+      type: string
+      readOnly: true
+      example : "2017-07-21T17:32:28Z"
+    updated_at:
+      type: string
+      readOnly: true
+      example : "2020-03-17T15:32:28Z"
+  required:
+    - name
+    - owners
+
+SSHKey:
+  type: array
+  items:
+    type: object
+    properties:
+      id:
+        type: string
+        readOnly: true
+      public_key:
+        type: string
+      created_at:
+        type: string
+        readOnly: true
+      updated_at:
+        type: string
+        readOnly: true
+  example:
+    - id: 2573ccf6-d2d5-4774-958c-8ef6d64744a1
+      public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCt+vNHscC4LbZY/YQP0hcV4QrwRlhqrcuhAvZZERmp\
+        NLLOWK4Neaa7ywikVGOOVcY+q3XRHPNZTVkEZhwm0F+/87LJpNhxhZu4BdJ2mfIwx0JS5gRflfeUxxLJ\
+        AwLXQZpcO7GRdz/w12EgBohHNbxJyKwL7DSFAnaZ08/tlsjoNRlo1k4NHFf5Xf8K3M1ZlXeSxNV9nlpX\
+        tD6tbVVJn18tDCZgSqH64m1+iVb05sB2htifgkBB+fCElRV/v7Eylc5Zu1EMTlrHmeHB3Yf8DpRMkwYH\
+        e4j+yDutLvhhZzGmrnNGcD8zZkE1pwKivjwBKee4Bee8NzVR7vMary2GkqY1 john@doe"
+      created_at: "2017-07-21T17:32:28Z"
+      updated_at: "2020-03-17T15:32:28Z"
+    - id: de2f9eac-c8d5-49e6-9fb4-df93b00761d1
+      public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqDWN5ay+bKoNg/+DbugWvLjY6q+ODdelRkZTakj7U\
+        Nq+a40Vm+HHRT2tuoB1NxeR87UieJt9IxWiiTasb/Ss+OgcAn5l8kvQvRQe+dp10qbeQHzkrgjpsFj49\
+        YDOVKRTrqm5X721TnpqAo2RjqGBeEU+y9REfXPNPMUsni3w/h/BQqJi/e2CRBRdgbi/3bO0Xf0Pt0bc/\
+        9jjF6vulqzttdbxowbee8bJlPyz/LnNcTGDdmw2PNQFwe0ZuhHsFzSLX4acM3je0+xcdlq0+Gq8nU5jz\
+        /x0SXuXFz9zFHPO3Ivko1VFdBXaqeb8wOluUjmOxJdDcg3Uqswc5Z08KU+9r jane@doe"
+      created_at: "2018-02-21T17:18:08Z"
+      updated_at: "2020-03-17T15:32:28Z"
+
+SSHKeyList:
+  type: array
+  items:
+    type: string
+  example:
+    - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCt+vNHscC4LbZY/YQP0hcV4QrwRlhqrcuhAvZZERmp\
+        NLLOWK4Neaa7ywikVGOOVcY+q3XRHPNZTVkEZhwm0F+/87LJpNhxhZu4BdJ2mfIwx0JS5gRflfeUxxLJ\
+        AwLXQZpcO7GRdz/w12EgBohHNbxJyKwL7DSFAnaZ08/tlsjoNRlo1k4NHFf5Xf8K3M1ZlXeSxNV9nlpX\
+        tD6tbVVJn18tDCZgSqH64m1+iVb05sB2htifgkBB+fCElRV/v7Eylc5Zu1EMTlrHmeHB3Yf8DpRMkwYH\
+        e4j+yDutLvhhZzGmrnNGcD8zZkE1pwKivjwBKee4Bee8NzVR7vMary2GkqY1 john@doe"
+    - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqDWN5ay+bKoNg/+DbugWvLjY6q+ODdelRkZTakj7U\
+        Nq+a40Vm+HHRT2tuoB1NxeR87UieJt9IxWiiTasb/Ss+OgcAn5l8kvQvRQe+dp10qbeQHzkrgjpsFj49\
+        YDOVKRTrqm5X721TnpqAo2RjqGBeEU+y9REfXPNPMUsni3w/h/BQqJi/e2CRBRdgbi/3bO0Xf0Pt0bc/\
+        9jjF6vulqzttdbxowbee8bJlPyz/LnNcTGDdmw2PNQFwe0ZuhHsFzSLX4acM3je0+xcdlq0+Gq8nU5jz\
+        /x0SXuXFz9zFHPO3Ivko1VFdBXaqeb8wOluUjmOxJdDcg3Uqswc5Z08KU+9r jane@doe"
+
+SSHKeyPost:
+  type: object
+  properties:
+    public_key:
+      type: string
+      example:
+        "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCt+vNHscC4LbZY/YQP0hcV4QrwRlhqrcuhAvZZERmp
+        NLLOWK4Neaa7ywikVGOOVcY+q3XRHPNZTVkEZhwm0F+/87LJpNhxhZu4BdJ2mfIwx0JS5gRflfeUxxLJ
+        AwLXQZpcO7GRdz/w12EgBohHNbxJyKwL7DSFAnaZ08/tlsjoNRlo1k4NHFf5Xf8K3M1ZlXeSxNV9nlpX
+        tD6tbVVJn18tDCZgSqH64m1+iVb05sB2htifgkBB+fCElRV/v7Eylc5Zu1EMTlrHmeHB3Yf8DpRMkwYH
+        e4j+yDutLvhhZzGmrnNGcD8zZkE1pwKivjwBKee4Bee8NzVR7vMary2GkqY1 john@doe"
+
+AppToken:
+  type: object
+  properties:
+    id:
+      type: string
+      readOnly: true
+      example: b4c75c57-3cf6-4d6c-a5bb-05102151a4c8
+    app:
+      type: string
+      example: My super app
+    owner_id:
+      type: string
+      readOnly: true
+      example: ca9ab78c-9326-4518-a4c3-7c69b8984140
+    token:
+      type: string
+      readOnly: true
+      example: KDCte1raIV-ItPQf-sf_tapY4q-kLmvlcJ9yUKPlqbo
+  required:
+    - app
+
+Certificate:
+  type: object
+  properties:
+    CN:
+      type: string
+      example: ac-versailles.fr
+    SAN:
+      type: array
+      items:
+        type: string
+        example: ac-versailles.fr
+    notBefore:
+      type: string
+      example : "2021-02-15T12:34:56Z"
+    notAfter:
+      type: string
+      example : "2022-02-14T12:34:56Z"
+    hasExpired:
+      type: boolean
+      example: false
+    issuer:
+      type: string
+      example: AAA Certificate Services
+
+Cluster:
+  type: object
+  properties:
+    parts_assigned:
+      type: integer
+      example: 42
+    total_parts:
+      type: integer
+      example: 100
+    volumes_size_assigned:
+      type: integer
+      example: 112
+    total_volumes_size:
+      type: integer
+      example: 200
+
+Pdnssync:
+  type: object
+  properties:
+    name:
+      type: string
+      example: foo
+    type:
+      type: string
+      enum: [A, CNAME]
+      example: CNAME
+    content:
+      type: string
+      example: paas.example.com

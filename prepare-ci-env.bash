@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PY_VERSION=${1:-3.6}
+PY_VERSION=${1:-3.10}
 
 echo "Preparing this jobs with python${PY_VERSION}..."
 

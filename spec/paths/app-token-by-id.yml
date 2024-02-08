@@ -1,0 +1,19 @@
+delete:
+  tags: [user]
+  description: |
+    Deletes an application token.
+  summary: Delete an application token
+  operationId: api.apptokens.delete
+  parameters:
+    - $ref: "../components/parameters.yml#/apptoken_id"
+  responses:
+    "204":
+      description: Successful deletion
+    "400":
+      $ref: "../components/responses.yml#/BadRequest"
+    "401":
+      $ref: "../components/responses.yml#/Unauthorized"
+    "403":
+      $ref: "../components/responses.yml#/Forbidden"
+    "404":
+      $ref: "../components/responses.yml#/NotFound"

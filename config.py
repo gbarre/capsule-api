@@ -62,6 +62,13 @@ class YamlConfig:
                 'pool_pre_ping': True,
             }
 
+            if 'preserve' in api:
+                self.PRESERVE = api['preserve']
+            else:
+                self.PRESERVE = {}
+
+            self.PAAS_CNAME = api['paas_cname']
+
             # Drivers
             self.DRIVERS = config['drivers']
         except KeyError as e:  # pragma: no cover

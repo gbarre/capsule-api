@@ -1,0 +1,90 @@
+openapi: "3.0.2"
+
+info:
+  title: Capsule API
+  version: "__API_VERSION__"
+  description: __PLATFORM_DESCRIPTION__
+  contact:
+    name: Académie de Versailles
+    url: http://www.ac-versailles.fr/pid35231/nous-contacter.html
+  license:
+    name: GNU GPLv3
+    url: https://www.gnu.org/licenses/gpl-3.0.en.html
+
+servers:
+  - url: 'https://console.__PLATFORM__.paas.in.ac-versailles.fr/v2'
+
+components:
+  securitySchemes:
+    $ref: ./components/securitySchemes.yml
+  parameters:
+    $ref: ./components/parameters.yml
+  requestBodies: {}
+  responses:
+    $ref: ./components/responses.yml
+  schemas:
+    $ref: ./components/schemas.yml
+
+paths:
+  /users:
+    $ref: ./paths/users.yml
+  /users/{user_id}:
+    $ref: ./paths/user-by-id.yml
+
+  /capsules:
+    $ref: ./paths/capsules.yml
+  /capsules/{capsule_id}:
+    $ref: ./paths/capsule-by-id.yml
+  /capsules/{capsule_id}/owners:
+    $ref: ./paths/capsule/owners.yml
+  /capsules/{capsule_id}/owners/{user_id}:
+    $ref: ./paths/capsule/owner-by-id.yml
+  /capsules/{capsule_id}/webapp:
+    $ref: ./paths/capsule/webapp.yml
+  /capsules/{capsule_id}/webapp/crons:
+    $ref: ./paths/capsule/webapp/crons.yml
+  /capsules/{capsule_id}/webapp/crons/{cron_id}:
+    $ref: ./paths/capsule/webapp/cron-by-id.yml
+  /capsules/{capsule_id}/addons:
+    $ref: ./paths/capsule/addons.yml
+  /capsules/{capsule_id}/addons/{addon_id}:
+    $ref: ./paths/capsule/addon-by-id.yml
+  /capsules/{capsule_id}/sshkeys:
+    $ref: ./paths/capsule/sshkeys.yml
+  /capsules/{capsule_id}/sshkeys/{sshkey_id}:
+    $ref: ./paths/capsule/sshkey-by-id.yml
+  /capsules/{capsule_id}/fqdns:
+    $ref: ./paths/capsule/fqdns.yml
+  /capsules/{capsule_id}/fqdns/{fqdn_id}:
+    $ref: ./paths/capsule/fqdn-by-id.yml
+  /capsules/{capsule_id}/tls:
+    $ref: ./paths/capsule/tls.yml
+  /capsules/{capsule_id}/delegate:
+    $ref: ./paths/capsule/delegate.yml
+
+  /runtimes:
+    $ref: ./paths/runtimes.yml
+  /runtimes/{runtime_id}:
+    $ref: ./paths/runtime-by-id.yml
+
+  /sshkeys:
+    $ref: ./paths/sshkeys.yml
+  /sshkeys/{sshkey_id}:
+    $ref: ./paths/sshkey-by-id.yml
+
+  /apptokens:
+    $ref: ./paths/app-tokens.yml
+  /apptokens/{apptoken_id}:
+    $ref: ./paths/app-token-by-id.yml
+
+  /me:
+    $ref: ./paths/me.yml
+
+  /cluster:
+    $ref: ./paths/cluster.yml
+
+  /acmedomains:
+    $ref: ./paths/acmedomains.yml
+
+  /pdnssync:
+    $ref: ./paths/pdnssync.yml

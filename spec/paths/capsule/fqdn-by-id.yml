@@ -1,0 +1,65 @@
+put:
+  tags: [user, admin]
+  description: |
+    Only updates a FQDN for a capsule.\
+    A **NotFound** error will be returned
+    if the FQDN does not exist.\
+    **This action can be delegated to user.**
+  summary: Update a FQDN for a capsule
+  operationId: api.capsules.fqdns.put
+  parameters:
+    - $ref: "../../components/parameters.yml#/capsule_id"
+    - $ref: "../../components/parameters.yml#/fqdn_id"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../components/schemas.yml#/Fqdn"
+  responses:
+    "200":
+      description: FQDN updated for the capsule
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas.yml#/Fqdn"
+      headers:
+        Location:
+          description: Created FQDN URI
+          schema:
+            type: string
+            format: uri
+    "400":
+      $ref: "../../components/responses.yml#/BadRequest"
+    "401":
+      $ref: "../../components/responses.yml#/Unauthorized"
+    "403":
+      $ref: "../../components/responses.yml#/Forbidden"
+    "404":
+      $ref: "../../components/responses.yml#/NotFound"
+
+delete:
+  tags: [user, admin]
+  description: |
+    Deletes a FQDN for a capsule.\
+    **This action can be delegated to user.**
+  summary: Delete an FQDN for a capsule
+  operationId: api.capsules.fqdns.delete
+  parameters:
+    - $ref: "../../components/parameters.yml#/capsule_id"
+    - $ref: "../../components/parameters.yml#/fqdn_id"
+  responses:
+    "204":
+      description: Successful deletion
+    "401":
+      $ref: "../../components/responses.yml#/Unauthorized"
+    "403":
+      $ref: "../../components/responses.yml#/Forbidden"
+    "404":
+      $ref: "../../components/responses.yml#/NotFound"
+    "409":
+      description: A webapp need at least one FQDN.
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas.yml#/Error"

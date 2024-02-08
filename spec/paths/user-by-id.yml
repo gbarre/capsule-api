@@ -1,0 +1,21 @@
+get:
+  tags: [user]
+  description: |
+    Gets a user.
+  summary: Get a user
+  operationId: api.users.get
+  parameters:
+    - $ref: "../components/parameters.yml#/user_id"
+  responses:
+    "200":
+      description: The requested user
+      content:
+        application/json:
+          schema:
+              $ref: "../components/schemas.yml#/User"
+    "401":
+      $ref: "../components/responses.yml#/Unauthorized"
+    "403":
+      $ref: "../components/responses.yml#/Forbidden"
+    "404":
+      $ref: "../components/responses.yml#/NotFound"

@@ -1,9 +1,14 @@
 import os
 import connexion
+import prance
+from typing import Any, Dict
+from pathlib import Path
 import werkzeug
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 import logging
+
+from config import YamlConfig
 
 # Create the SQLAlchemy db instance.
 # Warning: this object can be imported in another modules below, so
@@ -52,9 +57,18 @@ cors = CORS()
 from nats.listener import create_nats_listener
 
 
-def create_app(config):
+def get_bundled_specs(main_file: Path) -> Dict[str, Any]:
+    parser = prance.ResolvingParser(
+        str(main_file.absolute()),
+        lazy=True,
+        strict=True,
+    )
+    parser.parse()
+    return parser.specification
+
+
+def create_app(config: YamlConfig):
     # Manage swagger ui config
-    specficification_file = 'openapi.json'
     swagger_ui_config = config.SWAGGER_UI_CONFIG
     api_version = config.API_VERSION
 
@@ -64,20 +78,22 @@ def create_app(config):
 
     for o in swagger_ui_config['urls']:
         options['swagger_ui_config']['urls'].append({
-            "url": f'{o["url"]}{api_version}/{specficification_file}',
+            "url": f'{o["url"]}{api_version}/openapi.json',
             "name": f'{o["name"]}'
         })
 
     # Create the connexion application instance
     connex_app = connexion.App(
         __name__,
-        specification_dir=os.path.join(basedir, 'spec'),
         options=options,
     )
 
     # Read the swagger file to configure the endpoints
     connex_app.add_api(
-        specficification_file,
+        get_bundled_specs(
+            Path("spec/index.yml"),
+        ),
+        resolver=connexion.RestyResolver("rest_api"),
         strict_validation=True,
         validate_responses=True,
     )

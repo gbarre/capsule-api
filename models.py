@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import enum
 
 from exceptions import FQDNAlreadyExists
@@ -26,6 +27,7 @@ class GUID(TypeDecorator):
 
     """
     impl = CHAR
+    cache_ok = True
 
     def load_dialect_impl(self, dialect):
         if dialect.name == 'postgresql':
@@ -136,6 +138,11 @@ class SizeEnum(str, enum.Enum):
             return 16
         if self == __class__.xlarge:
             return 32
+
+
+class PdnssyncTypeEnum(str, enum.Enum):
+    a = "A"
+    cname = "CNAME"
 
 
 class User(db.Model):
@@ -1204,6 +1211,19 @@ class CronSchema(ma.SQLAlchemyAutoSchema):
     updated_at = ma.auto_field(dump_only=True)
 
 
+@dataclass
+class Pdnssync:
+    name: str
+    type: PdnssyncTypeEnum
+    content: str
+
+
+class PdnssyncSchema(ma.Schema):
+    name = fields.Str()
+    type = fields.Str()
+    content = fields.Str()
+
+
 capsule_input_schema = CapsuleInputSchema()
 capsule_output_schema = CapsuleOutputSchema()
 capsules_output_schema = CapsuleOutputSchema(many=True)
@@ -1225,3 +1245,4 @@ apptokens_schema = AppTokenSchema(many=True)
 cron_schema = CronSchema()
 crons_schema = CronSchema(many=True)
 fqdn_schema = FQDNSchema()
+pdnssync_schema = PdnssyncSchema(many=True)

@@ -314,7 +314,7 @@ class TestCapsuleAddons:
             publish_method.assert_called_once()
             dict_contains(res, new_addon)
 
-    def test_update_without_opts(self, testapp, db):
+    def test_update_without_opts_and_description(self, testapp, db):
         capsule_id = str(db.capsule1.id)
         addon_id = str(db.addon1.id)
         with patch.object(oidc, "validate_token", return_value=True), \
@@ -323,6 +323,7 @@ class TestCapsuleAddons:
 
             new_addon = self.build_addon(db)
             new_addon.pop('opts')
+            new_addon.pop('description')
 
             res = testapp.put_json(
                 f"{api_version}/capsules/{capsule_id}/addons/{addon_id}",
